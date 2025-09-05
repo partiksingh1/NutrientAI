@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int          @id @default(autoincrement())
+  username       String
+  email          String       @unique
+  password       String       @unique
+  weight         Float
+  height         Float
+  age            Int
+  activityLevel  String
+  dietaryGoals   Goal[]
+  mealLogs       MealLog[]
+  preferences    Preferences?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Goal {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
+
+  type        GoalType
+  description String?    // Optional user-defined note
+  startDate   DateTime   @default(now())
+  endDate     DateTime?  // Optional if ongoing
+  isActive    Boolean    @default(true)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+enum GoalType {
+  MUSCLE_GAIN
+  FAT_LOSS
+  MAINTENANCE
+  RECOMP
+  GENERAL_HEALTH
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+  PRE_WORKOUT
+  POST_WORKOUT
+}
+
+model MealLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  mealType    MealType
+  customName  String?   // Optional meal name if user wants to customize
+
+  calories    Float
+  protein     Float
+  carbs       Float
+  fats        Float
+
+  servings    Float     @default(1.0)
+
+  mealDate    DateTime
+  user        User     @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+enum DietType {
+  OMNIVORE
+  VEGETARIAN
+  VEGAN
+  KETO
+  PALEO
+  GLUTEN_FREE
+  OTHER
+}
+
+model Preferences {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @unique
+
+  mealFrequency Int      @default(3) // meals per day
+  snackIncluded Boolean  @default(true)
+  dietType      DietType @default(OMNIVORE)
+  allergies     String?  // optional JSON or CSV string for now
+
+  user          User     @relation(fields: [userId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
