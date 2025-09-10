@@ -4,6 +4,8 @@ import goal_router from "./routes/goal.routes.js";
 import meal_logs from "./routes/meals.routes.js";
 import preference from "./routes/preferences.routes.js";
 import recommend_router from "./routes/recommend.route.js";
+import main_router from "./routes/mainController.routes.js";
+import analytics from "./routes/analytics.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,7 +19,8 @@ app.use('/api/goals', goal_router);
 app.use('/api/meals', meal_logs);
 app.use('/api/preference', preference);
 app.use('/api/recommend', recommend_router);
-
+app.use('/api/complete_profile', main_router);
+app.use('/api/analytics', analytics);
 app.listen(PORT, () => {
     console.log(`...Server running at http://localhost:${PORT}`);
 });

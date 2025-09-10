@@ -8,15 +8,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 type Signup = {
     username: string,
     email: string,
-    password: string,
-    weight: number,
-    height: number,
-    age: number,
-    activityLevel: string
+    password: string
 }
 
 export const signup = async (req: Request, res: Response) => {
-    const { username, email, password, weight, height, age, activityLevel }: Signup = req.body;
+    const { username, email, password }: Signup = req.body;
 
     try {
         const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -31,17 +27,13 @@ export const signup = async (req: Request, res: Response) => {
             data: {
                 username,
                 email,
-                password: hashedPassword,
-                weight,
-                height,
-                age,
-                activityLevel
+                password: hashedPassword
             },
         });
 
         const token = jwt.sign({ userId: newUser.id }, JWT_SECRET, { expiresIn: '1d' });
 
-        return res.status(201).json({ token, user: { id: newUser.id, email: newUser.email, username: newUser.username } });
+        return res.status(201).json({ token, user: { id: newUser.id, email: newUser.email, username: newUser.username, profile_completed: newUser.profile_completed } });
     } catch (error) {
         console.error("Signup Error:", error);
         return res.status(500).json({ error: 'Signup failed' });
@@ -66,7 +58,7 @@ export const signin = async (req: Request, res: Response) => {
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '1d' });
 
-        return res.json({ token, user: { id: user.id, email: user.email, username: user.username } });
+        return res.json({ token, user: { id: user.id, email: user.email, username: user.username, profile_completed: user.profile_completed } });
     } catch (error) {
         return res.status(500).json({ error: 'Signin failed' });
     }

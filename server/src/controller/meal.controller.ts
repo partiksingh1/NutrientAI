@@ -52,8 +52,8 @@ export const aiMealLogger = async (req: Request, res: Response) => {
             mealDate: parsed.mealDate ? new Date(parsed.mealDate) : new Date(),
         };
 
-        const newMealLog = await prisma.mealLog.create({ data: finalData });
-        return res.status(201).json(newMealLog);
+        // const newMealLog = await prisma.mealLog.create({ data: finalData });
+        return res.status(201).json(finalData);
     } catch (err) {
         console.error(`Failed to process meal log for user ${userId}:`, err);
         return res.status(500).json({ error: "Failed to process meal log" });
