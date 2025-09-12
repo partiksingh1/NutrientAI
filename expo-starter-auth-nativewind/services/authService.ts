@@ -10,7 +10,7 @@ export default class AuthService {
    */
   static async login(credentials: LoginCredentials): Promise<User> {
     try {
-      const response = await fetch('http://192.168.1.68:3000/api/auth/signin', {
+      const response = await fetch('http://192.168.162.155:3000/api/auth/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,7 +50,7 @@ export default class AuthService {
    */
   static async register(userData: LoginCredentials & { name: string }): Promise<User> {
     try {
-      const response = await fetch('http://192.168.1.68:3000/api/auth/signup', {
+      const response = await fetch('http://192.168.162.155:3000/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -65,7 +65,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
             const token = await AsyncStorage.getItem("auth_token")
             console.log("FormData is ", formData);
 
-            const response = await fetch("http://192.168.1.68:3000/api/complete_profile", {
+            const response = await fetch("http://192.168.162.155:3000/api/complete_profile", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

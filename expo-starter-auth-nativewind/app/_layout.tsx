@@ -1,6 +1,6 @@
 import { Stack, useSegments, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, JSXElementConstructor, ReactElement, ReactNode, ReactPortal } from "react";
 import { ActivityIndicatorComponent, Text, View } from "react-native";
 import ToastManager, { Toast } from 'toastify-react-native'
 import { AuthProvider, useAuth } from "../context/AuthContext";
@@ -104,7 +104,7 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <AuthRoot />
-      <ToastManager />
+      <ToastManager useModal={true} />
     </AuthProvider>
   );
 }
