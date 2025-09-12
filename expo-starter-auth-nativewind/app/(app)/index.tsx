@@ -17,7 +17,7 @@ import {
 } from 'lucide-react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useAuth } from '@/context/AuthContext';
-import { MealLoggingModal } from '@/components/MealLog'; // assuming this is already implemented
+import { MealLoggingModal } from '@/components/MeallogModal';
 
 // --- Reusable Button Component ---
 const Button = ({ variant = 'default', children, onPress }: any) => {
