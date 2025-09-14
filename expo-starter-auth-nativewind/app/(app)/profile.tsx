@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Alert
 } from 'react-native';
 import {
   Send,
@@ -14,8 +15,41 @@ import {
   Utensils,
   TrendingUp,
   Clock
-} from 'lucide-react-native';;
+} from 'lucide-react-native';
+import { useAuth } from '../../context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// API Service for AI Recommendations
+const AUTH_TOKEN_KEY = "auth_token";
+
+const sendMessageToAI = async (userId: string, message: string): Promise<string> => {
+  try {
+    const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+
+    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/recommend/ai`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+      body: JSON.stringify({
+        userId,
+        message: message.trim(),
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to get AI response');
+    }
+
+    const data = await response.json();
+    return data.reply || 'Sorry, I couldn\'t process your request right now.';
+  } catch (error) {
+    console.error('AI API Error:', error);
+    throw error;
+  }
+};
 
 const Button = ({
   variant = 'default',
@@ -75,11 +109,12 @@ interface Message {
 
 // --- Main Chat Screen ---
 export default function ChatScreen() {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       content:
-        "Hi Alex! I'm your AI nutritionist assistant. I can help you log meals, track progress, and give personalized recommendations. What would you like to know today?",
+        "Hi! I'm your AI nutritionist assistant. I can help you log meals, track progress, and give personalized recommendations. What would you like to know today?",
       sender: 'ai',
       timestamp: new Date()
     }
@@ -87,6 +122,7 @@ export default function ChatScreen() {
 
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const quickSuggestions = [
@@ -100,8 +136,8 @@ export default function ChatScreen() {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  const handleSend = async () => {
+    if (!inputValue.trim() || !user?.id || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -111,11 +147,13 @@ export default function ChatScreen() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setIsTyping(true);
+    setIsLoading(true);
 
-    setTimeout(() => {
-      const aiResponse = generateAIResponse(inputValue);
+    try {
+      const aiResponse = await sendMessageToAI(user.id, currentInput);
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: aiResponse,
@@ -124,25 +162,37 @@ export default function ChatScreen() {
       };
 
       setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'Sorry, I\'m having trouble connecting right now. Please check your internet connection and try again.',
+        sender: 'ai',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+
+      // Show alert for debugging in development
+      if (__DEV__) {
+        Alert.alert('API Error', `Failed to get AI response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    } finally {
       setIsTyping(false);
-    }, 1500);
-  };
-
-  const generateAIResponse = (input: string): string => {
-    const lower = input.toLowerCase();
-
-    if (lower.includes('breakfast') || lower.includes('log')) {
-      return "Great! What did you have for breakfast? You can tell me something like 'Greek yogurt with berries and granola' and I'll calculate the macros for you.";
-    } else if (lower.includes('progress')) {
-      return "You're doing well today! You've consumed 1,850 calories so far (84% of goal) with 95g protein. You're slightly low on carbs - consider adding some fruit or whole grains to your next meal.";
-    } else if (lower.includes('dinner') || lower.includes('suggest')) {
-      return "Based on your remaining macros, I'd suggest grilled salmon with quinoa and roasted vegetables. This would give you ~400 calories, 35g protein, and help you reach your daily goals perfectly!";
-    } else if (lower.includes('summary') || lower.includes('week')) {
-      return "This week you've averaged 2,180 calories daily with consistent protein intake. Your adherence to goals is 89% - excellent! You tend to under-eat on weekends, so consider meal prep for better consistency.";
-    } else {
-      return "I'm here to help with your nutrition goals! You can ask me about logging meals, tracking progress, meal suggestions, or any nutrition questions you have.";
+      setIsLoading(false);
     }
   };
+
+
+  // Show loading or error state if user is not available
+  if (!user) {
+    return (
+      <View className="flex-1 bg-gray-50 dark:bg-neutral-950 justify-center items-center p-4">
+        <Text className="text-lg text-gray-600 dark:text-gray-400 text-center">
+          Please log in to access the AI nutritionist assistant.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -264,7 +314,7 @@ export default function ChatScreen() {
           <Button
             size="icon"
             onPress={handleSend}
-            disabled={!inputValue.trim()}
+            disabled={!inputValue.trim() || isLoading || !user?.id}
             className="bg-blue-500"
           >
             <Send size={18} color="white" />

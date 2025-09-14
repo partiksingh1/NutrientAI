@@ -10,7 +10,9 @@ export default class AuthService {
    */
   static async login(credentials: LoginCredentials): Promise<User> {
     try {
-      const response = await fetch('http://192.168.162.155:3000/api/auth/signin', {
+      console.log("clicked login");
+
+      const response = await fetch('http://192.168.245.155:3000/api/auth/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
