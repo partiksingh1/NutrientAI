@@ -1,25 +1,40 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  Keyboard,
+  ActivityIndicator,
 } from 'react-native';
 import {
   MessageCircle,
   Plus,
   PlusCircleIcon,
   TargetIcon,
-  TrendingUp,
   User2Icon,
   UtensilsCrossed,
 } from 'lucide-react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useAuth } from '@/context/AuthContext';
 import { MealLoggingModal } from '@/components/MeallogModal';
+import axios from 'axios';
 
-// --- Reusable Button Component ---
+export interface MealData {
+  id?: number;
+  userId?: number;
+  mealType: string;
+  customName: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  servings: number;
+  notes?: string | null;
+  mealDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 const Button = ({ variant = 'default', children, onPress }: any) => {
   const base = 'flex-row items-center justify-center rounded-xl h-16 px-12';
   const styles =
@@ -46,14 +61,12 @@ const Button = ({ variant = 'default', children, onPress }: any) => {
   );
 };
 
-// --- Progress Bar Component ---
 const Progress = ({ value }: { value: number }) => (
   <View className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
     <View className="h-2 bg-blue-500" style={{ width: `${value}%` }} />
   </View>
 );
 
-// --- Macro Ring Component ---
 const MacroRing = ({
   label,
   current,
@@ -62,13 +75,15 @@ const MacroRing = ({
 }: {
   label: string;
   current: number;
-  target: number;
+  target?: number;
   color: string;
 }) => {
-  const percentage = (current / target) * 100;
+  const percentage = target ? (current / target) * 100 : 0;
   const radius = 30;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const strokeDashoffset = target
+    ? circumference - (percentage / 100) * circumference
+    : circumference;
 
   return (
     <View className="items-center">
@@ -89,44 +104,79 @@ const MacroRing = ({
         </Svg>
         <View className="absolute inset-0 items-center justify-center mt-4">
           <Text className="text-xs">{current}</Text>
-          <Text className="text-xs text-gray-500">/{target}</Text>
+          <Text className="text-xs text-gray-500">/ {target ?? '--'}</Text>
         </View>
       </View>
       <Text className="text-xs mt-4">{label}</Text>
     </View>
   );
 };
-const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-// --- Main Screen Component ---
+
 export default function HomeScreen() {
   const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [meals, setMeals] = useState<MealData[]>([]);
+  const [todayMeals, setTodayMeals] = useState<MealData[]>([]);
+  const [dailyTotals, setDailyTotals] = useState({
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fats: 0,
+  });
+  const [loading, setLoading] = useState<boolean>(false);
 
   const name = user?.username ?? 'User';
-  const email = user?.email ?? 'No email';
 
   const dailyGoals = {
-    calories: { current: 1850, target: 2200 },
-    protein: { current: 95, target: 120 },
-    carbs: { current: 180, target: 220 },
-    fats: { current: 65, target: 85 },
+    calories: { target: undefined }, // Or set to a number if you have user-specific goals
+    protein: { target: undefined },
+    carbs: { target: undefined },
+    fats: { target: undefined },
   };
 
-  const todayMeals = [
-    { time: '8:30 AM', name: 'Greek Yogurt Bowl', calories: 320, type: 'breakfast' },
-    { time: '12:45 PM', name: 'Chicken Caesar Salad', calories: 480, type: 'lunch' },
-    { time: '3:15 PM', name: 'Apple & Almond Butter', calories: 190, type: 'snack' },
-  ];
+  const fetchTodayMeals = async () => {
+    if (!user?.id) return;
+    try {
+      setLoading(true);
+      const resp = await axios.get<MealData[]>(
+        `${process.env.EXPO_PUBLIC_API_URL}/meals/today/${user.id}`
+      );
+      const data = resp.data;
+      setTodayMeals(data);
+
+      const totals = data.reduce(
+        (acc, meal) => {
+          acc.calories += meal.calories;
+          acc.protein += meal.protein;
+          acc.carbs += meal.carbs;
+          acc.fats += meal.fats;
+          return acc;
+        },
+        { calories: 0, protein: 0, carbs: 0, fats: 0 }
+      );
+      setDailyTotals(totals);
+    } catch (error) {
+      console.error("Error fetching today's meals:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTodayMeals();
+  }, [user?.id]);
 
   const handleSaveMeal = (newMeal: MealData) => {
-    setMeals((prev) => [...prev, newMeal]);
+    fetchTodayMeals();
   };
 
   return (
     <>
+      {loading && (
+        <View className="absolute inset-0 flex-1 items-center justify-center bg-white/80">
+          <ActivityIndicator size="large" color="#000" />
+        </View>
+      )}
       <ScrollView className="flex-1 bg-gray-50 dark:bg-neutral-950">
-        {/* Header */}
         <View className="p-6 pb-4 mt-4">
           <View className="flex-row justify-between items-start mb-6">
             <View>
@@ -140,14 +190,11 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {/* Quick Actions */}
           <View className="w-full flex-row gap-2 mb-6 justify-between items-center">
             <Button variant="default">
               <MessageCircle size={18} color="white" /> Ask AI
             </Button>
-            <Button variant="outline" onPress={() => {
-              setIsModalOpen(true)
-            }}>
+            <Button variant="outline" onPress={() => setIsModalOpen(true)}>
               <Plus size={18} color="black" /> Log Meal
             </Button>
           </View>
@@ -166,13 +213,13 @@ export default function HomeScreen() {
               <View className="flex-row justify-center mb-4 gap-6 p-3">
                 <MacroRing
                   label="Calories"
-                  current={dailyGoals.calories.current}
+                  current={dailyTotals.calories}
                   target={dailyGoals.calories.target}
                   color="#3b82f6"
                 />
                 <MacroRing
                   label="Protein"
-                  current={dailyGoals.protein.current}
+                  current={dailyTotals.protein}
                   target={dailyGoals.protein.target}
                   color="#10b981"
                 />
@@ -181,16 +228,32 @@ export default function HomeScreen() {
                 <View>
                   <View className="flex-row justify-between items-center mb-1">
                     <Text>Carbs</Text>
-                    <Text>{dailyGoals.carbs.current}g / {dailyGoals.carbs.target}g</Text>
+                    <Text>
+                      {dailyTotals.carbs}g / {dailyGoals.carbs.target ?? '--'}g
+                    </Text>
                   </View>
-                  <Progress value={(dailyGoals.carbs.current / dailyGoals.carbs.target) * 100} />
+                  <Progress
+                    value={
+                      dailyGoals.carbs.target
+                        ? (dailyTotals.carbs / dailyGoals.carbs.target) * 100
+                        : 0
+                    }
+                  />
                 </View>
                 <View>
                   <View className="flex-row justify-between mb-1">
                     <Text>Fats</Text>
-                    <Text>{dailyGoals.fats.current}g / {dailyGoals.fats.target}g</Text>
+                    <Text>
+                      {dailyTotals.fats}g / {dailyGoals.fats.target ?? '--'}g
+                    </Text>
                   </View>
-                  <Progress value={(dailyGoals.fats.current / dailyGoals.fats.target) * 100} />
+                  <Progress
+                    value={
+                      dailyGoals.fats.target
+                        ? (dailyTotals.fats / dailyGoals.fats.target) * 100
+                        : 0
+                    }
+                  />
                 </View>
               </View>
             </View>
@@ -212,81 +275,48 @@ export default function HomeScreen() {
               </View>
             </View>
             <View>
-              {todayMeals.map((meal, index) => (
+              {todayMeals.map((meal) => (
                 <View
-                  key={index}
+                  key={meal.id}
                   className="flex-row justify-between py-3 border-b border-gray-200"
                 >
                   <View>
-                    <Text className="text-sm">{meal.name}</Text>
-                    <Text className="text-xs text-gray-500">{meal.time}</Text>
+                    <Text className="text-sm">{meal.customName}</Text>
+                    <Text className="text-xs text-gray-500">
+                      {meal?.mealDate
+                        ? new Date(meal.mealDate).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                        : 'No time'}
+                    </Text>
                   </View>
                   <View className="items-end">
                     <Text className="text-sm">{meal.calories} kcal</Text>
-                    <Text className="text-xs text-gray-500 capitalize">{meal.type}</Text>
+                    <Text className="text-xs text-gray-500 lowercase">
+                      {meal.mealType}
+                    </Text>
                   </View>
                 </View>
               ))}
-              <Text className="text-xs text-gray-500 text-center mt-2">
-                Still need: 350 kcal for dinner
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Weekly Trend */}
-        <View className="px-6 pb-6">
-          <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 shadow-md border border-gray-300">
-            <View className="mb-3">
-              <View className="text-base font-semibold text-black dark:text-white flex-row gap-2 items-center">
-                <TrendingUp size={18} />
-                <Text>This Week</Text>
-              </View>
-            </View>
-            <View>
-              <View className="flex-row justify-between items-center">
-                <View>
-                  <Text className="text-2xl">4.2</Text>
-                  <Text className="text-xs text-gray-500">Avg daily rating</Text>
-                </View>
-                <View className="items-end">
-                  <Text className="text-sm text-green-600">+2.3%</Text>
-                  <Text className="text-xs text-gray-500">vs last week</Text>
-                </View>
-              </View>
-              {days.map((day, index) => (
-                <View key={day} className="items-center">
-                  <Text className="text-xs text-gray-500 mb-1">{day}</Text>
-                  <View
-                    className={`w-6 h-6 rounded-full ${index < 5 ? 'bg-blue-500' : 'bg-gray-300'} ${index === 4 ? 'border-2 border-blue-300' : ''}`}
-                  />
-                </View>
-              ))}
+              {todayMeals.length === 0 && (
+                <Text className="text-sm text-gray-500 text-center mt-4">
+                  No meals logged today.
+                </Text>
+              )}
             </View>
           </View>
         </View>
       </ScrollView>
 
-      {/* Meal Modal */}
       <MealLoggingModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={(mealData) => {
+        onSave={(mealData: MealData) => {
           handleSaveMeal(mealData);
           setIsModalOpen(false);
         }}
       />
     </>
   );
-}
-
-// --- Types ---
-interface MealData {
-  customName: string;
-  mealType: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  servings: number;
 }
