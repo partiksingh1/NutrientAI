@@ -78,7 +78,6 @@ export const recommend = async (req: Request, res: Response) => {
 
     // --- 5. Format Today's Meals (Compressed) ---
     const mealsSummary = mealLogs
-      .slice(-3) // take latest 3 meals only
       .map(m => `- ${m.servings}× ${m.customName} in ${m.mealType}: ${m.calories} kcal (${m.protein}g P / ${m.carbs}g C / ${m.fats}g F)`)
       .join('\n') || "No meals logged yet.";
 
@@ -92,7 +91,7 @@ Diet: ${prefs.dietType}, Allergies: ${prefs.allergies || "None"}
     // --- 7. Prepare Contextual Prompt ---
     const promptTemplate = new PromptTemplate({
       template: `
-    You are a helpful nutrition assistant.
+    You are a helpful nutrition assistant for a mobile app.
     
     User Profile:
     {profile}
@@ -112,7 +111,16 @@ Diet: ${prefs.dietType}, Allergies: ${prefs.allergies || "None"}
     
     User asks: {input}
     
-    Give a clear, practical, and empathetic reply aligned with their goals.
+    IMPORTANT FORMATTING RULES FOR MOBILE UI:
+    - Use simple, clean formatting that works well on mobile screens
+    - For lists, use numbered format (1. 2. 3.) or bullet points with dashes (-)
+    - Use line breaks (\\n) to separate different sections or ideas
+    - Keep paragraphs short and scannable
+    - Use **bold** for emphasis on important points
+    - Avoid complex markdown syntax like tables or code blocks
+    - Make responses conversational and easy to read on a small screen
+    
+    Give a clear, practical, and empathetic reply aligned with their goals, formatted for mobile readability.
       `.trim(),
       inputVariables: ['profile', 'meals', 'shortTermMemory', 'vectorMemory', 'input'],
     });
