@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Alert } from 'react-native';
+import { Alert, ScrollView } from 'react-native';
 import { clearConversation, fetchConversationMessages, sendMessageToAI } from '@/services/recommendService';
 import { LocalMessage } from '@/types/recommend';
 
@@ -13,7 +13,7 @@ export const useChat = ({ userId }: UseChatParams) => {
     const [isTyping, setIsTyping] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
-    const scrollViewRef = useRef(null);
+    const scrollViewRef = useRef<ScrollView>(null);
 
     // Load conversation messages
     const loadConversationMessages = async () => {
@@ -30,14 +30,27 @@ export const useChat = ({ userId }: UseChatParams) => {
         }
     };
 
-    // Clear conversation
+    // Clear conversation with confirmation
     const clearConversationMessages = async () => {
-        try {
-            await clearConversation();
-            setMessages([]);
-        } catch (error) {
-            Alert.alert('Error', 'Failed to clear conversation');
-        }
+        Alert.alert(
+            'Clear Conversation',
+            'Are you sure you want to clear all messages? This action cannot be undone.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Clear',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await clearConversation();
+                            setMessages([]);
+                        } catch (error) {
+                            Alert.alert('Error', 'Failed to clear conversation');
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     // Send a message to AI
@@ -87,6 +100,20 @@ export const useChat = ({ userId }: UseChatParams) => {
             setIsLoading(false);
         }
     };
+
+    // Auto-scroll to bottom when new messages arrive
+    const scrollToBottom = () => {
+        setTimeout(() => {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+    };
+
+    // Scroll to bottom when messages change
+    useEffect(() => {
+        if (messages.length > 0) {
+            scrollToBottom();
+        }
+    }, [messages.length]);
 
     // On mount, load conversation messages
     useEffect(() => {

@@ -30,14 +30,17 @@ export const sendMessageToAI = async (userId: string, message: string): Promise<
 
         const data: AIResponse = await response.json();
 
-        Toast.show({
-            type: 'success',
-            text1: 'Message sent',
-            text2: 'AI response received successfully',
-            position: 'top',
-            visibilityTime: 3000,
-            autoHide: true,
-        });
+        // Only show success toast for first message or errors
+        if (data.cached) {
+            Toast.show({
+                type: 'info',
+                text1: 'Quick response',
+                text2: 'Using cached result',
+                position: 'top',
+                visibilityTime: 2000,
+                autoHide: true,
+            });
+        }
 
         return data;
     } catch (error: any) {
@@ -64,14 +67,17 @@ export const fetchConversation = async (): Promise<Conversation | null> => {
 
         return response.data.conversation;
     } catch (error: any) {
-        Toast.show({
-            type: 'error',
-            text1: 'Failed to load conversation',
-            text2: error.message || 'Please try again.',
-            position: 'top',
-            visibilityTime: 3000,
-            autoHide: true,
-        });
+        // Only show error toast for critical failures
+        if (error.response?.status >= 500) {
+            Toast.show({
+                type: 'error',
+                text1: 'Connection error',
+                text2: 'Please check your internet connection',
+                position: 'top',
+                visibilityTime: 3000,
+                autoHide: true,
+            });
+        }
         throw error;
     }
 };
@@ -94,14 +100,17 @@ export const fetchConversationMessages = async (): Promise<LocalMessage[]> => {
             timestamp: new Date(msg.createdAt)
         }));
     } catch (error: any) {
-        Toast.show({
-            type: 'error',
-            text1: 'Failed to load messages',
-            text2: error.message || 'Please try again.',
-            position: 'top',
-            visibilityTime: 3000,
-            autoHide: true,
-        });
+        // Only show error toast for critical failures
+        if (error.response?.status >= 500) {
+            Toast.show({
+                type: 'error',
+                text1: 'Connection error',
+                text2: 'Please check your internet connection',
+                position: 'top',
+                visibilityTime: 3000,
+                autoHide: true,
+            });
+        }
         throw error;
     }
 };

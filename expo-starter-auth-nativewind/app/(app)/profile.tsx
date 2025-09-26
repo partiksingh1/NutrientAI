@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,9 @@ import {
   TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  ActivityIndicator,
+  RefreshControl
 } from 'react-native';
 import {
   Send,
@@ -54,7 +56,9 @@ const Input = ({
   onChangeText,
   placeholder,
   onSubmitEditing,
-  className = ''
+  className = '',
+  maxLength = 500,
+  multiline = false
 }: any) => (
   <TextInput
     value={value}
@@ -62,7 +66,10 @@ const Input = ({
     placeholder={placeholder}
     placeholderTextColor="#9CA3AF"
     onSubmitEditing={onSubmitEditing}
-    className={`flex-1 h-12 px-4 rounded-xl bg-gray-100 dark:bg-neutral-800 text-black dark:text-white ${className}`}
+    maxLength={maxLength}
+    multiline={multiline}
+    textAlignVertical={multiline ? 'top' : 'center'}
+    className={`flex-1 ${multiline ? 'min-h-12 max-h-24' : 'h-12'} px-4 rounded-xl bg-gray-100 dark:bg-neutral-800 text-black dark:text-white ${className}`}
   />
 );
 
@@ -85,6 +92,7 @@ export default function ChatScreen() {
     loadConversationMessages,
   } = useChat({ userId: user?.id || null });
 
+  const [refreshing, setRefreshing] = useState(false);
 
   const quickSuggestions = [
     { text: 'Log my breakfast', icon: Utensils },
@@ -93,6 +101,32 @@ export default function ChatScreen() {
     { text: 'Weekly summary', icon: Clock }
   ];
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadConversationMessages();
+    setRefreshing(false);
+  };
+
+  const handleSuggestionPress = (text: string) => {
+    setInputValue(text);
+    // Auto-focus input after setting value
+    setTimeout(() => {
+      // Focus will be handled by the input component
+    }, 100);
+  };
+
+
+  // Show loading state while messages are loading
+  if (isLoadingMessages) {
+    return (
+      <View className="flex-1 bg-gray-50 dark:bg-neutral-950 justify-center items-center p-4">
+        <ActivityIndicator size="large" color="#3B82F6" />
+        <Text className="text-lg text-gray-600 dark:text-gray-400 text-center mt-4">
+          Loading conversation...
+        </Text>
+      </View>
+    );
+  }
 
   // Show loading or error state if user is not available
   if (!user) {
@@ -169,14 +203,31 @@ export default function ChatScreen() {
         ref={scrollViewRef}
         className="flex-1 p-4"
         contentContainerStyle={{ paddingBottom: 80 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#3B82F6"
+          />
+        }
       >
         {messages.length === 0 && (
           <View className="flex-1 justify-center items-center p-8">
-            <Text className="text-gray-500">No messages yet</Text>
+            <View className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full items-center justify-center mb-4">
+              <Sparkles size={32} color="#3B82F6" />
+            </View>
+            <Text className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Welcome to NutriAI!
+            </Text>
+            <Text className="text-gray-500 dark:text-gray-400 text-center mb-6">
+              I'm your personal nutrition assistant. Ask me about meals, track your progress, or get personalized recommendations.
+            </Text>
+            <Text className="text-sm text-gray-400 text-center">
+              Try one of the suggestions below to get started
+            </Text>
           </View>
         )}
         {messages.map(message => {
-          console.log('Rendering message:', message.id, message.sender, message.content.substring(0, 50));
           return (
             <View
               key={message.id}
@@ -188,10 +239,10 @@ export default function ChatScreen() {
                   : 'bg-gray-200 dark:bg-neutral-800'
                   }`}
               >
-                <Text className="text-black dark:text-white">
+                <Text className={`${message.sender === 'user' ? 'text-white' : 'text-black dark:text-white'}`}>
                   {message.content}
                 </Text>
-                <Text className="text-xs mt-1 text-gray-400">
+                <Text className={`text-xs mt-1 ${message.sender === 'user' ? 'text-blue-100' : 'text-gray-400'}`}>
                   {message.timestamp.toLocaleTimeString([], {
                     hour: '2-digit',
                     minute: '2-digit'
@@ -204,10 +255,9 @@ export default function ChatScreen() {
 
         {isTyping && (
           <View className="items-start">
-            <View className="bg-gray-200 dark:bg-neutral-800 p-3 rounded-2xl flex-row space-x-1">
-              <View className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-              <View className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-              <View className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+            <View className="bg-gray-200 dark:bg-neutral-800 p-3 rounded-2xl flex-row items-center space-x-2">
+              <ActivityIndicator size="small" color="#6B7280" />
+              <Text className="text-gray-500 text-sm">AI is thinking...</Text>
             </View>
           </View>
         )}
@@ -222,11 +272,11 @@ export default function ChatScreen() {
                 key={index}
                 variant="outline"
                 size="sm"
-                onPress={() => setInputValue(suggestion.text)}
+                onPress={() => handleSuggestionPress(suggestion.text)}
                 className="flex-row items-center gap-1 px-3"
               >
-                <suggestion.icon size={14} color="black" />
-                <Text className="text-xs text-black dark:text-white">{suggestion.text}</Text>
+                <suggestion.icon size={14} color="#6B7280" />
+                <Text className="text-xs text-gray-700 dark:text-gray-300">{suggestion.text}</Text>
               </Button>
             ))}
           </View>
@@ -238,16 +288,27 @@ export default function ChatScreen() {
             onChangeText={setInputValue}
             placeholder="Ask about meals, progress, or get suggestions..."
             onSubmitEditing={handleSend}
+            maxLength={500}
+            multiline={true}
           />
           <Button
             size="icon"
             onPress={handleSend}
             disabled={!inputValue.trim() || isLoading || !user?.id}
-            className="bg-blue-500"
+            className={`${!inputValue.trim() || isLoading ? 'bg-gray-300' : 'bg-blue-500'}`}
           >
-            <Send size={18} color="white" />
+            {isLoading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Send size={18} color="white" />
+            )}
           </Button>
         </View>
+        {inputValue.length > 400 && (
+          <Text className="text-xs text-gray-400 mt-1 text-right">
+            {inputValue.length}/500 characters
+          </Text>
+        )}
       </View>
 
     </KeyboardAvoidingView>
