@@ -16,7 +16,6 @@ const CACHE_TTL = 60 * 10; // 10 min
 
 interface RecommendationRequest {
   message: string;
-  conversationId?: number;
 }
 
 interface RecommendationResponse {
@@ -29,7 +28,7 @@ interface RecommendationResponse {
 export const recommend = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-    const { message, conversationId }: RecommendationRequest = req.body;
+    const { message }: RecommendationRequest = req.body;
 
     if (!userId || !message?.trim()) {
       return res.status(400).json({ error: 'Missing userId or message' });
@@ -41,9 +40,23 @@ export const recommend = async (req: Request, res: Response) => {
     const cacheKey = `cache:recommend:${hash}`;
     const cached = await redis.get(cacheKey);
     if (cached) {
+      // Get or create user's single conversation
+      let conversation = await prisma.conversation.findUnique({
+        where: { userId: Number(userId) }
+      });
+
+      if (!conversation) {
+        conversation = await prisma.conversation.create({
+          data: {
+            userId: Number(userId),
+            title: 'AI Nutrition Assistant'
+          }
+        });
+      }
+
       return res.json({
         reply: cached,
-        conversationId: conversationId || 0,
+        conversationId: conversation.id,
         messageId: 0,
         cached: true
       });
@@ -139,18 +152,21 @@ export const recommend = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'User preferences not found. Please complete your profile first.' });
     }
 
-    // --- 3. Handle Conversation Management ---
-    let currentConversationId = conversationId;
-    if (!currentConversationId) {
-      // Create new conversation
-      const newConversation = await prisma.conversation.create({
+    // --- 3. Get or Create User's Single Conversation ---
+    let conversation = await prisma.conversation.findUnique({
+      where: { userId: Number(userId) }
+    });
+
+    if (!conversation) {
+      conversation = await prisma.conversation.create({
         data: {
           userId: Number(userId),
-          title: message.length > 50 ? message.substring(0, 50) + '...' : message
+          title: 'AI Nutrition Assistant'
         }
       });
-      currentConversationId = newConversation.id;
     }
+
+    const currentConversationId = conversation.id;
 
     // --- 4. Retrieve Recent Chat Memory from Database ---
     const recentMessages = await prisma.message.findMany({
@@ -342,59 +358,18 @@ Give a clear, practical, and empathetic reply aligned with their goals, formatte
   }
 };
 
-// Additional controller functions for conversation management
-export const getConversations = async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
-
-    const conversations = await prisma.conversation.findMany({
-      where: { userId: Number(userId) },
-      orderBy: { updatedAt: 'desc' },
-      select: {
-        id: true,
-        title: true,
-        createdAt: true,
-        updatedAt: true,
-        messages: {
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-          select: {
-            content: true,
-            senderRole: true,
-            createdAt: true
-          }
-        }
-      }
-    });
-
-    return res.json({ conversations });
-  } catch (err) {
-    console.error('Get conversations error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
+// Get user's single conversation messages
 export const getConversationMessages = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-    const { conversationId } = req.params;
 
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    if (!conversationId) {
-      return res.status(400).json({ error: 'Conversation ID is required' });
-    }
-
-    const conversation = await prisma.conversation.findFirst({
-      where: {
-        id: parseInt(conversationId),
-        userId: Number(userId)
-      },
+    // Get or create user's single conversation
+    let conversation = await prisma.conversation.findUnique({
+      where: { userId: Number(userId) },
       include: {
         messages: {
           orderBy: { createdAt: 'asc' },
@@ -410,7 +385,25 @@ export const getConversationMessages = async (req: Request, res: Response) => {
     });
 
     if (!conversation) {
-      return res.status(404).json({ error: 'Conversation not found' });
+      // Create conversation if it doesn't exist
+      conversation = await prisma.conversation.create({
+        data: {
+          userId: Number(userId),
+          title: 'AI Nutrition Assistant'
+        },
+        include: {
+          messages: {
+            orderBy: { createdAt: 'asc' },
+            select: {
+              id: true,
+              senderRole: true,
+              content: true,
+              createdAt: true,
+              metadata: true
+            }
+          }
+        }
+      });
     }
 
     return res.json({ conversation });
@@ -420,43 +413,28 @@ export const getConversationMessages = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteConversation = async (req: Request, res: Response) => {
+// Clear user's conversation (delete all messages)
+export const clearConversation = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-    const { conversationId } = req.params;
 
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    if (!conversationId) {
-      return res.status(400).json({ error: 'Conversation ID is required' });
-    }
-
-    const conversation = await prisma.conversation.findFirst({
-      where: {
-        id: parseInt(conversationId),
-        userId: Number(userId)
-      }
+    const conversation = await prisma.conversation.findUnique({
+      where: { userId: Number(userId) }
     });
 
-    if (!conversation) {
-      return res.status(404).json({ error: 'Conversation not found' });
+    if (conversation) {
+      await prisma.message.deleteMany({
+        where: { conversationId: conversation.id }
+      });
     }
 
-    await prisma.message.deleteMany({
-      where: {
-
-        conversationId: parseInt(conversationId),
-      }
-    })
-    await prisma.conversation.delete({
-      where: { id: parseInt(conversationId), userId: Number(userId) }
-    });
-
-    return res.json({ message: 'Conversation deleted successfully' });
+    return res.json({ message: 'Conversation cleared successfully' });
   } catch (err) {
-    console.error('Delete conversation error:', err);
+    console.error('Clear conversation error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

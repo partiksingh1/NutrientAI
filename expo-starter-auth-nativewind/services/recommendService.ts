@@ -1,6 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LocalMessage, Conversation } from '@/types/recommend';
+import { LocalMessage, Conversation, AIResponse } from '@/types/recommend';
 import { Toast } from 'toastify-react-native';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -10,7 +10,7 @@ const getAuthToken = async (): Promise<string | null> => {
     return await AsyncStorage.getItem(AUTH_TOKEN_KEY);
 };
 
-export const sendMessageToAI = async (userId: string, message: string): Promise<string> => {
+export const sendMessageToAI = async (userId: string, message: string): Promise<AIResponse> => {
     const token = await getAuthToken();
 
     try {
@@ -28,7 +28,7 @@ export const sendMessageToAI = async (userId: string, message: string): Promise<
             throw new Error(errorData.error || 'Failed to get AI response');
         }
 
-        const data = await response.json();
+        const data: AIResponse = await response.json();
 
         Toast.show({
             type: 'success',
@@ -39,7 +39,7 @@ export const sendMessageToAI = async (userId: string, message: string): Promise<
             autoHide: true,
         });
 
-        return data.reply || 'Sorry, I couldn\'t process your request right now.';
+        return data;
     } catch (error: any) {
         Toast.show({
             type: 'error',
@@ -53,28 +53,20 @@ export const sendMessageToAI = async (userId: string, message: string): Promise<
     }
 };
 
-export const fetchConversations = async (): Promise<Conversation[]> => {
+export const fetchConversation = async (): Promise<Conversation | null> => {
     const token = await getAuthToken();
     try {
-        const response = await axios.get(`${API_BASE_URL}/recommend/conversations`, {
+        const response = await axios.get(`${API_BASE_URL}/recommend/conversation`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         });
 
-        Toast.show({
-            type: 'success',
-            text1: 'Conversations loaded',
-            position: 'top',
-            visibilityTime: 2000,
-            autoHide: true,
-        });
-
-        return response.data.conversations;
+        return response.data.conversation;
     } catch (error: any) {
         Toast.show({
             type: 'error',
-            text1: 'Failed to load conversations',
+            text1: 'Failed to load conversation',
             text2: error.message || 'Please try again.',
             position: 'top',
             visibilityTime: 3000,
@@ -84,21 +76,13 @@ export const fetchConversations = async (): Promise<Conversation[]> => {
     }
 };
 
-export const fetchConversationMessages = async (conversationId: number): Promise<LocalMessage[]> => {
+export const fetchConversationMessages = async (): Promise<LocalMessage[]> => {
     const token = await getAuthToken();
     try {
-        const response = await axios.get(`${API_BASE_URL}/recommend/conversations/${conversationId}`, {
+        const response = await axios.get(`${API_BASE_URL}/recommend/conversation`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
-        });
-
-        Toast.show({
-            type: 'success',
-            text1: 'Messages loaded',
-            position: 'top',
-            visibilityTime: 2000,
-            autoHide: true,
         });
 
         const messages = response.data.conversation.messages;
@@ -122,10 +106,10 @@ export const fetchConversationMessages = async (conversationId: number): Promise
     }
 };
 
-export const deleteConversationById = async (conversationId: number): Promise<void> => {
+export const clearConversation = async (): Promise<void> => {
     const token = await getAuthToken();
     try {
-        await axios.delete(`${API_BASE_URL}/recommend/conversations/${conversationId}`, {
+        await axios.delete(`${API_BASE_URL}/recommend/conversation`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -133,7 +117,7 @@ export const deleteConversationById = async (conversationId: number): Promise<vo
 
         Toast.show({
             type: 'success',
-            text1: 'Conversation deleted',
+            text1: 'Conversation cleared',
             position: 'top',
             visibilityTime: 3000,
             autoHide: true,
@@ -141,7 +125,7 @@ export const deleteConversationById = async (conversationId: number): Promise<vo
     } catch (error: any) {
         Toast.show({
             type: 'error',
-            text1: 'Failed to delete conversation',
+            text1: 'Failed to clear conversation',
             text2: error.message || 'Please try again.',
             position: 'top',
             visibilityTime: 3000,

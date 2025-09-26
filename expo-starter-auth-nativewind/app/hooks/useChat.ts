@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Alert } from 'react-native';
-import { deleteConversationById, fetchConversationMessages, fetchConversations, sendMessageToAI } from '@/services/recommendService';
-import { Conversation, LocalMessage } from '@/types/recommend';
+import { clearConversation, fetchConversationMessages, sendMessageToAI } from '@/services/recommendService';
+import { LocalMessage } from '@/types/recommend';
 
 interface UseChatParams {
     userId: string | null;
@@ -9,47 +9,34 @@ interface UseChatParams {
 
 export const useChat = ({ userId }: UseChatParams) => {
     const [messages, setMessages] = useState<LocalMessage[]>([]);
-    const [conversations, setConversations] = useState<Conversation[]>([]);
-    const [currentConversationId, setCurrentConversationId] = useState<number | null>(null);
-    const [showConversations, setShowConversations] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [isLoadingConversations, setIsLoadingConversations] = useState(false);
+    const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const scrollViewRef = useRef(null);
 
-    // Load all conversations
-    const loadConversations = async () => {
+    // Load conversation messages
+    const loadConversationMessages = async () => {
         if (!userId) return;
-        setIsLoadingConversations(true);
+        setIsLoadingMessages(true);
         try {
-            const data = await fetchConversations();
-            setConversations(data);
-        } catch (error) {
-            Alert.alert('Error', 'Failed to load conversations');
-        } finally {
-            setIsLoadingConversations(false);
-        }
-    };
-
-    // Load specific conversation
-    const loadConversationMessages = async (conversationId: number) => {
-        try {
-            const localMessages = await fetchConversationMessages(conversationId);
+            const localMessages = await fetchConversationMessages();
             setMessages(localMessages);
         } catch (error) {
             Alert.alert('Error', 'Failed to load conversation');
             setMessages([]);
+        } finally {
+            setIsLoadingMessages(false);
         }
     };
 
-    // Delete a conversation
-    const deleteConversation = async (conversationId: number) => {
+    // Clear conversation
+    const clearConversationMessages = async () => {
         try {
-            await deleteConversationById(conversationId);
-            loadConversations(); // refresh
+            await clearConversation();
+            setMessages([]);
         } catch (error) {
-            Alert.alert('Error', 'Failed to delete conversation');
+            Alert.alert('Error', 'Failed to clear conversation');
         }
     };
 
@@ -71,11 +58,11 @@ export const useChat = ({ userId }: UseChatParams) => {
         setIsLoading(true);
 
         try {
-            const aiReply = await sendMessageToAI(userId, currentInput);
+            const aiResponse = await sendMessageToAI(userId, currentInput);
 
             const aiMessage: LocalMessage = {
-                id: (Date.now() + 1).toString(),
-                content: aiReply,
+                id: (aiResponse.messageId ? aiResponse.messageId.toString() : (Date.now() + 1).toString()),
+                content: aiResponse.reply,
                 sender: 'ai',
                 timestamp: new Date()
             };
@@ -101,49 +88,22 @@ export const useChat = ({ userId }: UseChatParams) => {
         }
     };
 
-    // Start new conversation
-    const startNewConversation = () => {
-        setCurrentConversationId(null);
-        setShowConversations(false);
-        setMessages([{
-            id: 'welcome',
-            content: "Hi! I'm your AI nutritionist assistant. I can help you log meals, track progress, and give personalized recommendations. What would you like to know today?",
-            sender: 'ai',
-            timestamp: new Date()
-        }]);
-    };
-
-    // On mount, load conversations
+    // On mount, load conversation messages
     useEffect(() => {
-        loadConversations();
-    }, []);
-
-    // When conversation changes
-    useEffect(() => {
-        if (currentConversationId) {
-            loadConversationMessages(currentConversationId);
-        } else {
-            startNewConversation();
-        }
-    }, [currentConversationId]);
+        loadConversationMessages();
+    }, [userId]);
 
     return {
         messages,
-        conversations,
         inputValue,
         isTyping,
         isLoading,
-        isLoadingConversations,
-        showConversations,
-        currentConversationId,
+        isLoadingMessages,
         scrollViewRef,
 
         setInputValue,
-        setShowConversations,
-        setCurrentConversationId,
-        startNewConversation,
         handleSend,
-        deleteConversation,
-        loadConversations,
+        clearConversationMessages,
+        loadConversationMessages,
     };
 };
