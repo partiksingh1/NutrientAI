@@ -1,4 +1,4 @@
-// src/controllers/recommend.ts
+// src/controller/recommendation.controller.ts
 
 import type { Request, Response } from 'express';
 import { redis } from '../langchain/redisClient.js';
@@ -14,9 +14,23 @@ import crypto from "crypto";
 const MAX_CHAT_HISTORY = 5;
 const CACHE_TTL = 60 * 10; // 10 min
 
+interface RecommendationRequest {
+  message: string;
+  conversationId?: number;
+}
+
+interface RecommendationResponse {
+  reply: string;
+  conversationId: number;
+  messageId: number;
+  cached: boolean;
+}
+
 export const recommend = async (req: Request, res: Response) => {
   try {
-    const { userId, message } = req.body;
+    const userId = req.user?.id;
+    const { message, conversationId }: RecommendationRequest = req.body;
+
     if (!userId || !message?.trim()) {
       return res.status(400).json({ error: 'Missing userId or message' });
     }
@@ -27,105 +41,211 @@ export const recommend = async (req: Request, res: Response) => {
     const cacheKey = `cache:recommend:${hash}`;
     const cached = await redis.get(cacheKey);
     if (cached) {
-      return res.json({ reply: cached, cached: true });
+      return res.json({
+        reply: cached,
+        conversationId: conversationId || 0,
+        messageId: 0,
+        cached: true
+      });
     }
 
-    // --- 2. Fetch User Data (Optimized Select Fields) ---
+    // --- 2. Fetch User Data with Proper Relations ---
     const now = new Date();
     const startOfToday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
     const endOfToday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
 
-    const [user, goal, prefs, mealLogs] = await Promise.all([
+    const [user, goal, preferences, mealLogs, recentConversations] = await Promise.all([
       prisma.user.findUnique({
-        where: { id: userId },
-        select: { id: true, age: true, weight: true, height: true, activityLevel: true }
+        where: { id: Number(userId) },
+        select: {
+          id: true,
+          username: true,
+          age: true,
+          weight: true,
+          height: true,
+          gender: true,
+          activityLevel: true,
+          profile_completed: true
+        }
       }),
       prisma.goal.findFirst({
-        where: { userId, isActive: true },
+        where: { userId: Number(userId), isActive: true },
         orderBy: { startDate: 'desc' },
-        select: { type: true }
+        select: {
+          type: true,
+          description: true,
+          startDate: true,
+          endDate: true
+        }
       }),
       prisma.preferences.findUnique({
-        where: { userId },
-        select: { dietType: true, allergies: true }
+        where: { userId: Number(userId) },
+        select: {
+          dietType: true,
+          allergies: true,
+          mealFrequency: true,
+          snackIncluded: true
+        }
       }),
       prisma.mealLog.findMany({
         where: {
-          userId,
+          userId: Number(userId),
           mealDate: { gte: startOfToday, lte: endOfToday }
         },
         select: {
-          servings: true, customName: true, mealType: true,
-          calories: true, protein: true, carbs: true, fats: true
+          id: true,
+          servings: true,
+          customName: true,
+          mealType: true,
+          calories: true,
+          protein: true,
+          carbs: true,
+          fats: true,
+          notes: true,
+          mealDate: true
+        },
+        orderBy: { mealDate: 'desc' }
+      }),
+      // Get recent conversations for context
+      prisma.conversation.findMany({
+        where: { userId: Number(userId) },
+        orderBy: { updatedAt: 'desc' },
+        take: 3,
+        select: {
+          id: true,
+          title: true,
+          messages: {
+            orderBy: { createdAt: 'desc' },
+            take: 5,
+            select: {
+              senderRole: true,
+              content: true,
+              createdAt: true
+            }
+          }
         }
       })
     ]);
 
-    if (!user || !goal || !prefs) {
-      return res.status(404).json({ error: 'User, goals, or preferences not found' });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
 
-    // --- 3. Retrieve Recent Chat Memory (Structured) ---
-    const redisChatKey = `chat:user:${userId}`;
-    const recentChatsRaw = await redis.lRange(redisChatKey, -MAX_CHAT_HISTORY * 2, -1);
-    const shortTermMemory = recentChatsRaw
-      .map(msg => (typeof msg === 'string' ? msg : JSON.stringify(msg)))
+    if (!goal) {
+      return res.status(400).json({ error: 'No active goal found. Please set a dietary goal first.' });
+    }
+
+    if (!preferences) {
+      return res.status(400).json({ error: 'User preferences not found. Please complete your profile first.' });
+    }
+
+    // --- 3. Handle Conversation Management ---
+    let currentConversationId = conversationId;
+    if (!currentConversationId) {
+      // Create new conversation
+      const newConversation = await prisma.conversation.create({
+        data: {
+          userId: Number(userId),
+          title: message.length > 50 ? message.substring(0, 50) + '...' : message
+        }
+      });
+      currentConversationId = newConversation.id;
+    }
+
+    // --- 4. Retrieve Recent Chat Memory from Database ---
+    const recentMessages = await prisma.message.findMany({
+      where: { conversationId: currentConversationId },
+      orderBy: { createdAt: 'desc' },
+      take: MAX_CHAT_HISTORY * 2,
+      select: {
+        senderRole: true,
+        content: true,
+        createdAt: true
+      }
+    });
+
+    const shortTermMemory = recentMessages
+      .reverse()
+      .map(msg => `${msg.senderRole}: ${msg.content}`)
       .join('\n');
 
-    // --- 4. Retrieve Relevant Long-Term Memory ---
+    // --- 5. Retrieve Relevant Long-Term Memory ---
     const vectorResults = await getRelevantChatContext(message, 5);
     const vectorMemory = vectorResults.join('\n');
 
-    // --- 5. Format Today's Meals (Compressed) ---
-    const mealsSummary = mealLogs
-      .map(m => `- ${m.servings}× ${m.customName} in ${m.mealType}: ${m.calories} kcal (${m.protein}g P / ${m.carbs}g C / ${m.fats}g F)`)
-      .join('\n') || "No meals logged yet.";
+    // --- 6. Format Today's Meals (Enhanced) ---
+    const mealsByType = mealLogs.reduce((acc, meal) => {
+      if (!acc[meal.mealType]) acc[meal.mealType] = [];
+      acc[meal.mealType]!.push(meal);
+      return acc;
+    }, {} as Record<string, typeof mealLogs>);
 
-    // --- 6. Dynamic Profile Summary ---
+    const mealsSummary = Object.entries(mealsByType)
+      .map(([type, meals]) => {
+        const totalCalories = meals.reduce((sum, m) => sum + (m.calories * m.servings), 0);
+        const totalProtein = meals.reduce((sum, m) => sum + (m.protein * m.servings), 0);
+        const totalCarbs = meals.reduce((sum, m) => sum + (m.carbs * m.servings), 0);
+        const totalFats = meals.reduce((sum, m) => sum + (m.fats * m.servings), 0);
+
+        return `${type}: ${meals.length} items, ${totalCalories.toFixed(0)} kcal (${totalProtein.toFixed(1)}g P / ${totalCarbs.toFixed(1)}g C / ${totalFats.toFixed(1)}g F)`;
+      })
+      .join('\n') || "No meals logged yet today.";
+
+    // --- 7. Enhanced Profile Summary ---
     const profileSummary = `
-Age: ${user.age}, Weight: ${user.weight}kg, Height: ${user.height}cm
-Goal: ${goal.type || "Not specified"}, Activity: ${user.activityLevel}
-Diet: ${prefs.dietType}, Allergies: ${prefs.allergies || "None"}
+User: ${user.username} (${user.gender || 'Not specified'})
+Age: ${user.age || 'Not specified'}, Weight: ${user.weight || 'Not specified'}kg, Height: ${user.height || 'Not specified'}cm
+Activity Level: ${user.activityLevel || 'Not specified'}
+Goal: ${goal.type}${goal.description ? ` - ${goal.description}` : ''}
+Diet Type: ${preferences.dietType}
+Allergies: ${preferences.allergies || 'None'}
+Meal Frequency: ${preferences.mealFrequency} meals/day${preferences.snackIncluded ? ' (includes snacks)' : ''}
+Profile Completed: ${user.profile_completed ? 'Yes' : 'No'}
     `.trim();
 
-    // --- 7. Prepare Contextual Prompt ---
+    // --- 8. Prepare Enhanced Contextual Prompt ---
     const promptTemplate = new PromptTemplate({
       template: `
-    You are a helpful nutrition assistant for a mobile app.
-    
-    User Profile:
-    {profile}
-    
-    Today's Meal Log:
-    {meals}
-    
-    Recent Chats:
-    \`\`\`json
-    {shortTermMemory}
-    \`\`\`
-    
-    Long-Term Memory:
-    \`\`\`json
-    {vectorMemory}
-    \`\`\`
-    
-    User asks: {input}
-    
-    IMPORTANT FORMATTING RULES FOR MOBILE UI:
-    - Use simple, clean formatting that works well on mobile screens
-    - For lists, use numbered format (1. 2. 3.) or bullet points with dashes (-)
-    - Use line breaks (\\n) to separate different sections or ideas
-    - Keep paragraphs short and scannable
-    - Use **bold** for emphasis on important points
-    - Avoid complex markdown syntax like tables or code blocks
-    - Make responses conversational and easy to read on a small screen
-    
-    Give a clear, practical, and empathetic reply aligned with their goals, formatted for mobile readability.
+You are a helpful, personalized nutrition assistant for a mobile app. You have access to the user's complete profile, goals, preferences, and meal history.
+
+User Profile:
+{profile}
+
+Today's Meal Log:
+{meals}
+
+Recent Conversation Context:
+{shortTermMemory}
+
+Relevant Past Conversations:
+{vectorMemory}
+
+User's Question: {input}
+
+IMPORTANT GUIDELINES:
+1. Be empathetic and supportive, understanding that nutrition is personal
+2. Consider their specific goals, dietary restrictions, and preferences
+3. Provide practical, actionable advice that fits their lifestyle
+4. Reference their meal history when relevant
+5. Suggest specific foods or meal ideas when appropriate
+6. Be encouraging about their progress
+
+FORMATTING RULES FOR MOBILE UI:
+- Use simple, clean formatting that works well on mobile screens
+- For lists, use numbered format (1. 2. 3.) or bullet points with dashes (-)
+- Use line breaks (\\n) to separate different sections or ideas
+- Keep paragraphs short and scannable (2-3 lines max)
+- Use **bold** for emphasis on important points
+- Avoid complex markdown syntax like tables or code blocks
+- Make responses conversational and easy to read on a small screen
+- Use emojis sparingly but effectively (🍎 🥗 💪 etc.)
+
+Give a clear, practical, and empathetic reply aligned with their goals, formatted for mobile readability.
       `.trim(),
       inputVariables: ['profile', 'meals', 'shortTermMemory', 'vectorMemory', 'input'],
     });
 
-    // --- 8. LLM Call with Retry ---
+    // --- 9. LLM Call with Retry ---
     const chain = new LLMChain({ llm: model, prompt: promptTemplate });
 
     let reply: string | undefined;
@@ -141,6 +261,7 @@ Diet: ${prefs.dietType}, Allergies: ${prefs.allergies || "None"}
         reply = result?.text?.trim();
         if (reply) break;
       } catch (e) {
+        console.error(`LLM attempt ${attempt + 1} failed:`, e);
         if (attempt === 1) throw e;
       }
     }
@@ -149,26 +270,193 @@ Diet: ${prefs.dietType}, Allergies: ${prefs.allergies || "None"}
       return res.status(500).json({ error: 'No response generated' });
     }
 
-    // --- 9. Cache Response ---
+    // --- 10. Save Messages to Database ---
+    const [userMessage, aiMessage] = await Promise.all([
+      prisma.message.create({
+        data: {
+          conversationId: currentConversationId,
+          senderRole: 'USER',
+          content: message,
+          metadata: { timestamp: new Date().toISOString() }
+        }
+      }),
+      prisma.message.create({
+        data: {
+          conversationId: currentConversationId,
+          senderRole: 'AI',
+          content: reply,
+          metadata: {
+            timestamp: new Date().toISOString(),
+            model: 'nutrition-assistant',
+            cached: false
+          }
+        }
+      })
+    ]);
+
+    // --- 11. Update Conversation Timestamp ---
+    await prisma.conversation.update({
+      where: { id: currentConversationId },
+      data: { updatedAt: new Date() }
+    });
+
+    // --- 12. Cache Response ---
     await redis.set(cacheKey, reply, { EX: CACHE_TTL });
 
-    // --- 10. Update Short-Term Memory ---
-    await redis.rPush(redisChatKey, JSON.stringify({ role: "user", content: message }));
-    await redis.rPush(redisChatKey, JSON.stringify({ role: "assistant", content: reply }));
-    await redis.lTrim(redisChatKey, -MAX_CHAT_HISTORY * 2, -1);
-
-    // --- 11. Save to Long-Term Memory (Selective) ---
-    if (message.length > 60) {
+    // --- 13. Save to Long-Term Memory (Selective) ---
+    if (message.length > 60 && reply.length > 60) {
       await saveChunksToVectorStore([
-        new Document({ pageContent: message, metadata: { role: "user", userId } }),
-        new Document({ pageContent: reply, metadata: { role: "assistant", userId } })
+        new Document({
+          pageContent: `User: ${message}`,
+          metadata: {
+            role: "user",
+            userId: userId.toString(),
+            conversationId: currentConversationId,
+            timestamp: new Date().toISOString()
+          }
+        }),
+        new Document({
+          pageContent: `Assistant: ${reply}`,
+          metadata: {
+            role: "assistant",
+            userId: userId.toString(),
+            conversationId: currentConversationId,
+            timestamp: new Date().toISOString()
+          }
+        })
       ], userId.toString());
     }
 
-    return res.json({ reply, cached: false });
+    const response: RecommendationResponse = {
+      reply,
+      conversationId: currentConversationId,
+      messageId: aiMessage.id,
+      cached: false
+    };
+
+    return res.json(response);
 
   } catch (err) {
     console.error('Recommendation error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Additional controller functions for conversation management
+export const getConversations = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const conversations = await prisma.conversation.findMany({
+      where: { userId: Number(userId) },
+      orderBy: { updatedAt: 'desc' },
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+        updatedAt: true,
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: {
+            content: true,
+            senderRole: true,
+            createdAt: true
+          }
+        }
+      }
+    });
+
+    return res.json({ conversations });
+  } catch (err) {
+    console.error('Get conversations error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getConversationMessages = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const { conversationId } = req.params;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    if (!conversationId) {
+      return res.status(400).json({ error: 'Conversation ID is required' });
+    }
+
+    const conversation = await prisma.conversation.findFirst({
+      where: {
+        id: parseInt(conversationId),
+        userId: Number(userId)
+      },
+      include: {
+        messages: {
+          orderBy: { createdAt: 'asc' },
+          select: {
+            id: true,
+            senderRole: true,
+            content: true,
+            createdAt: true,
+            metadata: true
+          }
+        }
+      }
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+
+    return res.json({ conversation });
+  } catch (err) {
+    console.error('Get conversation messages error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const deleteConversation = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const { conversationId } = req.params;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    if (!conversationId) {
+      return res.status(400).json({ error: 'Conversation ID is required' });
+    }
+
+    const conversation = await prisma.conversation.findFirst({
+      where: {
+        id: parseInt(conversationId),
+        userId: Number(userId)
+      }
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+
+    await prisma.message.deleteMany({
+      where: {
+
+        conversationId: parseInt(conversationId),
+      }
+    })
+    await prisma.conversation.delete({
+      where: { id: parseInt(conversationId), userId: Number(userId) }
+    });
+
+    return res.json({ message: 'Conversation deleted successfully' });
+  } catch (err) {
+    console.error('Delete conversation error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

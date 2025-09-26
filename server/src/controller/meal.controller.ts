@@ -147,6 +147,33 @@ export const getAllMealLogs = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to fetch meal logs' });
     }
 };
+const now = new Date();
+const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // today at 00:00
+const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+
+export const getTodayMealLogs = async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    if (!id) return res.status(401).json({ error: 'Unauthorized' });
+
+    try {
+
+        const mealLogs = await prisma.mealLog.findMany({
+            where: {
+                userId: id,
+                mealDate: {
+                    gte: start,
+                    lte: end,
+                },
+            },
+            orderBy: { mealDate: 'desc' },
+        });
+
+        res.json(mealLogs);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch today\'s meal logs' });
+    }
+};
 
 export const deleteMealLog = async (req: Request, res: Response) => {
     const id = Number(req.params.id);

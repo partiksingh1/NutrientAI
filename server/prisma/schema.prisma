@@ -16,17 +16,21 @@ datasource db {
 
 model User {
   id            Int          @id @default(autoincrement())
-  username      String
+  username      String        
   email         String       @unique
   password      String
   weight        Float?
   height        Float?
   age           Int?
+  gender        String?
   activityLevel String?
-  dietaryGoals  Goal[]
-  profile_completed Boolean   @default(false) 
-  mealLogs      MealLog[]
+  profile_completed Boolean   @default(false)
   preferences   Preferences?
+
+  dietaryGoals  Goal[]
+  mealLogs      MealLog[]
+  conversations    Conversation[]
+
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 }
@@ -75,12 +79,15 @@ model MealLog {
   fats     Float
 
   servings Float @default(1.0)
+  notes      String?
 
   mealDate DateTime
   user     User     @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 enum DietType {
@@ -96,13 +103,48 @@ enum DietType {
 model Preferences {
   id     Int @id @default(autoincrement())
   userId Int @unique
+  user      User     @relation(fields: [userId], references: [id])
+
 
   mealFrequency Int      @default(3) // meals per day
   snackIncluded Boolean  @default(true)
   dietType      DietType @default(OMNIVORE)
   allergies     String? // optional JSON or CSV string for now
 
-  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+
+model Conversation {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id])
+
+  title     String?   // Optional conversation title
+  messages  Message[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  senderRole     SenderRole
+  content        String
+  metadata       Json?        // for future (token usage, AI model used, etc.)
+
+  createdAt      DateTime @default(now())
+
+  @@index([conversationId])
+}
+enum SenderRole {
+  USER
+  AI
+  SYSTEM
 }
