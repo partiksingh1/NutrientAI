@@ -6,9 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
-  Platform,
-  FlatList,
-  Modal
+  Platform
 } from 'react-native';
 import {
   Send,
@@ -16,10 +14,7 @@ import {
   Utensils,
   TrendingUp,
   Clock,
-  MessageSquare,
-  Trash2,
-  X,
-  Plus
+  Trash2
 } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useChat } from '../hooks/useChat';
@@ -78,22 +73,16 @@ export default function ChatScreen() {
 
   const {
     messages,
-    conversations,
     inputValue,
     isTyping,
     isLoading,
-    isLoadingConversations,
-    showConversations,
-    currentConversationId,
+    isLoadingMessages,
     scrollViewRef,
 
     setInputValue,
-    setShowConversations,
-    setCurrentConversationId,
-    startNewConversation,
     handleSend,
-    deleteConversation,
-    loadConversations,
+    clearConversationMessages,
+    loadConversationMessages,
   } = useChat({ userId: user?.id || null });
 
 
@@ -137,18 +126,10 @@ export default function ChatScreen() {
           <Button
             size="icon"
             variant="outline"
-            onPress={() => setShowConversations(true)}
+            onPress={clearConversationMessages}
             className="w-10 h-10"
           >
-            <MessageSquare size={18} color="black" />
-          </Button>
-          <Button
-            size="icon"
-            variant="outline"
-            onPress={startNewConversation}
-            className="w-10 h-10"
-          >
-            <Plus size={18} color="black" />
+            <Trash2 size={18} color="black" />
           </Button>
         </View>
       </View>
@@ -269,89 +250,6 @@ export default function ChatScreen() {
         </View>
       </View>
 
-      {/* Conversations Modal */}
-      <Modal
-        visible={showConversations}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
-        <View className="flex-1 bg-gray-50 dark:bg-neutral-950">
-          {/* Modal Header */}
-          <View className="p-4 border-b border-gray-200 dark:border-neutral-800 flex-row items-center justify-between">
-            <Text className="text-xl font-semibold text-black dark:text-white">Conversations</Text>
-            <Button
-              size="icon"
-              variant="outline"
-              onPress={() => setShowConversations(false)}
-              className="w-8 h-8"
-            >
-              <X size={16} color="black" />
-            </Button>
-          </View>
-
-          {/* Conversations List */}
-          <FlatList
-            data={conversations}
-            keyExtractor={(item) => item.id.toString()}
-            refreshing={isLoadingConversations}
-            onRefresh={loadConversations}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() => {
-                  console.log('Selected conversation:', item.id);
-                  setCurrentConversationId(item.id);
-                  setShowConversations(false);
-                }}
-                className={`p-4 border-b border-gray-200 dark:border-neutral-800 ${currentConversationId === item.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                  }`}
-              >
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-1">
-                    <Text className="text-lg font-medium text-black dark:text-white" numberOfLines={1}>
-                      {item.title}
-                    </Text>
-                    <Text className="text-sm text-gray-500 mt-1">
-                      {new Date(item.updatedAt).toLocaleDateString()} at{' '}
-                      {new Date(item.updatedAt).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </Text>
-                    {item.messages && item.messages.length > 0 && (
-                      <Text className="text-sm text-gray-400 mt-1" numberOfLines={1}>
-                        {item.messages[0].content}
-                      </Text>
-                    )}
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => deleteConversation(item.id)}
-                    className="p-2"
-                  >
-                    <Trash2 size={16} color="#ef4444" />
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
-            )}
-            ListEmptyComponent={
-              <View className="flex-1 justify-center items-center p-8">
-                <MessageSquare size={48} color="#9CA3AF" />
-                <Text className="text-lg text-gray-500 mt-4 text-center">
-                  No conversations yet
-                </Text>
-                <Text className="text-sm text-gray-400 mt-2 text-center">
-                  Start a new conversation to get personalized nutrition advice
-                </Text>
-                <Button
-                  onPress={startNewConversation}
-                  className="mt-4"
-                >
-                  <Text className="text-white font-medium">Start New Chat</Text>
-                </Button>
-              </View>
-            }
-          />
-        </View>
-      </Modal>
     </KeyboardAvoidingView>
   );
 }
