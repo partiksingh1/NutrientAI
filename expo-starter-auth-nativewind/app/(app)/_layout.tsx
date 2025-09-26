@@ -48,11 +48,11 @@ export default function AppLayout() {
           }}
         />
         <Tabs.Screen
-          name="profile"
+          name="chat"
           options={{
-            title: "Profile",
-            tabBarIcon: getTabBarIcon("person-outline"),
-            tabBarLabel: "Profile",
+            title: "Chat",
+            tabBarIcon: getTabBarIcon("chatbubble-ellipses"),
+            tabBarLabel: "AI Chat",
             headerShown: false
           }}
         />
