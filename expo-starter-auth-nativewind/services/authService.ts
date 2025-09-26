@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { User, LoginCredentials } from "../types/user";
+import { Toast } from "toastify-react-native";
 
 const AUTH_TOKEN_KEY = "auth_token";
 const USER_DATA_KEY = "user_data";
@@ -12,7 +13,7 @@ export default class AuthService {
     try {
       console.log("clicked login");
 
-      const response = await fetch('http://192.168.245.155:3000/api/auth/signin', {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/auth/signin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -33,6 +34,14 @@ export default class AuthService {
 
       await AsyncStorage.setItem(AUTH_TOKEN_KEY, token);
       await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
+      Toast.show({
+        type: 'success',
+        text1: 'Login Successful',
+        // text2: 'Secondary message',
+        position: 'top',
+        visibilityTime: 3000,
+        autoHide: true,
+      })
 
       return {
         id: String(user.id),
@@ -52,7 +61,7 @@ export default class AuthService {
    */
   static async register(userData: LoginCredentials & { name: string }): Promise<User> {
     try {
-      const response = await fetch('http://192.168.162.155:3000/api/auth/signup', {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,14 +102,39 @@ export default class AuthService {
    */
   static async logout(): Promise<void> {
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-
       await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, USER_DATA_KEY]);
+
+      Toast.show({
+        type: 'warn',
+        text1: 'Logout Successful',
+        // text2: 'Secondary message',
+        position: 'top',
+        visibilityTime: 3000,
+        autoHide: true,
+      })
     } catch (error) {
       console.error("Logout error:", error);
       throw error;
     }
   }
+  /**
+ * updates the current user profile to true
+ */
+
+  static async markProfileComplete(): Promise<void> {
+    try {
+      const userData = await AsyncStorage.getItem(USER_DATA_KEY);
+      if (!userData) return;
+
+      const user = JSON.parse(userData);
+      user.profile_completed = true;
+
+      await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
+    } catch (error) {
+      console.error("Failed to mark profile as complete:", error);
+    }
+  }
+
 
   /**
    * Get the current user profile

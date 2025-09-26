@@ -56,7 +56,6 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
         setIsEditing(false);
         onClose();
     };
-    const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
     const handleProcessInput = async () => {
         Toast.show({
@@ -71,13 +70,10 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
         setIsProcessing(true);
         try {
             const userId = user?.id ? Number(user.id) : undefined;
-            if (!apiUrl) {
-                throw new Error('Missing EXPO_PUBLIC_API_URL');
-            }
             if (!userId || Number.isNaN(userId)) {
                 throw new Error('Missing or invalid userId');
             }
-            const response = await axios.post(`${apiUrl}/meals/ai`, {
+            const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/meals/ai`, {
                 userId,
                 message: inputValue
             });
@@ -108,9 +104,6 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
         setIsProcessing(true)
         try {
             const userId = user?.id ? Number(user.id) : undefined;
-            if (!apiUrl) {
-                throw new Error('Missing EXPO_PUBLIC_API_URL');
-            }
             if (!userId || Number.isNaN(userId)) {
                 throw new Error('Missing or invalid userId');
             }
@@ -125,7 +118,7 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
                 servings: mealData.servings ?? 1.0,
                 mealDate: new Date().toISOString(),
             };
-            const response = await axios.post(`${apiUrl}/meals`, payload);
+            const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/meals`, payload);
             if (response.status === 201) {
                 onSave(mealData);
                 handleClose();

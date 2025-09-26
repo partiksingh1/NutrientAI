@@ -10,6 +10,7 @@ interface AuthContextType extends AuthState {
   logout: () => Promise<void>;
   clearError: () => void;
   isProfileComplete: boolean;
+  completeProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   register: async () => { },
   logout: async () => { },
   clearError: () => { },
+  completeProfile: async () => { },
 });
 
 interface AuthProviderProps {
@@ -119,6 +121,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       throw error;
     }
   };
+  const completeProfile = async () => {
+    await AuthService.markProfileComplete();
+    setState(prev => ({
+      ...prev,
+      isProfileComplete: true,
+      user: prev.user ? { ...prev.user, profile_completed: true } : prev.user,
+    }));
+  };
+
 
   const logout = async () => {
     try {
@@ -153,6 +164,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     clearError,
+    completeProfile,
   };
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

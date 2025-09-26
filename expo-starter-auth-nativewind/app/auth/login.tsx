@@ -5,6 +5,7 @@ import { View, Text, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import LoginForm from '../../components/LoginForm';
 import { useAuth } from '../../context/AuthContext';
 import { LoginCredentials } from '../../types/user';
+import { Toast } from 'toastify-react-native';
 
 export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
@@ -15,8 +16,15 @@ export default function LoginScreen() {
       setError(null);
       await login(credentials);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to login');
-      Alert.alert('Login Failed', err instanceof Error ? err.message : 'Something went wrong');
+      Toast.show({
+        type: 'error',
+        text1: 'Login Error',
+        text2: `${err}`,
+        position: 'top',
+        visibilityTime: 3000,
+        autoHide: true,
+      })
+      setError(err instanceof Error ? err.message : 'Failed to login');;
     }
   };
 

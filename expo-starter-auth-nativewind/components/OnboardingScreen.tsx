@@ -6,31 +6,15 @@ import { Switch } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { User } from '@/types/user';
+import { useAuth } from '@/context/AuthContext';
+import axios from 'axios';
 interface OnboardingScreenProps {
     onComplete: () => void;
 }
 
 
 export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
-    const [user, setUser] = useState<User | null>(null);
-
-    useEffect(() => {
-        const loadUser = async () => {
-            try {
-                const userData = await AsyncStorage.getItem('user_data');
-                console.log("user data is ", userData);
-
-                if (userData) {
-                    const parsedUser: User = JSON.parse(userData);
-                    setUser(parsedUser);
-                }
-            } catch (error) {
-                console.error('Failed to load user data', error);
-            }
-        };
-
-        loadUser();
-    }, []);
+    const { user, completeProfile } = useAuth();
     const [step, setStep] = useState(1);
     const [customAllergy, setCustomAllergy] = useState('');
     const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
@@ -56,52 +40,48 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
     };
 
     const handleNext = async () => {
+        const token = await AsyncStorage.getItem("auth_token")
+        console.log("token is", (token));
         if (step < totalSteps) {
             setStep(step + 1);
             return;
         }
-        onComplete()
+
         try {
-            const token = await AsyncStorage.getItem("auth_token")
             console.log("FormData is ", formData);
 
-            const response = await fetch("http://192.168.162.155:3000/api/complete_profile", {
-                method: "POST",
+            const profileData = {
+                height: parseFloat(formData.height),
+                weight: parseFloat(formData.weight),
+                age: parseInt(formData.age),
+                activityLevel: formData.activityLevel.toUpperCase(),
+                mealFrequency: formData.mealFrequency,
+                snackIncluded: formData.snackIncluded,
+                dietType: formData.dietType,
+                allergies: formData.allergies.join(","),
+                dietaryGoals: [
+                    {
+                        type: formData.goal,
+                        description: formData.goalDescription || null,
+                        endDate: formData.goalEndDate || null
+                    }
+                ]
+            };
+            const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/complete_profile`,
+                profileData, {
                 headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`, // if using JWT auth
-                },
-                body: JSON.stringify({
-                    height: parseFloat(formData.height),
-                    weight: parseFloat(formData.weight),
-                    age: parseInt(formData.age),
-                    activityLevel: formData.activityLevel.toUpperCase(), // if required
-                    mealFrequency: formData.mealFrequency,
-                    snackIncluded: formData.snackIncluded,
-                    dietType: formData.dietType,
-                    allergies: formData.allergies.join(","),
-                    dietaryGoals: [
-                        {
-                            type: formData.goal,
-                            description: formData.goalDescription || null,
-                            endDate: formData.goalEndDate || null
-                        }
-                    ]
-                }),
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                console.log("✅ Profile saved:", result);
+                    Authorization: `Bearer ${token}`
+                }
+            }
+            )
+            if (response.status == 200) {
+                console.log("✅ Profile completed successfully");
+                await completeProfile();
                 onComplete();
-            } else {
-                console.error("❌ API Error:", result);
-                alert(result.error || "Something went wrong!");
             }
         } catch (error) {
-            console.error("❌ Network Error:", error);
-            alert("Failed to submit. Please try again.");
+            console.error("❌ Profile completion error:", error);
+            alert("Failed to complete profile. Please try again.");
         }
     };
 

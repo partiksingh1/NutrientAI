@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -7,50 +7,22 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  Alert
+  FlatList,
+  Modal
 } from 'react-native';
 import {
   Send,
   Sparkles,
   Utensils,
   TrendingUp,
-  Clock
+  Clock,
+  MessageSquare,
+  Trash2,
+  X,
+  Plus
 } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// API Service for AI Recommendations
-const AUTH_TOKEN_KEY = "auth_token";
-
-const sendMessageToAI = async (userId: string, message: string): Promise<string> => {
-  try {
-    const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
-
-    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/recommend/ai`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
-      },
-      body: JSON.stringify({
-        userId,
-        message: message.trim(),
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to get AI response');
-    }
-
-    const data = await response.json();
-    return data.reply || 'Sorry, I couldn\'t process your request right now.';
-  } catch (error) {
-    console.error('AI API Error:', error);
-    throw error;
-  }
-};
-
+import { useChat } from '../hooks/useChat';
 const Button = ({
   variant = 'default',
   size = 'md',
@@ -99,31 +71,31 @@ const Input = ({
   />
 );
 
-// --- Message Interface ---
-interface Message {
-  id: string;
-  content: string;
-  sender: 'user' | 'ai';
-  timestamp: Date;
-}
 
 // --- Main Chat Screen ---
 export default function ChatScreen() {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content:
-        "Hi! I'm your AI nutritionist assistant. I can help you log meals, track progress, and give personalized recommendations. What would you like to know today?",
-      sender: 'ai',
-      timestamp: new Date()
-    }
-  ]);
 
-  const [inputValue, setInputValue] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const {
+    messages,
+    conversations,
+    inputValue,
+    isTyping,
+    isLoading,
+    isLoadingConversations,
+    showConversations,
+    currentConversationId,
+    scrollViewRef,
+
+    setInputValue,
+    setShowConversations,
+    setCurrentConversationId,
+    startNewConversation,
+    handleSend,
+    deleteConversation,
+    loadConversations,
+  } = useChat({ userId: user?.id || null });
+
 
   const quickSuggestions = [
     { text: 'Log my breakfast', icon: Utensils },
@@ -131,56 +103,6 @@ export default function ChatScreen() {
     { text: 'Suggest dinner', icon: Sparkles },
     { text: 'Weekly summary', icon: Clock }
   ];
-
-  useEffect(() => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
-  }, [messages]);
-
-  const handleSend = async () => {
-    if (!inputValue.trim() || !user?.id || isLoading) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputValue,
-      sender: 'user',
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    const currentInput = inputValue;
-    setInputValue('');
-    setIsTyping(true);
-    setIsLoading(true);
-
-    try {
-      const aiResponse = await sendMessageToAI(user.id, currentInput);
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: aiResponse,
-        sender: 'ai',
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: 'Sorry, I\'m having trouble connecting right now. Please check your internet connection and try again.',
-        sender: 'ai',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-
-      // Show alert for debugging in development
-      if (__DEV__) {
-        Alert.alert('API Error', `Failed to get AI response: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      }
-    } finally {
-      setIsTyping(false);
-      setIsLoading(false);
-    }
-  };
 
 
   // Show loading or error state if user is not available
@@ -201,13 +123,33 @@ export default function ChatScreen() {
       className="bg-gray-50 dark:bg-neutral-950"
     >
       {/* Header */}
-      <View className="p-4 border-b border-gray-200 dark:border-neutral-800 flex-row items-center gap-3 mt-4">
-        <View className="w-14 h-14 bg-black rounded-full items-center justify-center">
-          <Sparkles size={30} color="white" />
+      <View className="p-4 border-b border-gray-200 dark:border-neutral-800 flex-row items-center justify-between mt-4">
+        <View className="flex-row items-center gap-3 flex-1">
+          <View className="w-14 h-14 bg-black rounded-full items-center justify-center">
+            <Sparkles size={30} color="white" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-xl text-black dark:text-white">NutriAI Assistant</Text>
+            <Text className="text-lg text-gray-500">Always here to help</Text>
+          </View>
         </View>
-        <View>
-          <Text className="text-xl text-black dark:text-white">NutriAI Assistant</Text>
-          <Text className="text-lg text-gray-500">Always here to help</Text>
+        <View className="flex-row gap-2">
+          <Button
+            size="icon"
+            variant="outline"
+            onPress={() => setShowConversations(true)}
+            className="w-10 h-10"
+          >
+            <MessageSquare size={18} color="black" />
+          </Button>
+          <Button
+            size="icon"
+            variant="outline"
+            onPress={startNewConversation}
+            className="w-10 h-10"
+          >
+            <Plus size={18} color="black" />
+          </Button>
         </View>
       </View>
 
@@ -247,32 +189,37 @@ export default function ChatScreen() {
         className="flex-1 p-4"
         contentContainerStyle={{ paddingBottom: 80 }}
       >
-        {messages.map(message => (
-          <View
-            key={message.id}
-            className={`flex mb-3 ${message.sender === 'user' ? 'items-end' : 'items-start'}`}
-          >
+        {messages.length === 0 && (
+          <View className="flex-1 justify-center items-center p-8">
+            <Text className="text-gray-500">No messages yet</Text>
+          </View>
+        )}
+        {messages.map(message => {
+          console.log('Rendering message:', message.id, message.sender, message.content.substring(0, 50));
+          return (
             <View
-              className={`max-w-[80%] p-3 rounded-2xl ${message.sender === 'user'
-                ? 'bg-blue-500'
-                : 'bg-gray-200 dark:bg-neutral-800'
-                }`}
+              key={message.id}
+              className={`flex mb-3 ${message.sender === 'user' ? 'items-end' : 'items-start'}`}
             >
-              <Text
-                className={`text-sm ${message.sender === 'user' ? 'text-white' : 'text-black dark:text-white'
+              <View
+                className={`max-w-[80%] p-3 rounded-2xl ${message.sender === 'user'
+                  ? 'bg-blue-500'
+                  : 'bg-gray-200 dark:bg-neutral-800'
                   }`}
               >
-                {message.content}
-              </Text>
-              <Text className="text-xs mt-1 text-gray-400">
-                {message.timestamp.toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </Text>
+                <Text className="text-black dark:text-white">
+                  {message.content}
+                </Text>
+                <Text className="text-xs mt-1 text-gray-400">
+                  {message.timestamp.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </Text>
+              </View>
             </View>
-          </View>
-        ))}
+          );
+        })}
 
         {isTyping && (
           <View className="items-start">
@@ -321,6 +268,90 @@ export default function ChatScreen() {
           </Button>
         </View>
       </View>
+
+      {/* Conversations Modal */}
+      <Modal
+        visible={showConversations}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <View className="flex-1 bg-gray-50 dark:bg-neutral-950">
+          {/* Modal Header */}
+          <View className="p-4 border-b border-gray-200 dark:border-neutral-800 flex-row items-center justify-between">
+            <Text className="text-xl font-semibold text-black dark:text-white">Conversations</Text>
+            <Button
+              size="icon"
+              variant="outline"
+              onPress={() => setShowConversations(false)}
+              className="w-8 h-8"
+            >
+              <X size={16} color="black" />
+            </Button>
+          </View>
+
+          {/* Conversations List */}
+          <FlatList
+            data={conversations}
+            keyExtractor={(item) => item.id.toString()}
+            refreshing={isLoadingConversations}
+            onRefresh={loadConversations}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => {
+                  console.log('Selected conversation:', item.id);
+                  setCurrentConversationId(item.id);
+                  setShowConversations(false);
+                }}
+                className={`p-4 border-b border-gray-200 dark:border-neutral-800 ${currentConversationId === item.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                  }`}
+              >
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-1">
+                    <Text className="text-lg font-medium text-black dark:text-white" numberOfLines={1}>
+                      {item.title}
+                    </Text>
+                    <Text className="text-sm text-gray-500 mt-1">
+                      {new Date(item.updatedAt).toLocaleDateString()} at{' '}
+                      {new Date(item.updatedAt).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </Text>
+                    {item.messages && item.messages.length > 0 && (
+                      <Text className="text-sm text-gray-400 mt-1" numberOfLines={1}>
+                        {item.messages[0].content}
+                      </Text>
+                    )}
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => deleteConversation(item.id)}
+                    className="p-2"
+                  >
+                    <Trash2 size={16} color="#ef4444" />
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={
+              <View className="flex-1 justify-center items-center p-8">
+                <MessageSquare size={48} color="#9CA3AF" />
+                <Text className="text-lg text-gray-500 mt-4 text-center">
+                  No conversations yet
+                </Text>
+                <Text className="text-sm text-gray-400 mt-2 text-center">
+                  Start a new conversation to get personalized nutrition advice
+                </Text>
+                <Button
+                  onPress={startNewConversation}
+                  className="mt-4"
+                >
+                  <Text className="text-white font-medium">Start New Chat</Text>
+                </Button>
+              </View>
+            }
+          />
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }

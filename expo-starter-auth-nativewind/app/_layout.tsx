@@ -1,46 +1,46 @@
 import 'react-native-reanimated';
 import { Stack, useSegments, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useCallback, JSXElementConstructor, ReactElement, ReactNode, ReactPortal } from "react";
-import { ActivityIndicatorComponent, Text, View } from "react-native";
-import ToastManager, { Toast } from 'toastify-react-native'
+import { useEffect, useCallback } from "react";
+import { Text, View } from "react-native";
+import ToastManager from "toastify-react-native";
 import { AuthProvider, useAuth } from "../context/AuthContext";
-
 import "../global.css";
 
 function AuthRoot() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, isProfileComplete } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   const handleNavigation = useCallback(() => {
+    if (isLoading) return;
+
     const inAuthGroup = segments[0] === "auth";
     const inOnboarding = segments[0] === "OnBoarding";
 
-    if (isLoading) {
+    // 1️⃣ User not logged in → Go to login
+    if (!isAuthenticated) {
+      if (!inAuthGroup) {
+        router.replace("/auth/login");
+      }
       return;
     }
 
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace("/auth/login");
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace("/");
-    }
-
-    if (isAuthenticated) {
-      if (!user?.profile_completed && !inOnboarding) {
-        // If logged in but profile not complete, redirect to onboarding
+    // 2️⃣ User logged in but profile incomplete → Go to onboarding
+    if (isAuthenticated && !isProfileComplete) {
+      if (!inOnboarding) {
         router.replace("/OnBoarding/onboarding");
-        return;
       }
+      return;
+    }
 
-      if (user?.profile_completed && (inAuthGroup || inOnboarding)) {
-        // If profile complete but in auth or onboarding group, redirect to main app
+    // 3️⃣ User logged in and profile complete → Go to main app
+    if (isAuthenticated && isProfileComplete) {
+      if (inAuthGroup || inOnboarding) {
         router.replace("/(app)");
-        return;
       }
     }
-  }, [isAuthenticated, segments, isLoading]);
+  }, [isAuthenticated, isLoading, isProfileComplete, segments]);
 
   useEffect(() => {
     handleNavigation();
@@ -49,7 +49,6 @@ function AuthRoot() {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
-
         <Text className="text-gray-600 mt-4">Loading...</Text>
       </View>
     );
@@ -69,33 +68,10 @@ function AuthRoot() {
           },
         }}
       >
-        <Stack.Screen
-          name="(app)"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="OnBoarding"
-          options={{
-            headerShown: false,
-          }}
-        />
-
-        <Stack.Screen
-          name="auth/login"
-          options={{
-            title: "Login",
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="auth/register"
-          options={{
-            title: "Create Account",
-            headerShown: false,
-          }}
-        />
+        <Stack.Screen name="(app)" options={{ headerShown: false }} />
+        <Stack.Screen name="OnBoarding" options={{ headerShown: false }} />
+        <Stack.Screen name="auth/login" options={{ title: "Login", headerShown: false }} />
+        <Stack.Screen name="auth/register" options={{ title: "Create Account", headerShown: false }} />
       </Stack>
     </>
   );

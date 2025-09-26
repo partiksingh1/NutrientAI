@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Switch } from 'react-native';
-import { User, Target, Bell, Palette, HelpCircle, LogOut, Edit, Save, X, User2Icon } from 'lucide-react-native';
+import { User, Bell, Palette, HelpCircle, LogOut, Edit, Save, X, User2Icon } from 'lucide-react-native';
+import AuthService from '@/services/authService';
+import { useRouter } from 'expo-router';
 
 export default function ProfileScreen() {
   const [isEditing, setIsEditing] = useState(false);
@@ -31,6 +33,17 @@ export default function ProfileScreen() {
   const handleCancel = () => {
     setEditProfile(profile);
     setIsEditing(false);
+  };
+
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await AuthService.logout(); // logout + Toast
+      router.replace("/auth/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (
@@ -177,7 +190,7 @@ export default function ProfileScreen() {
             <Text className="text-sm">Help & Support</Text>
           </TouchableOpacity>
           <View className="h-[1px] bg-border" />
-          <TouchableOpacity className="flex-row items-center gap-3 p-4">
+          <TouchableOpacity className="flex-row items-center gap-3 p-4" onPress={handleLogout}>
             <LogOut size={18} color="red" />
             <Text className="text-sm text-red-500">Sign Out</Text>
           </TouchableOpacity>
