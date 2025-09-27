@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, RefreshControl, ActivityIndicator } from 'react-native';
-import { BarChart, PieChart } from 'react-native-gifted-charts';
+import { BarChart, LineChart, PieChart } from 'react-native-gifted-charts';
 import { Target, Zap, Activity } from 'lucide-react-native';
 import { Card } from '@/components/Card';
 import { useAnalytics, Period } from '@/app/hooks/useAnalytics';
+import { Dimensions } from 'react-native';
 
 export default function ProgressScreen() {
     const [selectedPeriod, setSelectedPeriod] = useState<Period>('week');
     const { analytics, loading, error, refetch } = useAnalytics(selectedPeriod);
+    const [chartType, setChartType] = useState<'bar' | 'line'>('line');
+
+    const toggleChart = () => {
+        setChartType(prev => (prev === 'bar' ? 'line' : 'bar'));
+    };
+
 
     const formatNumber = (num: number) => {
         return num.toLocaleString();
@@ -56,6 +63,7 @@ export default function ProgressScreen() {
         label: formatDate(day.date),
         frontColor: '#3b82f6'
     }));
+    const maxCalories = Math.max(...nutritionChartData.map(d => d.value), 2000);
 
     const macroChartData = analytics.macroDistribution.map(macro => ({
         value: macro.value,
@@ -139,23 +147,85 @@ export default function ProgressScreen() {
             </View>
 
             {/* Nutrition Trends Chart */}
-            {nutritionChartData.length > 0 && (
+            {nutritionChartData.length > 0 ? (
                 <View className="px-6 mb-6">
                     <Card className="p-4">
-                        <Text className="text-base font-medium mb-3">Daily Calories</Text>
-                        <BarChart
-                            data={nutritionChartData}
-                            width={300}
-                            height={150}
-                            barWidth={20}
-                            frontColor="#3b82f6"
-                            yAxisLabelSuffix=" cal"
-                            showYAxisIndices
-                            showVerticalLines
-                        />
+                        <View className="flex-row justify-between items-center mb-4">
+                            <Text className="text-base font-medium">Daily Calories</Text>
+                            <Pressable
+                                onPress={toggleChart}
+                                className="px-3 py-1 bg-gray-100 rounded-full"
+                            >
+                                <Text className="text-xs text-blue-600 font-medium">
+                                    Switch to {chartType === 'bar' ? 'Line' : 'Bar'}
+                                </Text>
+                            </Pressable>
+                        </View>
+
+                        {chartType === 'bar' ? (
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                <BarChart
+                                    data={nutritionChartData}
+                                    barWidth={26}
+                                    barBorderRadius={2}
+                                    showValuesAsTopLabel
+                                    spacing={12}
+                                    noOfSections={3}
+                                    xAxisLabelTextStyle={{
+                                        fontSize: 9,
+                                        marginTop: 4,
+                                    }}
+                                    yAxisTextStyle={{
+                                        fontSize: 10,
+                                    }}
+
+                                    initialSpacing={10}
+                                    maxValue={maxCalories}
+                                    width={nutritionChartData.length * (26 + 18) + 40} // calculated width
+                                />
+                            </ScrollView>
+
+                        ) : (
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                <LineChart
+                                    data={nutritionChartData}
+                                    width={Dimensions.get('window').width - 64}
+                                    height={220}
+                                    yAxisLabelSuffix=""
+                                    isAnimated
+                                    animationDuration={600}
+                                    color="#3b82f6"
+                                    hideDataPoints={false}
+                                    dataPointsColor="#2563eb"
+                                    textColor="#3b82f6"
+                                    areaChart
+                                    curved
+                                    xAxisLabelTextStyle={{
+                                        color: '#6b7280',
+                                        fontSize: 10,
+                                        marginTop: 4,
+                                    }}
+                                    yAxisTextStyle={{
+                                        color: '#6b7280',
+                                        fontSize: 10,
+                                    }}
+                                    noOfSections={4}
+                                    maxValue={maxCalories}
+                                />
+                            </ScrollView>
+                        )}
+                    </Card>
+                </View>
+            ) : (
+                <View className="px-6 mb-6">
+                    <Card className="p-6 items-center">
+                        <Text className="text-sm text-gray-500 text-center">
+                            Not enough data to show trends yet. Start logging meals to see insights!
+                        </Text>
                     </Card>
                 </View>
             )}
+
 
             {/* Macro Distribution */}
             {macroChartData.length > 0 && (
