@@ -1,0 +1,235 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Toast } from "toastify-react-native";
+
+const AUTH_TOKEN_KEY = "auth_token";
+const USER_DATA_KEY = "user_data";
+
+export interface UserProfile {
+    id: number;
+    username: string;
+    email: string;
+    weight?: number;
+    height?: number;
+    age?: number;
+    gender?: string;
+    activityLevel?: string;
+    profile_completed: boolean;
+    preferences?: {
+        id: number;
+        mealFrequency: number;
+        snackIncluded: boolean;
+        dietType: string;
+        allergies?: string;
+    };
+    dietaryGoals?: Array<{
+        id: number;
+        type: string;
+        description?: string;
+        startDate: string;
+        endDate?: string;
+    }>;
+}
+
+export interface UpdateProfileData {
+    username?: string;
+    weight?: number;
+    height?: number;
+    age?: number;
+    gender?: string;
+    activityLevel?: string;
+}
+
+export interface UpdatePreferencesData {
+    mealFrequency?: number;
+    snackIncluded?: boolean;
+    dietType?: string;
+    allergies?: string;
+}
+
+export default class UserService {
+    /**
+     * Get the current user's profile from the server
+     */
+    static async getUserProfile(): Promise<UserProfile> {
+        try {
+            const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/user/profile`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to fetch profile');
+            }
+
+            const data = await response.json();
+            return data.user;
+        } catch (error: any) {
+            console.error('Get user profile error:', error);
+            throw new Error(error.message || 'Failed to fetch profile');
+        }
+    }
+
+    /**
+     * Update the user's profile
+     */
+    static async updateUserProfile(profileData: UpdateProfileData): Promise<UserProfile> {
+        try {
+            const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/user/profile`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(profileData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update profile');
+            }
+
+            const data = await response.json();
+
+            // Update local storage with new user data
+            await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(data.user));
+
+            Toast.show({
+                type: 'success',
+                text1: 'Profile Updated',
+                text2: 'Your profile has been updated successfully',
+                position: 'top',
+                visibilityTime: 3000,
+                autoHide: true,
+            });
+
+            return data.user;
+        } catch (error: any) {
+            console.error('Update user profile error:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Update Failed',
+                text2: error.message || 'Failed to update profile',
+                position: 'top',
+                visibilityTime: 3000,
+                autoHide: true,
+            });
+            throw new Error(error.message || 'Failed to update profile');
+        }
+    }
+
+    /**
+     * Update the user's preferences
+     */
+    static async updateUserPreferences(preferencesData: UpdatePreferencesData): Promise<any> {
+        try {
+            const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/user/preferences`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(preferencesData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update preferences');
+            }
+
+            const data = await response.json();
+
+            Toast.show({
+                type: 'success',
+                text1: 'Preferences Updated',
+                text2: 'Your preferences have been updated successfully',
+                position: 'top',
+                visibilityTime: 3000,
+                autoHide: true,
+            });
+
+            return data.preferences;
+        } catch (error: any) {
+            console.error('Update preferences error:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Update Failed',
+                text2: error.message || 'Failed to update preferences',
+                position: 'top',
+                visibilityTime: 3000,
+                autoHide: true,
+            });
+            throw new Error(error.message || 'Failed to update preferences');
+        }
+    }
+
+    /**
+     * Delete the user's account
+     */
+    static async deleteUserAccount(): Promise<void> {
+        try {
+            const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/user/account`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to delete account');
+            }
+
+            // Clear local storage
+            await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, USER_DATA_KEY]);
+
+            Toast.show({
+                type: 'success',
+                text1: 'Account Deleted',
+                text2: 'Your account has been deleted successfully',
+                position: 'top',
+                visibilityTime: 3000,
+                autoHide: true,
+            });
+        } catch (error: any) {
+            console.error('Delete account error:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Delete Failed',
+                text2: error.message || 'Failed to delete account',
+                position: 'top',
+                visibilityTime: 3000,
+                autoHide: true,
+            });
+            throw new Error(error.message || 'Failed to delete account');
+        }
+    }
+}
