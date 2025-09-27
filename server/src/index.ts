@@ -6,6 +6,7 @@ import preference from "./routes/preferences.routes.js";
 import recommend_router from "./routes/recommend.route.js";
 import main_router from "./routes/mainController.routes.js";
 import analytics from "./routes/analytics.routes.js";
+import user_router from "./routes/user.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,7 @@ app.use('/api/preference', preference);
 app.use('/api/recommend', recommend_router);
 app.use('/api/complete_profile', main_router);
 app.use('/api/analytics', analytics);
+app.use('/api/user', user_router);
 app.listen(PORT, () => {
     console.log(`...Server running at http://localhost:${PORT}`);
 });
