@@ -8,17 +8,13 @@ interface MarkdownTextProps {
 }
 
 const MarkdownText: React.FC<MarkdownTextProps> = ({ content, isUser = false }) => {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
 
     const getTextColor = () => {
         if (isUser) return '#ffffff';
-        return isDark ? '#ffffff' : '#000000';
     };
 
     const getBackgroundColor = (opacity: number = 0.1) => {
         if (isUser) return `rgba(255,255,255,${opacity})`;
-        return isDark ? `rgba(255,255,255,${opacity})` : `rgba(0,0,0,${opacity})`;
     };
 
     const markdownStyles = {
@@ -67,7 +63,7 @@ const MarkdownText: React.FC<MarkdownTextProps> = ({ content, isUser = false }) 
         },
         blockquote: {
             borderLeftWidth: 3,
-            borderLeftColor: isUser ? 'rgba(255,255,255,0.5)' : (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'),
+            borderLeftColor: isUser,
             paddingLeft: 12,
             marginTop: 4,
             marginBottom: 4,

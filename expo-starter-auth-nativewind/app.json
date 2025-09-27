@@ -3,7 +3,7 @@
     "name": "expo-starter-auth-nativewind",
     "slug": "expo-starter-auth-nativewind",
     "version": "1.0.0",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "web": {
       "bundler": "metro",

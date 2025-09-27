@@ -57,20 +57,20 @@ export default function AppLayout() {
           }}
         />
         <Tabs.Screen
-          name="settings"
-          options={{
-            title: "Settings",
-            tabBarIcon: getTabBarIcon("settings-outline"),
-            tabBarLabel: "Settings",
-            headerShown: false
-          }}
-        />
-        <Tabs.Screen
           name="progress"
           options={{
             title: "Progress",
             tabBarIcon: getTabBarIcon("analytics-outline"),
             tabBarLabel: "Progress",
+            headerShown: false
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            title: "Settings",
+            tabBarIcon: getTabBarIcon("settings-outline"),
+            tabBarLabel: "Settings",
             headerShown: false
           }}
         />
