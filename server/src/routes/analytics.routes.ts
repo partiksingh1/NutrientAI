@@ -1,22 +1,13 @@
 import { Router } from 'express';
-import {
-    getNutritionalOverview,
-    getMealTypeAnalysis,
-    getGoalProgress
-} from '../controller/analytics.controller.js';
+import { getProgressAnalytics, getNutritionTrends } from '../controller/analytics.controller.js';
+import { authMiddleware } from '../middleware/auth_middleware.js';
 
 const analytics = Router();
 
-// Get nutritional overview for a specific period
-analytics.get('/overview/:userId', getNutritionalOverview);
+// Get user progress analytics
+analytics.get('/progress', authMiddleware, getProgressAnalytics);
 
-// Get detailed analytics with trends
-// analytics.get('/detailed/:userId', getDetailedAnalytics);
-
-// Get meal type analysis
-analytics.get('/meal-types/:userId', getMealTypeAnalysis);
-
-// Get goal progress
-analytics.get('/progress/:userId', getGoalProgress);
+// Get nutrition trends over time
+analytics.get('/trends', authMiddleware, getNutritionTrends);
 
 export default analytics;

@@ -1,50 +1,96 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
-import { LineChart, BarChart, PieChart } from 'react-native-gifted-charts';
-import { TrendingUp, TrendingDown, Target, Award, Zap } from 'lucide-react-native';
+import { View, Text, ScrollView, Pressable, RefreshControl, ActivityIndicator } from 'react-native';
+import { BarChart, PieChart } from 'react-native-gifted-charts';
+import { Target, Zap, Activity } from 'lucide-react-native';
 import { Card } from '@/components/Card';
+import { useAnalytics, Period } from '@/app/hooks/useAnalytics';
 
 export default function ProgressScreen() {
-    const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter'>('week');
+    const [selectedPeriod, setSelectedPeriod] = useState<Period>('week');
+    const { analytics, loading, error, refetch } = useAnalytics(selectedPeriod);
 
-    // Mock data for charts
-    const weightData = [
-        { value: 72.5, label: 'Dec 1' },
-        { value: 72.3, label: 'Dec 2' },
-        { value: 72.1, label: 'Dec 3' },
-        { value: 71.9, label: 'Dec 4' },
-        { value: 71.8, label: 'Dec 5' },
-    ];
+    const formatNumber = (num: number) => {
+        return num.toLocaleString();
+    };
 
-    const macroData = [
-        { protein: 110, carbs: 200, fats: 75, label: 'Dec 1' },
-        { protein: 95, carbs: 180, fats: 65, label: 'Dec 2' },
-        { protein: 120, carbs: 220, fats: 85, label: 'Dec 3' },
-        { protein: 105, carbs: 190, fats: 70, label: 'Dec 4' },
-        { protein: 95, carbs: 180, fats: 65, label: 'Dec 5' },
-    ];
+    const formatDate = (dateStr: string) => {
+        return new Date(dateStr).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+        });
+    };
 
-    const adherenceData = [
-        { value: 75, color: '#22c55e', label: 'On Track' },
-        { value: 20, color: '#f59e0b', label: 'Close' },
-        { value: 5, color: '#ef4444', label: 'Missed' },
-    ];
+    if (loading && !analytics) {
+        return (
+            <View className="flex-1 bg-background justify-center items-center">
+                <ActivityIndicator size="large" color="#3b82f6" />
+                <Text className="text-gray-500 mt-4">Loading your progress...</Text>
+            </View>
+        );
+    }
+
+    if (error) {
+        return (
+            <View className="flex-1 bg-background justify-center items-center p-6">
+                <Text className="text-red-500 text-center mb-4">{error}</Text>
+                <Pressable
+                    onPress={refetch}
+                    className="bg-blue-500 px-4 py-2 rounded-lg"
+                >
+                    <Text className="text-white">Try Again</Text>
+                </Pressable>
+            </View>
+        );
+    }
+
+    if (!analytics) {
+        return (
+            <View className="flex-1 bg-background justify-center items-center p-6">
+                <Text className="text-gray-500 text-center">No data available</Text>
+            </View>
+        );
+    }
+
+    const nutritionChartData = analytics.dailyTotals.map((day, index) => ({
+        value: day.calories,
+        label: formatDate(day.date),
+        frontColor: '#3b82f6'
+    }));
+
+    const macroChartData = analytics.macroDistribution.map(macro => ({
+        value: macro.value,
+        color: macro.color,
+        label: macro.label
+    }));
 
     const stats = [
-        { label: 'Weight Lost', value: '0.7 kg', change: '-2.3%', positive: true, icon: TrendingDown },
-        { label: 'Avg Calories', value: '1,996', change: '+5.2%', positive: false, icon: Zap },
-        { label: 'Goal Adherence', value: '89%', change: '+12%', positive: true, icon: Target },
-    ];
-
-    const achievements = [
-        { title: '7-Day Streak', description: 'Logged meals for 7 days straight!', earned: true },
-        { title: 'Protein Pro', description: 'Hit protein goals 5 days this week', earned: true },
-        { title: 'Balanced Week', description: 'Maintained macro balance', earned: false },
-        { title: 'Hydration Hero', description: 'Drink 8 glasses daily for a week', earned: false },
+        {
+            label: 'Avg Calories',
+            value: formatNumber(analytics.stats.avgCalories),
+            icon: Zap,
+            color: '#3b82f6'
+        },
+        {
+            label: 'Goal Adherence',
+            value: `${analytics.stats.adherence}%`,
+            icon: Target,
+            color: analytics.stats.adherence >= 80 ? '#16a34a' : '#f59e0b'
+        },
+        {
+            label: 'Total Meals',
+            value: formatNumber(analytics.stats.totalMeals),
+            icon: Activity,
+            color: '#8b5cf6'
+        },
     ];
 
     return (
-        <ScrollView className="flex-1 bg-background mt-4">
+        <ScrollView
+            className="flex-1 bg-background mt-4"
+            refreshControl={
+                <RefreshControl refreshing={loading} onRefresh={refetch} />
+            }
+        >
             {/* Header */}
             <View className="p-6 pb-4">
                 <Text className="text-2xl mb-1 font-semibold">Progress Tracking</Text>
@@ -53,15 +99,19 @@ export default function ProgressScreen() {
 
             {/* Period Selector */}
             <View className="px-6 mb-6 flex-row gap-2">
-                {['week', 'month', 'quarter'].map((period) => (
+                {(['week', 'month', 'quarter'] as Period[]).map((period) => (
                     <Pressable
                         key={period}
-                        className={`px-3 py-1.5 rounded-full border ${selectedPeriod === period ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
+                        className={`px-4 py-2 rounded-full border ${selectedPeriod === period
+                            ? 'bg-blue-500 border-blue-500'
+                            : 'border-gray-300 bg-white'
                             }`}
-                        onPress={() => setSelectedPeriod(period as any)}
+                        onPress={() => setSelectedPeriod(period)}
                     >
                         <Text
-                            className={`text-sm capitalize ${selectedPeriod === period ? 'text-white' : 'text-gray-700'
+                            className={`text-sm capitalize font-medium ${selectedPeriod === period
+                                ? 'text-white'
+                                : 'text-gray-700'
                                 }`}
                         >
                             {period}
@@ -71,70 +121,95 @@ export default function ProgressScreen() {
             </View>
 
             {/* Stats Overview */}
-            <View className="px-6 mb-6 flex-row justify-between">
-                {stats.map((stat, index) => {
-                    const Icon = stat.icon;
-                    return (
-                        <Card key={index} className="flex-1 mx-1 p-3 items-center">
-                            <Icon size={20} color={stat.positive ? '#16a34a' : '#ef4444'} />
-                            <Text className="text-lg mt-1">{stat.value}</Text>
-                            <Text className="text-xs text-gray-500">{stat.label}</Text>
-                            <Text
-                                className={`text-xs mt-1 ${stat.positive ? 'text-green-600' : 'text-red-600'
-                                    }`}
-                            >
-                                {stat.change}
-                            </Text>
-                        </Card>
-                    );
-                })}
-            </View>
-
-            {/* Weight Chart */}
             <View className="px-6 mb-6">
-                <Card className="p-4">
-                    <Text className="text-base font-medium mb-3">Weight Progress</Text>
-                    <LineChart
-                        data={weightData}
-                        width={300}
-                        height={150}
-                        color="#3b82f6"
-                        yAxisLabelSuffix="kg"
-                    />
-                    <View className="flex-row justify-between mt-2">
-                        <Text className="text-xs text-gray-500">Start: 72.5kg</Text>
-                        <Text className="text-xs text-gray-500">Current: 71.8kg</Text>
-                    </View>
-                </Card>
+                <View className="flex-row justify-between gap-2">
+                    {stats.map((stat, index) => {
+                        const Icon = stat.icon;
+                        return (
+                            <Card key={index} className="flex-1 p-4 items-center">
+                                <Icon size={24} color={stat.color} />
+                                <Text className="text-xl font-bold mt-2">{stat.value}</Text>
+                                <Text className="text-xs text-gray-500 text-center mt-1">
+                                    {stat.label}
+                                </Text>
+                            </Card>
+                        );
+                    })}
+                </View>
             </View>
 
-            {/* Achievements */}
+            {/* Nutrition Trends Chart */}
+            {nutritionChartData.length > 0 && (
+                <View className="px-6 mb-6">
+                    <Card className="p-4">
+                        <Text className="text-base font-medium mb-3">Daily Calories</Text>
+                        <BarChart
+                            data={nutritionChartData}
+                            width={300}
+                            height={150}
+                            barWidth={20}
+                            frontColor="#3b82f6"
+                            yAxisLabelSuffix=" cal"
+                            showYAxisIndices
+                            showVerticalLines
+                        />
+                    </Card>
+                </View>
+            )}
+
+            {/* Macro Distribution */}
+            {macroChartData.length > 0 && (
+                <View className="px-6 mb-6">
+                    <Card className="p-4">
+                        <Text className="text-base font-medium mb-3">Macro Distribution</Text>
+                        <View className="items-center">
+                            <PieChart
+                                data={macroChartData}
+                                radius={80}
+                                innerRadius={40}
+                                centerLabelComponent={() => (
+                                    <Text className="text-lg font-bold">Macros</Text>
+                                )}
+                            />
+                        </View>
+                        <View className="flex-row justify-around mt-4">
+                            {macroChartData.map((macro, index) => (
+                                <View key={index} className="items-center">
+                                    <View
+                                        className="w-3 h-3 rounded-full mb-1"
+                                        style={{ backgroundColor: macro.color }}
+                                    />
+                                    <Text className="text-xs text-gray-600">{macro.label}</Text>
+                                    <Text className="text-xs font-medium">{macro.value}%</Text>
+                                </View>
+                            ))}
+                        </View>
+                    </Card>
+                </View>
+            )}
+
+            {/* Summary Stats */}
             <View className="px-6 pb-6">
                 <Card className="p-4">
-                    <Text className="text-base font-medium mb-3">Achievements</Text>
-                    {achievements.map((ach, index) => (
-                        <View
-                            key={index}
-                            className={`flex-row items-center gap-3 p-3 mb-2 rounded-lg border ${ach.earned
-                                ? 'border-green-200 bg-green-50'
-                                : 'border-gray-300 bg-gray-100'
-                                }`}
-                        >
-                            <View
-                                className={`w-10 h-10 rounded-full items-center justify-center ${ach.earned ? 'bg-green-500' : 'bg-gray-300'
-                                    }`}
-                            >
-                                <Award size={20} color={ach.earned ? '#fff' : '#6b7280'} />
-                            </View>
-                            <View className="flex-1">
-                                <Text className={`text-sm ${ach.earned ? '' : 'text-gray-500'}`}>
-                                    {ach.title}
-                                </Text>
-                                <Text className="text-xs text-gray-500">{ach.description}</Text>
-                            </View>
-                            {ach.earned && <Text className="text-green-600 text-xs">✓</Text>}
+                    <Text className="text-base font-medium mb-3">Summary</Text>
+                    <View className="space-y-2">
+                        <View className="flex-row justify-between">
+                            <Text className="text-sm text-gray-600">Logged Days</Text>
+                            <Text className="text-sm font-medium">{analytics.stats.loggedDays}</Text>
                         </View>
-                    ))}
+                        <View className="flex-row justify-between">
+                            <Text className="text-sm text-gray-600">Avg Protein</Text>
+                            <Text className="text-sm font-medium">{formatNumber(analytics.stats.avgProtein)}g</Text>
+                        </View>
+                        <View className="flex-row justify-between">
+                            <Text className="text-sm text-gray-600">Avg Carbs</Text>
+                            <Text className="text-sm font-medium">{formatNumber(analytics.stats.avgCarbs)}g</Text>
+                        </View>
+                        <View className="flex-row justify-between">
+                            <Text className="text-sm text-gray-600">Avg Fats</Text>
+                            <Text className="text-sm font-medium">{formatNumber(analytics.stats.avgFats)}g</Text>
+                        </View>
+                    </View>
                 </Card>
             </View>
         </ScrollView>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, TextInput, Text, Alert, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, TextInput, Text, Alert, ActivityIndicator, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
+import { Eye, EyeOff } from "lucide-react-native";
 
 import Button from "./Button";
 import { LoginCredentials } from "../types/user";
@@ -12,6 +13,7 @@ interface LoginFormProps {
 export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const validate = (): boolean => {
@@ -44,36 +46,53 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
   };
 
   return (
-    <View className="w-full p-4">
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="w-full p-4"
+    >
       <View className="mb-4">
-        <Text className="mb-2 text-gray-700">Email</Text>
+        <Text className="mb-2 text-gray-700 font-medium">Email</Text>
         <TextInput
-          className={`p-4 border rounded-md ${errors.email ? "border-red-500" : "border-gray-300"}`}
+          className={`p-4 border rounded-lg ${errors.email ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"}`}
           value={email}
           onChangeText={setEmail}
           placeholder="your@email.com"
           autoCapitalize="none"
           keyboardType="email-address"
+          autoComplete="email"
           onFocus={() => setErrors({ ...errors, email: undefined })}
         />
-        {errors.email && <Text className="mt-1 text-red-500">{errors.email}</Text>}
+        {errors.email && <Text className="mt-1 text-red-500 text-sm">{errors.email}</Text>}
       </View>
 
       <View className="mb-6">
-        <Text className="mb-2 text-gray-700">Password</Text>
-        <TextInput
-          className={`p-4 border rounded-md ${errors.password ? "border-red-500" : "border-gray-300"}`}
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Your password"
-          secureTextEntry
-          onFocus={() => setErrors({ ...errors, password: undefined })}
-        />
-        {errors.password && <Text className="mt-1 text-red-500">{errors.password}</Text>}
+        <Text className="mb-2 text-gray-700 font-medium">Password</Text>
+        <View className="relative">
+          <TextInput
+            className={`p-4 border rounded-lg pr-12 ${errors.password ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"}`}
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Your password"
+            secureTextEntry={!showPassword}
+            autoComplete="password"
+            onFocus={() => setErrors({ ...errors, password: undefined })}
+          />
+          <TouchableOpacity
+            className="absolute right-3 top-4"
+            onPress={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? (
+              <EyeOff size={20} color="#6b7280" />
+            ) : (
+              <Eye size={20} color="#6b7280" />
+            )}
+          </TouchableOpacity>
+        </View>
+        {errors.password && <Text className="mt-1 text-red-500 text-sm">{errors.password}</Text>}
       </View>
 
       <TouchableOpacity
-        className="mb-4 self-end"
+        className="mb-6 self-end"
         onPress={() =>
           Alert.alert(
             "Reset Password",
@@ -81,16 +100,16 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
           )
         }
       >
-        <Text className="text-blue-600">Forgot password?</Text>
+        <Text className="text-blue-600 font-medium">Forgot password?</Text>
       </TouchableOpacity>
 
       <Button
-        label={isLoading ? "Please wait..." : "Login"}
+        label={isLoading ? "Signing in..." : "Sign In"}
         onPress={handleSubmit}
         disabled={isLoading}
+        loading={isLoading}
+        size="lg"
       />
-
-      {isLoading && <ActivityIndicator size="small" color="#4338ca" className="mt-4" />}
-    </View>
+    </KeyboardAvoidingView>
   );
 }

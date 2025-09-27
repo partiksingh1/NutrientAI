@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator } from 'react-native';
-import { User, Bell, Palette, HelpCircle, LogOut, Edit, Save, X, User2Icon, Trash2 } from 'lucide-react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator, Modal, FlatList } from 'react-native';
+import { User, Bell, Palette, HelpCircle, LogOut, Edit, Save, X, User2Icon, Trash2, ChevronDown } from 'lucide-react-native';
 import AuthService from '@/services/authService';
-import UserService, { UserProfile, UpdateProfileData, UpdatePreferencesData } from '@/services/userService';
+import { UserProfile, UpdateProfileData, UpdatePreferencesData, getUserProfile, updateUserProfile, updateUserPreferences, deleteUserAccount } from '@/services/userService';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 
@@ -13,8 +13,31 @@ export default function ProfileScreen() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [editProfile, setEditProfile] = useState<UpdateProfileData>({});
   const [preferences, setPreferences] = useState<UpdatePreferencesData>({});
+  const [showDietTypeModal, setShowDietTypeModal] = useState(false);
+  const [showMealFrequencyModal, setShowMealFrequencyModal] = useState(false);
   const { user, logout } = useAuth();
   const router = useRouter();
+
+  // Diet type options
+  const dietTypes = [
+    { value: 'OMNIVORE', label: 'Omnivore' },
+    { value: 'VEGETARIAN', label: 'Vegetarian' },
+    { value: 'VEGAN', label: 'Vegan' },
+    { value: 'KETO', label: 'Keto' },
+    { value: 'PALEO', label: 'Paleo' },
+    { value: 'GLUTEN_FREE', label: 'Gluten Free' },
+    { value: 'OTHER', label: 'Other' },
+  ];
+
+  // Meal frequency options
+  const mealFrequencies = [
+    { value: 1, label: '1 meal per day' },
+    { value: 2, label: '2 meals per day' },
+    { value: 3, label: '3 meals per day' },
+    { value: 4, label: '4 meals per day' },
+    { value: 5, label: '5 meals per day' },
+    { value: 6, label: '6 meals per day' },
+  ];
 
   // Load user profile on component mount
   useEffect(() => {
@@ -24,7 +47,7 @@ export default function ProfileScreen() {
   const loadUserProfile = async () => {
     try {
       setIsLoading(true);
-      const userProfile = await UserService.getUserProfile();
+      const userProfile = await getUserProfile();
       setProfile(userProfile);
       setEditProfile({
         username: userProfile.username,
@@ -56,7 +79,7 @@ export default function ProfileScreen() {
       );
 
       if (hasProfileChanges) {
-        await UserService.updateUserProfile(editProfile);
+        await updateUserProfile(editProfile);
       }
 
       // Update preferences if there are changes
@@ -65,7 +88,7 @@ export default function ProfileScreen() {
       );
 
       if (hasPreferenceChanges) {
-        await UserService.updateUserPreferences(preferences);
+        await updateUserPreferences(preferences);
       }
 
       // Reload profile to get updated data
@@ -120,7 +143,7 @@ export default function ProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await UserService.deleteUserAccount();
+              await deleteUserAccount();
               await logout();
               router.replace("/auth/login");
             } catch (error) {
@@ -130,6 +153,16 @@ export default function ProfileScreen() {
         },
       ]
     );
+  };
+
+  const getDietTypeLabel = (dietType: string) => {
+    const diet = dietTypes.find(d => d.value === dietType);
+    return diet ? diet.label : dietType;
+  };
+
+  const getMealFrequencyLabel = (frequency: number) => {
+    const meal = mealFrequencies.find(m => m.value === frequency);
+    return meal ? meal.label : `${frequency} meals per day`;
   };
 
   if (isLoading) {
@@ -275,37 +308,100 @@ export default function ProfileScreen() {
       {/* Preferences */}
       <View className="px-6 mb-6">
         <View className="bg-card rounded-xl p-4 border border-gray-300">
-          <View className="flex-row items-center gap-2 mb-3">
-            <Palette size={18} color="black" />
-            <Text className="text-base">Preferences</Text>
+          <View className="flex-row items-center justify-between mb-3">
+            <View className="flex-row items-center gap-2">
+              <Palette size={18} color="black" />
+              <Text className="text-base">Preferences</Text>
+            </View>
+            {isEditing && (
+              <TouchableOpacity
+                onPress={handleSave}
+                disabled={isSaving}
+                className="px-2 py-1 bg-primary rounded-md flex-row items-center gap-1"
+              >
+                {isSaving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Save size={14} color="black" />
+                    <Text className="text-sm">Save</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Diet Type */}
           <View className="mb-4">
-            <Text className="text-xs text-muted-foreground">Diet Type</Text>
-            <Text className="text-sm mt-1 capitalize">{profile.preferences?.dietType?.replace('_', ' ').toLowerCase() || 'Not set'}</Text>
+            <Text className="text-xs text-muted-foreground mb-2">Diet Type</Text>
+            {isEditing ? (
+              <TouchableOpacity
+                onPress={() => setShowDietTypeModal(true)}
+                className="border border-border rounded-md px-3 py-2 flex-row items-center justify-between"
+              >
+                <Text className="text-sm">
+                  {preferences.dietType ? getDietTypeLabel(preferences.dietType) :
+                    profile.preferences?.dietType ? getDietTypeLabel(profile.preferences.dietType) :
+                      'Select diet type'}
+                </Text>
+                <ChevronDown size={16} color="gray" />
+              </TouchableOpacity>
+            ) : (
+              <Text className="text-sm mt-1">
+                {profile.preferences?.dietType ? getDietTypeLabel(profile.preferences.dietType) : 'Not set'}
+              </Text>
+            )}
           </View>
 
           {/* Meal Frequency */}
           <View className="mb-4">
-            <Text className="text-xs text-muted-foreground">Meals per Day</Text>
-            <Text className="text-sm mt-1">{profile.preferences?.mealFrequency || 'Not set'}</Text>
+            <Text className="text-xs text-muted-foreground mb-2">Meals per Day</Text>
+            {isEditing ? (
+              <TouchableOpacity
+                onPress={() => setShowMealFrequencyModal(true)}
+                className="border border-border rounded-md px-3 py-2 flex-row items-center justify-between"
+              >
+                <Text className="text-sm">
+                  {preferences.mealFrequency ? getMealFrequencyLabel(preferences.mealFrequency) :
+                    profile.preferences?.mealFrequency ? getMealFrequencyLabel(profile.preferences.mealFrequency) :
+                      'Select meal frequency'}
+                </Text>
+                <ChevronDown size={16} color="gray" />
+              </TouchableOpacity>
+            ) : (
+              <Text className="text-sm mt-1">
+                {profile.preferences?.mealFrequency ? getMealFrequencyLabel(profile.preferences.mealFrequency) : 'Not set'}
+              </Text>
+            )}
           </View>
 
           {/* Snack Included */}
-          <View className="flex-row items-center justify-between py-2">
+          <View className="flex-row items-center justify-between py-2 mb-4">
             <Text className="text-sm">Include Snacks</Text>
             <Switch
-              value={profile.preferences?.snackIncluded || false}
+              value={preferences.snackIncluded !== undefined ? preferences.snackIncluded : (profile.preferences?.snackIncluded || false)}
               onValueChange={(checked) => setPreferences((p) => ({ ...p, snackIncluded: checked }))}
               disabled={!isEditing}
             />
           </View>
 
           {/* Allergies */}
-          <View className="mt-4">
-            <Text className="text-xs text-muted-foreground">Allergies</Text>
-            <Text className="text-sm mt-1">{profile.preferences?.allergies || 'None'}</Text>
+          <View>
+            <Text className="text-xs text-muted-foreground mb-2">Allergies</Text>
+            {isEditing ? (
+              <TextInput
+                className="border border-border rounded-md px-3 py-2 text-sm"
+                placeholder="Enter allergies (comma separated)"
+                value={preferences.allergies !== undefined ? preferences.allergies : (profile.preferences?.allergies || '')}
+                onChangeText={(text) => setPreferences((p) => ({ ...p, allergies: text }))}
+                multiline
+                numberOfLines={2}
+              />
+            ) : (
+              <Text className="text-sm mt-1">
+                {profile.preferences?.allergies || 'None'}
+              </Text>
+            )}
           </View>
         </View>
       </View>
@@ -329,6 +425,74 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Diet Type Modal */}
+      <Modal
+        visible={showDietTypeModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowDietTypeModal(false)}
+      >
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-3xl p-6 max-h-96">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-lg font-semibold">Select Diet Type</Text>
+              <TouchableOpacity onPress={() => setShowDietTypeModal(false)}>
+                <X size={24} color="gray" />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={dietTypes}
+              keyExtractor={(item) => item.value}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => {
+                    setPreferences((p) => ({ ...p, dietType: item.value }));
+                    setShowDietTypeModal(false);
+                  }}
+                  className="py-3 px-4 border-b border-gray-100"
+                >
+                  <Text className="text-base">{item.label}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Meal Frequency Modal */}
+      <Modal
+        visible={showMealFrequencyModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowMealFrequencyModal(false)}
+      >
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-3xl p-6 max-h-96">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-lg font-semibold">Select Meal Frequency</Text>
+              <TouchableOpacity onPress={() => setShowMealFrequencyModal(false)}>
+                <X size={24} color="gray" />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={mealFrequencies}
+              keyExtractor={(item) => item.value.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => {
+                    setPreferences((p) => ({ ...p, mealFrequency: item.value }));
+                    setShowMealFrequencyModal(false);
+                  }}
+                  className="py-3 px-4 border-b border-gray-100"
+                >
+                  <Text className="text-base">{item.label}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }

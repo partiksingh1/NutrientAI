@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import {
   MessageCircle,
@@ -17,6 +18,7 @@ import {
 import Svg, { Circle } from 'react-native-svg';
 import { useAuth } from '@/context/AuthContext';
 import { MealLoggingModal } from '@/components/MeallogModal';
+import Button from '@/components/Button';
 import axios from 'axios';
 
 export interface MealData {
@@ -35,31 +37,6 @@ export interface MealData {
   updatedAt?: string;
 }
 
-const Button = ({ variant = 'default', children, onPress }: any) => {
-  const base = 'flex-row items-center justify-center rounded-xl h-16 px-12';
-  const styles =
-    variant === 'default'
-      ? 'bg-black'
-      : variant === 'outline'
-        ? 'border border-gray-300 bg-white'
-        : 'bg-transparent';
-
-  const textColor = variant === 'default' ? 'text-white' : 'text-black';
-
-  return (
-    <TouchableOpacity onPress={onPress} className={`${base} ${styles}`}>
-      <View className="flex-row items-center space-x-2">
-        {React.Children.map(children, (child) =>
-          typeof child === 'string' ? (
-            <Text className={`${textColor} text-base`}>{child}</Text>
-          ) : (
-            child
-          )
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-};
 
 const Progress = ({ value }: { value: number }) => (
   <View className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -123,20 +100,29 @@ export default function HomeScreen() {
     fats: 0,
   });
   const [loading, setLoading] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const name = user?.username ?? 'User';
 
+  // Default goals - in a real app, these would come from user preferences
   const dailyGoals = {
-    calories: { target: undefined }, // Or set to a number if you have user-specific goals
-    protein: { target: undefined },
-    carbs: { target: undefined },
-    fats: { target: undefined },
+    calories: { target: 2000 },
+    protein: { target: 150 },
+    carbs: { target: 250 },
+    fats: { target: 65 },
   };
 
-  const fetchTodayMeals = async () => {
+  const fetchTodayMeals = async (isRefresh = false) => {
     if (!user?.id) return;
     try {
-      setLoading(true);
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+
       const resp = await axios.get<MealData[]>(
         `${process.env.EXPO_PUBLIC_API_URL}/meals/today/${user.id}`
       );
@@ -154,10 +140,12 @@ export default function HomeScreen() {
         { calories: 0, protein: 0, carbs: 0, fats: 0 }
       );
       setDailyTotals(totals);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching today's meals:", error);
+      setError(error?.response?.data?.message || 'Failed to load meals');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -169,6 +157,10 @@ export default function HomeScreen() {
     fetchTodayMeals();
   };
 
+  const onRefresh = () => {
+    fetchTodayMeals(true);
+  };
+
   return (
     <>
       {loading && (
@@ -176,12 +168,21 @@ export default function HomeScreen() {
           <ActivityIndicator size="large" color="#000" />
         </View>
       )}
-      <ScrollView className="flex-1 bg-gray-50 dark:bg-neutral-950">
+      <ScrollView
+        className="flex-1 bg-gray-50 dark:bg-neutral-950"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#3b82f6"
+          />
+        }
+      >
         <View className="p-6 pb-4 mt-4">
           <View className="flex-row justify-between items-start mb-6">
             <View>
               <Text className="text-3xl mb-1 text-black font-semibold dark:text-white">
-                Good morning, {name}!
+                Hi, {name}!
               </Text>
               <Text className="text-lg text-gray-500">Let's track your nutrition today</Text>
             </View>
@@ -190,13 +191,21 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <View className="w-full flex-row gap-2 mb-6 justify-between items-center">
-            <Button variant="default">
-              <MessageCircle size={18} color="white" /> Ask AI
-            </Button>
-            <Button variant="outline" onPress={() => setIsModalOpen(true)}>
-              <Plus size={18} color="black" /> Log Meal
-            </Button>
+          <View className="w-full flex-row gap-3 mb-6 justify-between items-center">
+            <TouchableOpacity
+              className="flex-1 flex-row items-center justify-center rounded-xl h-16 px-6 bg-blue-600"
+              onPress={() => {/* TODO: Navigate to AI chat */ }}
+            >
+              <MessageCircle size={18} color="white" />
+              <Text className="text-white text-base ml-2 font-medium">Ask AI</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="flex-1 flex-row items-center justify-center rounded-xl h-16 px-6 border border-gray-300 bg-white"
+              onPress={() => setIsModalOpen(true)}
+            >
+              <Plus size={18} color="black" />
+              <Text className="text-black text-base ml-2 font-medium">Log Meal</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -269,20 +278,28 @@ export default function HomeScreen() {
                   <UtensilsCrossed size={24} color="black" />
                   <Text className="text-xl">Today's Meals</Text>
                 </View>
-                <TouchableOpacity onPress={() => setIsModalOpen(true)}>
-                  <PlusCircleIcon size={22} color="black" />
+                <TouchableOpacity
+                  onPress={() => setIsModalOpen(true)}
+                  className="p-2 rounded-full bg-blue-50"
+                >
+                  <PlusCircleIcon size={22} color="#3b82f6" />
                 </TouchableOpacity>
               </View>
             </View>
             <View>
-              {todayMeals.map((meal) => (
+              {error && (
+                <View className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                  <Text className="text-red-600 text-sm text-center">{error}</Text>
+                </View>
+              )}
+              {todayMeals.map((meal, index) => (
                 <View
-                  key={meal.id}
-                  className="flex-row justify-between py-3 border-b border-gray-200"
+                  key={meal.id || index}
+                  className="flex-row justify-between py-3 border-b border-gray-200 last:border-b-0"
                 >
-                  <View>
-                    <Text className="text-sm">{meal.customName}</Text>
-                    <Text className="text-xs text-gray-500">
+                  <View className="flex-1">
+                    <Text className="text-sm font-medium text-gray-900">{meal.customName}</Text>
+                    <Text className="text-xs text-gray-500 mt-1">
                       {meal?.mealDate
                         ? new Date(meal.mealDate).toLocaleTimeString([], {
                           hour: '2-digit',
@@ -292,17 +309,23 @@ export default function HomeScreen() {
                     </Text>
                   </View>
                   <View className="items-end">
-                    <Text className="text-sm">{meal.calories} kcal</Text>
-                    <Text className="text-xs text-gray-500 lowercase">
+                    <Text className="text-sm font-semibold text-gray-900">{meal.calories} kcal</Text>
+                    <Text className="text-xs text-gray-500 capitalize mt-1">
                       {meal.mealType}
                     </Text>
                   </View>
                 </View>
               ))}
-              {todayMeals.length === 0 && (
-                <Text className="text-sm text-gray-500 text-center mt-4">
-                  No meals logged today.
-                </Text>
+              {todayMeals.length === 0 && !error && (
+                <View className="py-8 items-center">
+                  <UtensilsCrossed size={32} color="#9ca3af" />
+                  <Text className="text-sm text-gray-500 text-center mt-2">
+                    No meals logged today.
+                  </Text>
+                  <Text className="text-xs text-gray-400 text-center mt-1">
+                    Tap the + button to log your first meal
+                  </Text>
+                </View>
               )}
             </View>
           </View>

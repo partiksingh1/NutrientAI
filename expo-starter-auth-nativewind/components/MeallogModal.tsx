@@ -58,16 +58,9 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
     };
 
     const handleProcessInput = async () => {
-        Toast.show({
-            type: 'success',
-            text1: 'Your Meal is Logged!',
-            // text2: 'Secondary message',
-            position: 'top',
-            visibilityTime: 3000,
-            autoHide: true,
-        })
         if (!inputValue.trim()) return;
         setIsProcessing(true);
+        setErrorResponse('');
         try {
             const userId = user?.id ? Number(user.id) : undefined;
             if (!userId || Number.isNaN(userId)) {
@@ -100,8 +93,8 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
     };
 
     const handleSave = async () => {
-        console.log("Meal data is: ", mealData);
-        setIsProcessing(true)
+        setIsProcessing(true);
+        setErrorResponse('');
         try {
             const userId = user?.id ? Number(user.id) : undefined;
             if (!userId || Number.isNaN(userId)) {
@@ -124,27 +117,25 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
                 handleClose();
                 Toast.show({
                     type: 'success',
-                    text1: 'Your Meal is Logged!',
-                    // text2: 'Secondary message',
+                    text1: 'Meal logged successfully!',
                     position: 'top',
-                    visibilityTime: 3000,
+                    visibilityTime: 2000,
                     autoHide: true,
-                })
+                });
             }
         } catch (error: any) {
+            console.log(error);
+            setErrorResponse(error?.response?.data?.error || error?.message || 'Failed to save meal');
             Toast.show({
                 type: 'error',
-                text1: 'Error',
-                text2: error,
+                text1: 'Error saving meal',
+                text2: error?.response?.data?.error || 'Please try again',
                 position: 'top',
                 visibilityTime: 3000,
                 autoHide: true,
-            })
-            console.log(error);
-            setErrorResponse(error?.response?.data?.error || error?.message || 'Failed to save meal');
-        }
-        finally {
-            setIsProcessing(false)
+            });
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -188,8 +179,8 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
                     </View>
                 </View>
                 {errorResponse !== '' && (
-                    <View className="bg-red-600 rounded-md mt-2">
-                        <Text className="p-2 text-white text-center">{errorResponse}</Text>
+                    <View className="bg-red-50 border border-red-200 rounded-lg p-3 mt-2">
+                        <Text className="text-red-600 text-sm text-center">{errorResponse}</Text>
                     </View>
                 )}
             </View>
