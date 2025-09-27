@@ -46,6 +46,11 @@ model Goal {
   endDate     DateTime? // Optional if ongoing
   isActive    Boolean   @default(true)
 
+  protein   Int?
+  carbs     Int?
+  fats      Int?
+  calories  Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
