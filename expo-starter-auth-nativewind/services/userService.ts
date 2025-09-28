@@ -45,6 +45,14 @@ export interface UpdatePreferencesData {
     dietType?: string;
     allergies?: string;
 }
+
+export interface DailyGoals {
+    id: number;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+}
 /**
  * Get the current user's profile from the server
  */
@@ -230,3 +238,50 @@ export const deleteUserAccount = async (): Promise<void> => {
         throw new Error(error.message || 'Failed to delete account');
     }
 }
+
+export const getDailyGoals = async (userId: number): Promise<DailyGoals> => {
+    const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/goals/dailyGoals/${userId}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to fetch daily goals');
+    }
+
+    const data = await response.json();
+    return data.createDailyGoals;
+};
+
+export const updateDailyGoals = async (userId: number, goals: Partial<DailyGoals>) => {
+    const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+    if (!token) throw new Error('No authentication token found');
+
+    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/goals/dailyGoals/${userId}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(goals),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update daily goals');
+    }
+
+    const data = await response.json();
+    Toast.show({
+        type: 'success',
+        text1: 'Goals Updated',
+        text2: 'Daily goals updated successfully',
+    });
+    return data.createDailyGoals;
+};
