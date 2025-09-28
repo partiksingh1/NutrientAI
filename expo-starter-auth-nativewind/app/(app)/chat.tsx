@@ -19,7 +19,7 @@ import {
   Trash2
 } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
-import { useChat } from '../hooks/useChat';
+import { useChat } from '@/hooks/useChat';
 const Button = ({
   variant = 'default',
   size = 'md',

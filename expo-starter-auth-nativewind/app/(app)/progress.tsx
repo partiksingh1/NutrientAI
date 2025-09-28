@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Pressable, RefreshControl, ActivityIndicator } 
 import { BarChart, LineChart, PieChart } from 'react-native-gifted-charts';
 import { Target, Zap, Activity } from 'lucide-react-native';
 import { Card } from '@/components/Card';
-import { useAnalytics, Period } from '@/app/hooks/useAnalytics';
+import { useAnalytics, Period } from '@/hooks/useAnalytics';
 import { Dimensions } from 'react-native';
 
 export default function ProgressScreen() {

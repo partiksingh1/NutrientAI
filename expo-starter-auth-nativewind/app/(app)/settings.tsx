@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator, Modal, FlatList } from 'react-native';
-import { User, Bell, Palette, HelpCircle, LogOut, Edit, Save, X, User2Icon, Trash2, ChevronDown } from 'lucide-react-native';
-import AuthService from '@/services/authService';
-import { UserProfile, UpdateProfileData, UpdatePreferencesData, getUserProfile, updateUserProfile, updateUserPreferences, deleteUserAccount } from '@/services/userService';
+import { User, Palette, HelpCircle, LogOut, Edit, Save, X, User2Icon, Trash2, ChevronDown } from 'lucide-react-native';
+import { UserProfile, UpdateProfileData, UpdatePreferencesData, getUserProfile, updateUserProfile, updateUserPreferences, deleteUserAccount, DailyGoals, getDailyGoals, updateDailyGoals } from '@/services/userService';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 
@@ -15,7 +14,10 @@ export default function ProfileScreen() {
   const [preferences, setPreferences] = useState<UpdatePreferencesData>({});
   const [showDietTypeModal, setShowDietTypeModal] = useState(false);
   const [showMealFrequencyModal, setShowMealFrequencyModal] = useState(false);
-  const { user, logout } = useAuth();
+  const [dailyGoals, setDailyGoals] = useState<DailyGoals | null>(null);
+  const [editGoals, setEditGoals] = useState<Partial<DailyGoals>>({});
+  const goalKeys: (keyof DailyGoals)[] = ['calories', 'protein', 'carbs', 'fats'];
+  const { logout } = useAuth();
   const router = useRouter();
 
   // Diet type options
@@ -48,6 +50,7 @@ export default function ProfileScreen() {
     try {
       setIsLoading(true);
       const userProfile = await getUserProfile();
+      const goals = await getDailyGoals(userProfile.id);
       setProfile(userProfile);
       setEditProfile({
         username: userProfile.username,
@@ -62,6 +65,8 @@ export default function ProfileScreen() {
         dietType: userProfile.preferences?.dietType,
         allergies: userProfile.preferences?.allergies,
       });
+      setDailyGoals(goals);
+      setEditGoals(goals);
     } catch (error) {
       console.error('Failed to load profile:', error);
     } finally {
@@ -89,6 +94,14 @@ export default function ProfileScreen() {
 
       if (hasPreferenceChanges) {
         await updateUserPreferences(preferences);
+      }
+
+      const hasGoalChanges = goalKeys.some(key =>
+        editGoals[key] !== dailyGoals?.[key]
+      );
+
+      if (hasGoalChanges && profile) {
+        await updateDailyGoals(profile.id, editGoals);
       }
 
       // Reload profile to get updated data
@@ -405,6 +418,56 @@ export default function ProfileScreen() {
           </View>
         </View>
       </View>
+
+      {/* Daily Goals Section */}
+      <View className="px-6 mb-6">
+        <View className="bg-card rounded-xl p-4 border border-gray-300">
+          <View className="flex-row items-center justify-between mb-3">
+            <View className="flex-row items-center gap-2">
+              <Palette size={18} color="black" />
+              <Text className="text-base">Daily Nutritional Goals</Text>
+            </View>
+            {isEditing && (
+              <TouchableOpacity
+                onPress={handleSave}
+                disabled={isSaving}
+                className="px-2 py-1 bg-primary rounded-md flex-row items-center gap-1"
+              >
+                {isSaving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Save size={14} color="black" />
+                    <Text className="text-sm">Save</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {goalKeys.map((key) => (
+            <View key={key} className="mb-4">
+              <Text className="text-xs text-muted-foreground capitalize">{key}</Text>
+              {isEditing ? (
+                <TextInput
+                  className="border border-border rounded-md px-2 py-1 mt-1"
+                  keyboardType="numeric"
+                  value={editGoals?.[key] !== undefined ? editGoals[key]?.toString() : ''}
+                  onChangeText={(text) =>
+                    setEditGoals((prev) => ({
+                      ...prev,
+                      [key]: parseInt(text) || 0,
+                    }))
+                  }
+                />
+              ) : (
+                <Text className="text-sm mt-1">{dailyGoals?.[key]} {key === 'calories' ? 'kcal' : 'g'}</Text>
+              )}
+            </View>
+          ))}
+        </View>
+      </View>
+
 
       {/* Settings */}
       <View className="px-6 pb-6">

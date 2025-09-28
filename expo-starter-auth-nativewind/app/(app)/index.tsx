@@ -24,6 +24,7 @@ import Button from '@/components/Button';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Toast } from 'toastify-react-native';
+import { router } from 'expo-router';
 
 export interface MealData {
   id?: number;
@@ -299,7 +300,7 @@ export default function HomeScreen() {
           <View className="w-full flex-row gap-3 mb-6 justify-between items-center">
             <TouchableOpacity
               className="flex-1 flex-row items-center justify-center rounded-xl h-16 px-6 bg-blue-600"
-              onPress={() => {/* TODO: Navigate to AI chat */ }}
+              onPress={() => { router.replace('/(app)/chat') }}
             >
               <MessageCircle size={18} color="white" />
               <Text className="text-white text-base ml-2 font-medium">Ask AI</Text>
