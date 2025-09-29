@@ -21,26 +21,11 @@ import Svg, { Circle } from 'react-native-svg';
 import { useAuth } from '@/context/AuthContext';
 import { MealLoggingModal } from '@/components/MeallogModal';
 import Button from '@/components/Button';
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Toast } from 'toastify-react-native';
 import { router } from 'expo-router';
+import { fetchDailyGoalsApi, fetchTodayMealsApi, MealData, updateDailyGoalsApi } from '@/services/mealService';
 
-export interface MealData {
-  id?: number;
-  userId?: number;
-  mealType: string;
-  customName: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  servings: number;
-  notes?: string | null;
-  mealDate?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
 
 
 const Progress = ({ value }: { value: number }) => (
@@ -123,8 +108,6 @@ export default function HomeScreen() {
   });
 
 
-
-
   const name = user?.username ?? 'User';
 
   const fetchDailyGoals = async (isRefresh = false) => {
@@ -135,15 +118,7 @@ export default function HomeScreen() {
       isRefresh ? setRefreshing(true) : setLoading(true);
       setError(null);
 
-      const resp = await axios.get(
-        `${process.env.EXPO_PUBLIC_API_URL}/goals/dailyGoals/${user.id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = resp.data.createDailyGoals;
+      const data = await fetchDailyGoalsApi();
       setDailyGoals(data);
 
       const isAnyNull =
@@ -176,15 +151,7 @@ export default function HomeScreen() {
     try {
       setLoading(true);
 
-      const response = await axios.put(
-        `${process.env.EXPO_PUBLIC_API_URL}/goals/dailyGoals/${user.id}`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const updatedGoals = await updateDailyGoalsApi(payload);
       Toast.show({
         type: 'success',
         text1: 'Goals updated successfully!',
@@ -194,7 +161,7 @@ export default function HomeScreen() {
         autoHide: true,
       });
 
-      setDailyGoals(response.data.updatedGoals);
+      setDailyGoals(updatedGoals);
       setShowSetGoalsForm(false);
       setGoalsMissing(false);
       setGoalInputs({ calories: '', protein: '', carbs: '', fats: '' });
@@ -228,10 +195,8 @@ export default function HomeScreen() {
       }
       setError(null);
 
-      const resp = await axios.get<MealData[]>(
-        `${process.env.EXPO_PUBLIC_API_URL}/meals/today/${user.id}`
-      );
-      const data = resp.data;
+      const data = await fetchTodayMealsApi(Number(user.id));
+      setTodayMeals(data);
       setTodayMeals(data);
 
       const totals = data.reduce(

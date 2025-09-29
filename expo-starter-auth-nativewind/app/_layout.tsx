@@ -12,6 +12,15 @@ function AuthRoot() {
   const segments = useSegments();
   const router = useRouter();
 
+  const toastConfig = {
+    success: (props: any) => (
+      <View style={{ backgroundColor: '#4CAF50', padding: 16, borderRadius: 10 }}>
+        <Text style={{ color: 'white', fontWeight: 'bold' }}>{props.text1}</Text>
+        {props.text2 && <Text style={{ color: 'white' }}>{props.text2}</Text>}
+      </View>
+    ),
+    // Override other toast types as needed
+  }
   const handleNavigation = useCallback(() => {
     if (isLoading) return;
 

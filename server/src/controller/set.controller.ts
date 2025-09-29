@@ -7,6 +7,7 @@ const CompleteProfileSchema = z.object({
     height: z.number().positive(),
     weight: z.number().positive(),
     age: z.number().int().positive(),
+    gender: z.string(),
     activityLevel: z.string(),
     mealFrequency: z.number().int().min(1).max(10),
     snackIncluded: z.boolean(),
@@ -47,6 +48,7 @@ export const mainController = async (req: Request, res: Response) => {
             height,
             weight,
             age,
+            gender,
             activityLevel,
             dietaryGoals,
             mealFrequency,
@@ -70,6 +72,7 @@ export const mainController = async (req: Request, res: Response) => {
             data: {
                 height,
                 weight,
+                gender,
                 age,
                 profile_completed: true,
                 activityLevel,

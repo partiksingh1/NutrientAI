@@ -5,7 +5,7 @@ const goal_router = Router();
 
 goal_router.post('/', authMiddleware, createGoal);
 goal_router.put('/:id', authMiddleware, updateGoal);
-goal_router.put('/dailyGoals/:id', authMiddleware, updateDailyGoals)
-goal_router.get('/dailyGoals/:id', authMiddleware, getDailyGoals)
+goal_router.put('/dailyGoals', authMiddleware, updateDailyGoals)
+goal_router.get('/dailyGoals', authMiddleware, getDailyGoals)
 
 export default goal_router;

@@ -4,6 +4,7 @@ import { User, LoginCredentials } from "../types/user";
 import { Toast } from "toastify-react-native";
 
 const AUTH_TOKEN_KEY = "auth_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
 const USER_DATA_KEY = "user_data";
 export default class AuthService {
   /**
@@ -11,17 +12,10 @@ export default class AuthService {
    */
   static async login(credentials: LoginCredentials): Promise<User> {
     try {
-      console.log("clicked login");
-
       const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/auth/signin`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: credentials.email,
-          password: credentials.password,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
       });
 
       if (!response.ok) {
@@ -29,19 +23,21 @@ export default class AuthService {
         throw new Error(errorData.message || 'Login failed');
       }
 
-      const data = await response.json();
-      const { token, user } = data;
+      const { accessToken, refreshToken, user } = await response.json();
 
-      await AsyncStorage.setItem(AUTH_TOKEN_KEY, token);
-      await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
+      await AsyncStorage.multiSet([
+        [AUTH_TOKEN_KEY, accessToken],
+        [REFRESH_TOKEN_KEY, refreshToken],
+        [USER_DATA_KEY, JSON.stringify(user)]
+      ]);
+
       Toast.show({
         type: 'success',
         text1: 'Login Successful',
-        // text2: 'Secondary message',
         position: 'top',
         visibilityTime: 3000,
         autoHide: true,
-      })
+      });
 
       return {
         id: String(user.id),
@@ -54,6 +50,7 @@ export default class AuthService {
       throw new Error(error.message || 'Something went wrong during login');
     }
   }
+
 
 
   /**

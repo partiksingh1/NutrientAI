@@ -1,19 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView, ActivityIndicator } from 'react-native';
 import { ArrowLeft, Check, Edit3, ForkKnife, Send, Sparkles, Utensils } from 'lucide-react-native';
-import axios from "axios"
 import { useAuth } from '@/context/AuthContext';
 import { Picker } from '@react-native-picker/picker';
+import { analyzeMealWithAI, MealData, saveMeal } from '@/services/mealService';
 import { Toast } from 'toastify-react-native';
-type MealData = {
-    customName: string;
-    mealType: string;
-    calories: number;
-    protein: number;
-    carbs: number;
-    fats: number;
-    servings: number;
-};
 
 type Step = 'input' | 'confirm';
 
@@ -58,20 +49,18 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
     };
 
     const handleProcessInput = async () => {
+        setErrorResponse("")
         if (!inputValue.trim()) return;
         setIsProcessing(true);
-        setErrorResponse('');
         try {
             const userId = user?.id ? Number(user.id) : undefined;
             if (!userId || Number.isNaN(userId)) {
                 throw new Error('Missing or invalid userId');
             }
-            const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/meals/ai`, {
-                userId,
-                message: inputValue
-            });
+            const response = await analyzeMealWithAI(inputValue);
+            const resData = await response.json()
             if (response.status === 201) {
-                const d = response.data || {};
+                const d = resData || {};
                 setMealData({
                     customName: d.customName ?? '',
                     mealType: (d.mealType ?? 'BREAKFAST').toString().toLowerCase(),
@@ -83,7 +72,7 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
                 });
                 setStep('confirm');
             } else if (response.status === 200) {
-                setErrorResponse(response.data?.question ?? 'Please provide more details about your meal.');
+                setErrorResponse(resData.question || 'Please provide more details about your meal.');
             }
         } catch (error: any) {
             setErrorResponse(error?.response?.data?.error || error?.message || 'Failed to process meal');
@@ -111,31 +100,33 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
                 servings: mealData.servings ?? 1.0,
                 mealDate: new Date().toISOString(),
             };
-            const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/meals`, payload);
-            if (response.status === 201) {
+            const success = await saveMeal(payload);
+            if (success) {
                 onSave(mealData);
                 handleClose();
                 Toast.show({
                     type: 'success',
-                    text1: 'Meal logged successfully!',
+                    text1: 'Your Meal is Logged!',
+                    // text2: 'Secondary message',
                     position: 'top',
-                    visibilityTime: 2000,
+                    visibilityTime: 3000,
                     autoHide: true,
-                });
+                })
             }
         } catch (error: any) {
-            console.log(error);
-            setErrorResponse(error?.response?.data?.error || error?.message || 'Failed to save meal');
             Toast.show({
                 type: 'error',
-                text1: 'Error saving meal',
-                text2: error?.response?.data?.error || 'Please try again',
+                text1: 'Error',
+                text2: error,
                 position: 'top',
                 visibilityTime: 3000,
                 autoHide: true,
-            });
-        } finally {
-            setIsProcessing(false);
+            })
+            console.log(error);
+            setErrorResponse(error?.response?.data?.error || error?.message || 'Failed to save meal');
+        }
+        finally {
+            setIsProcessing(false)
         }
     };
 
@@ -179,8 +170,8 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
                     </View>
                 </View>
                 {errorResponse !== '' && (
-                    <View className="bg-red-50 border border-red-200 rounded-lg p-3 mt-2">
-                        <Text className="text-red-600 text-sm text-center">{errorResponse}</Text>
+                    <View className="bg-red-600 rounded-md mt-2">
+                        <Text className="p-2 text-white text-center">{errorResponse}</Text>
                     </View>
                 )}
             </View>
@@ -325,7 +316,7 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
                                     <Text className="text-sm mb-1">{macro.label}</Text>
                                     <TextInput
                                         keyboardType="numeric"
-                                        value={mealData[macro.key as keyof MealData].toString()}
+                                        value={String(mealData[macro.key as keyof MealData])}
                                         onChangeText={(value) =>
                                             setMealData((p) => ({
                                                 ...p,

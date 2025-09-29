@@ -1,3 +1,4 @@
+import { fetchWithAuth } from "@/utils/apiWithAuth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Toast } from "toastify-react-native";
 
@@ -58,18 +59,8 @@ export interface DailyGoals {
  */
 export const getUserProfile = async (): Promise<UserProfile> => {
     try {
-        const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
-
-        if (!token) {
-            throw new Error('No authentication token found');
-        }
-
-        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/user/profile`, {
+        const response = await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}/user/profile`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
         });
 
         if (!response.ok) {
@@ -90,18 +81,8 @@ export const getUserProfile = async (): Promise<UserProfile> => {
  */
 export const updateUserProfile = async (profileData: UpdateProfileData): Promise<UserProfile> => {
     try {
-        const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
-
-        if (!token) {
-            throw new Error('No authentication token found');
-        }
-
-        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/user/profile`, {
+        const response = await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}/user/profile`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
             body: JSON.stringify(profileData),
         });
 
@@ -144,18 +125,8 @@ export const updateUserProfile = async (profileData: UpdateProfileData): Promise
  */
 export const updateUserPreferences = async (preferencesData: UpdatePreferencesData): Promise<any> => {
     try {
-        const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
-
-        if (!token) {
-            throw new Error('No authentication token found');
-        }
-
-        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/user/preferences`, {
+        const response = await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}/user/preferences`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
             body: JSON.stringify(preferencesData),
         });
 
@@ -195,18 +166,8 @@ export const updateUserPreferences = async (preferencesData: UpdatePreferencesDa
  */
 export const deleteUserAccount = async (): Promise<void> => {
     try {
-        const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
-
-        if (!token) {
-            throw new Error('No authentication token found');
-        }
-
-        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/user/account`, {
+        const response = await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}/user/account`, {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
         });
 
         if (!response.ok) {
@@ -239,15 +200,9 @@ export const deleteUserAccount = async (): Promise<void> => {
     }
 }
 
-export const getDailyGoals = async (userId: number): Promise<DailyGoals> => {
-    const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
-    if (!token) throw new Error('No authentication token found');
-
-    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/goals/dailyGoals/${userId}`, {
+export const getDailyGoals = async (): Promise<DailyGoals> => {
+    const response = await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}/goals/dailyGoals`, {
         method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-        },
     });
 
     if (!response.ok) {
@@ -256,19 +211,14 @@ export const getDailyGoals = async (userId: number): Promise<DailyGoals> => {
     }
 
     const data = await response.json();
+    console.log("getDailyGoals is ", getDailyGoals);
+
     return data.createDailyGoals;
 };
 
 export const updateDailyGoals = async (userId: number, goals: Partial<DailyGoals>) => {
-    const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
-    if (!token) throw new Error('No authentication token found');
-
-    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/goals/dailyGoals/${userId}`, {
+    const response = await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}/goals/dailyGoals/${userId}`, {
         method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
         body: JSON.stringify(goals),
     });
 

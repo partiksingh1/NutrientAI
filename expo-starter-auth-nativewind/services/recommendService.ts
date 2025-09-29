@@ -1,25 +1,11 @@
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LocalMessage, Conversation, AIResponse } from '@/types/recommend';
 import { Toast } from 'toastify-react-native';
-
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-const AUTH_TOKEN_KEY = "auth_token";
-
-const getAuthToken = async (): Promise<string | null> => {
-    return await AsyncStorage.getItem(AUTH_TOKEN_KEY);
-};
+import { fetchWithAuth } from '@/utils/apiWithAuth';
 
 export const sendMessageToAI = async (userId: string, message: string): Promise<AIResponse> => {
-    const token = await getAuthToken();
-
     try {
-        const response = await fetch(`${API_BASE_URL}/recommend/ai`, {
+        const response = await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}/recommend/ai`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                ...(token && { 'Authorization': `Bearer ${token}` }),
-            },
             body: JSON.stringify({ userId, message: message.trim() }),
         });
 
@@ -57,15 +43,12 @@ export const sendMessageToAI = async (userId: string, message: string): Promise<
 };
 
 export const fetchConversation = async (): Promise<Conversation | null> => {
-    const token = await getAuthToken();
     try {
-        const response = await axios.get(`${API_BASE_URL}/recommend/conversation`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
+        const response = await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}/recommend/conversation`, {
+            method: 'GET'
         });
-
-        return response.data.conversation;
+        const data = await response.json();
+        return data.conversation;
     } catch (error: any) {
         // Only show error toast for critical failures
         if (error.response?.status >= 500) {
@@ -83,15 +66,12 @@ export const fetchConversation = async (): Promise<Conversation | null> => {
 };
 
 export const fetchConversationMessages = async (): Promise<LocalMessage[]> => {
-    const token = await getAuthToken();
     try {
-        const response = await axios.get(`${API_BASE_URL}/recommend/conversation`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
+        const response = await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}/recommend/conversation`, {
+            method: 'GET'
         });
-
-        const messages = response.data.conversation.messages;
+        const data = await response.json()
+        const messages = data.conversation.messages;
 
         return messages.map((msg: any) => ({
             id: msg.id.toString(),
@@ -116,12 +96,9 @@ export const fetchConversationMessages = async (): Promise<LocalMessage[]> => {
 };
 
 export const clearConversation = async (): Promise<void> => {
-    const token = await getAuthToken();
     try {
-        await axios.delete(`${API_BASE_URL}/recommend/conversation`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
+        await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}/recommend/conversation`, {
+            method: 'DELETE'
         });
 
         Toast.show({

@@ -61,13 +61,12 @@ export const updateGoal = async (req: Request, res: Response) => {
 
 export const updateDailyGoals = async (req: Request, res: Response) => {
     const userId = req.user?.id;
-    const { id } = req.params;
     if (!userId) {
         return res.status(401).json({ error: 'User not authenticated' });
     }
     try {
         const existingGoal = await prisma.goal.findUnique({
-            where: { id: Number(id) },
+            where: { id: Number(userId) },
         });
 
         if (!existingGoal || existingGoal.userId !== userId) {
@@ -77,7 +76,7 @@ export const updateDailyGoals = async (req: Request, res: Response) => {
         const createDailyGoals = await prisma.goal.update({
             where: {
                 userId: Number(userId),
-                id: Number(id)
+                id: Number(existingGoal.id)
             },
             data: {
                 protein: protein,
@@ -107,7 +106,7 @@ export const getDailyGoals = async (req: Request, res: Response) => {
         });
 
         if (!existingGoal || existingGoal.userId !== userId) {
-            return res.status(404).json({ error: 'Goal not found or unauthorized' });
+            return res.status(200).json({ error: 'Goal not yet decided' });
         }
         const createDailyGoals = await prisma.goal.findFirst({
             where: {

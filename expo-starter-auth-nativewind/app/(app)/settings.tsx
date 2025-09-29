@@ -50,7 +50,7 @@ export default function ProfileScreen() {
     try {
       setIsLoading(true);
       const userProfile = await getUserProfile();
-      const goals = await getDailyGoals(userProfile.id);
+      const goals = await getDailyGoals();
       setProfile(userProfile);
       setEditProfile({
         username: userProfile.username,
@@ -187,13 +187,13 @@ export default function ProfileScreen() {
     );
   }
 
-  if (!profile) {
-    return (
-      <View className="flex-1 bg-background items-center justify-center">
-        <Text className="text-muted-foreground">Failed to load profile</Text>
-      </View>
-    );
-  }
+  // if (!profile) {
+  //   return (
+  //     <View className="flex-1 bg-background items-center justify-center">
+  //       <Text className="text-muted-foreground">Failed to load profile</Text>
+  //     </View>
+  //   );
+  // }
 
   return (
     <ScrollView className="flex-1 bg-background mt-4">
@@ -205,8 +205,8 @@ export default function ProfileScreen() {
               <User2Icon size={18} color="white" />
             </View>
             <View>
-              <Text className="text-xl">{profile.username}</Text>
-              <Text className="text-sm text-muted-foreground">{profile.email}</Text>
+              <Text className="text-xl">{profile?.username}</Text>
+              <Text className="text-sm text-muted-foreground">{profile?.email}</Text>
             </View>
           </View>
           <TouchableOpacity
@@ -256,7 +256,7 @@ export default function ProfileScreen() {
                   onChangeText={(text) => setEditProfile((p) => ({ ...p, username: text }))}
                 />
               ) : (
-                <Text className="text-sm mt-1">{profile.username}</Text>
+                <Text className="text-sm mt-1">{profile?.username}</Text>
               )}
             </View>
             <View className="flex-1">
@@ -269,7 +269,7 @@ export default function ProfileScreen() {
                   onChangeText={(text) => setEditProfile((p) => ({ ...p, age: parseInt(text) || undefined }))}
                 />
               ) : (
-                <Text className="text-sm mt-1">{profile.age ? `${profile.age} years` : 'Not set'}</Text>
+                <Text className="text-sm mt-1">{profile?.age ? `${profile.age} years` : 'Not set'}</Text>
               )}
             </View>
           </View>
@@ -286,7 +286,7 @@ export default function ProfileScreen() {
                   onChangeText={(text) => setEditProfile((p) => ({ ...p, weight: parseFloat(text) || undefined }))}
                 />
               ) : (
-                <Text className="text-sm mt-1">{profile.weight ? `${profile.weight} kg` : 'Not set'}</Text>
+                <Text className="text-sm mt-1">{profile?.weight ? `${profile.weight} kg` : 'Not set'}</Text>
               )}
             </View>
             <View className="flex-1">
@@ -299,7 +299,7 @@ export default function ProfileScreen() {
                   onChangeText={(text) => setEditProfile((p) => ({ ...p, height: parseFloat(text) || undefined }))}
                 />
               ) : (
-                <Text className="text-sm mt-1">{profile.height ? `${profile.height} cm` : 'Not set'}</Text>
+                <Text className="text-sm mt-1">{profile?.height ? `${profile.height} cm` : 'Not set'}</Text>
               )}
             </View>
           </View>
@@ -308,11 +308,11 @@ export default function ProfileScreen() {
           <View className="flex-row gap-4">
             <View className="flex-1">
               <Text className="text-xs text-muted-foreground">Activity Level</Text>
-              <Text className="text-sm mt-1 capitalize">{profile.activityLevel || 'Not set'}</Text>
+              <Text className="text-sm mt-1 capitalize">{profile?.activityLevel || 'Not set'}</Text>
             </View>
             <View className="flex-1">
               <Text className="text-xs text-muted-foreground">Gender</Text>
-              <Text className="text-sm mt-1 capitalize">{profile.gender || 'Not set'}</Text>
+              <Text className="text-sm mt-1 capitalize">{profile?.gender || 'Not set'}</Text>
             </View>
           </View>
         </View>
@@ -354,14 +354,14 @@ export default function ProfileScreen() {
               >
                 <Text className="text-sm">
                   {preferences.dietType ? getDietTypeLabel(preferences.dietType) :
-                    profile.preferences?.dietType ? getDietTypeLabel(profile.preferences.dietType) :
+                    profile?.preferences?.dietType ? getDietTypeLabel(profile.preferences.dietType) :
                       'Select diet type'}
                 </Text>
                 <ChevronDown size={16} color="gray" />
               </TouchableOpacity>
             ) : (
               <Text className="text-sm mt-1">
-                {profile.preferences?.dietType ? getDietTypeLabel(profile.preferences.dietType) : 'Not set'}
+                {profile?.preferences?.dietType ? getDietTypeLabel(profile.preferences.dietType) : 'Not set'}
               </Text>
             )}
           </View>
@@ -376,14 +376,14 @@ export default function ProfileScreen() {
               >
                 <Text className="text-sm">
                   {preferences.mealFrequency ? getMealFrequencyLabel(preferences.mealFrequency) :
-                    profile.preferences?.mealFrequency ? getMealFrequencyLabel(profile.preferences.mealFrequency) :
+                    profile?.preferences?.mealFrequency ? getMealFrequencyLabel(profile.preferences.mealFrequency) :
                       'Select meal frequency'}
                 </Text>
                 <ChevronDown size={16} color="gray" />
               </TouchableOpacity>
             ) : (
               <Text className="text-sm mt-1">
-                {profile.preferences?.mealFrequency ? getMealFrequencyLabel(profile.preferences.mealFrequency) : 'Not set'}
+                {profile?.preferences?.mealFrequency ? getMealFrequencyLabel(profile.preferences.mealFrequency) : 'Not set'}
               </Text>
             )}
           </View>
@@ -392,7 +392,7 @@ export default function ProfileScreen() {
           <View className="flex-row items-center justify-between py-2 mb-4">
             <Text className="text-sm">Include Snacks</Text>
             <Switch
-              value={preferences.snackIncluded !== undefined ? preferences.snackIncluded : (profile.preferences?.snackIncluded || false)}
+              value={preferences.snackIncluded !== undefined ? preferences.snackIncluded : (profile?.preferences?.snackIncluded || false)}
               onValueChange={(checked) => setPreferences((p) => ({ ...p, snackIncluded: checked }))}
               disabled={!isEditing}
             />
@@ -405,14 +405,14 @@ export default function ProfileScreen() {
               <TextInput
                 className="border border-border rounded-md px-3 py-2 text-sm"
                 placeholder="Enter allergies (comma separated)"
-                value={preferences.allergies !== undefined ? preferences.allergies : (profile.preferences?.allergies || '')}
+                value={preferences.allergies !== undefined ? preferences.allergies : (profile?.preferences?.allergies || '')}
                 onChangeText={(text) => setPreferences((p) => ({ ...p, allergies: text }))}
                 multiline
                 numberOfLines={2}
               />
             ) : (
               <Text className="text-sm mt-1">
-                {profile.preferences?.allergies || 'None'}
+                {profile?.preferences?.allergies || 'None'}
               </Text>
             )}
           </View>

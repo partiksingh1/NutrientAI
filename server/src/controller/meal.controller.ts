@@ -6,11 +6,10 @@ import { Prisma } from '../../generated/prisma/index.js';
 // Main API handler
 export const aiMealLogger = async (req: Request, res: Response) => {
     // Validate user authentication (pseudo-code, replace with actual auth)
-    const userId = req.body.userId;
+    const userId = Number(req.user?.id);
     if (!userId) {
-        return res.status(401).json({ error: "Unauthorized: Invalid user ID" });
+        return res.status(401).json({ error: 'User not authenticated' });
     }
-
     // Validate input message
     const userText: string = req.body.message;
     if (!userText || typeof userText !== "string") {
@@ -61,10 +60,13 @@ export const aiMealLogger = async (req: Request, res: Response) => {
 };
 
 export const createMealLog = async (req: Request, res: Response) => {
-    //   const userId = req.userId;
-    //   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    const userId = Number(req.user?.id);
 
-    const { userId, mealType, customName, calories, protein, carbs, fats, servings, mealDate } = req.body;
+    if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const { mealType, customName, calories, protein, carbs, fats, servings, mealDate } = req.body;
 
     try {
         const newMealLog = await prisma.mealLog.create({
@@ -89,11 +91,13 @@ export const createMealLog = async (req: Request, res: Response) => {
 };
 
 export const updateMealLog = async (req: Request, res: Response) => {
-    //   const userId = req.userId;
-    //   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    const userId = Number(req.user?.id);
 
+    if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+    }
     const id = Number(req.params.id);
-    const { userId, mealType, customName, calories, protein, carbs, fats, servings, mealDate } = req.body;
+    const { mealType, customName, calories, protein, carbs, fats, servings, mealDate } = req.body;
 
     try {
         const existingMealLog = await prisma.mealLog.findUnique({ where: { id } });

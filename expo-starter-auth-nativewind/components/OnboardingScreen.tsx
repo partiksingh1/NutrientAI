@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import { Sparkles } from 'lucide-react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import { Check, Sparkles } from 'lucide-react-native';
 import { CustomCheckbox } from './CustomCheckbox';
 import { Switch } from 'react-native';
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { User } from '@/types/user';
 import { useAuth } from '@/context/AuthContext';
-import axios from 'axios';
+import { fetchWithAuth } from '@/utils/apiWithAuth';
+import LottieView from 'lottie-react-native';
+import { ActivityIndicator, Modal } from 'react-native';
+
 interface OnboardingScreenProps {
     onComplete: () => void;
 }
@@ -18,10 +19,15 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
     const [step, setStep] = useState(1);
     const [customAllergy, setCustomAllergy] = useState('');
     const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const successAnimRef = useRef<LottieView>(null);
     const [formData, setFormData] = useState({
         age: '',
         weight: '',
         height: '',
+        gender: '',
         activityLevel: '',
         goal: '',
         goalDescription: '',
@@ -40,12 +46,11 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
     };
 
     const handleNext = async () => {
-        const token = await AsyncStorage.getItem("auth_token")
-        console.log("token is", (token));
         if (step < totalSteps) {
             setStep(step + 1);
             return;
         }
+        setIsSubmitting(true);
 
         try {
             console.log("FormData is ", formData);
@@ -54,6 +59,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 height: parseFloat(formData.height),
                 weight: parseFloat(formData.weight),
                 age: parseInt(formData.age),
+                gender: formData.gender,
                 activityLevel: formData.activityLevel.toUpperCase(),
                 mealFrequency: formData.mealFrequency,
                 snackIncluded: formData.snackIncluded,
@@ -67,21 +73,30 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                     }
                 ]
             };
-            const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/complete_profile`,
-                profileData, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+            const response = await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}/complete_profile`, {
+                method: 'POST',
+                body: JSON.stringify(profileData),
             }
             )
-            if (response.status == 200) {
+            if (response.status === 200) {
                 console.log("✅ Profile completed successfully");
-                await completeProfile();
-                onComplete();
+
+                // Show success animation
+                setShowSuccess(true);
+                setIsSubmitting(false);
+
+                // Delay for animation (e.g. 2 seconds)
+                setTimeout(async () => {
+                    await completeProfile();
+                    onComplete();
+                }, 4000);
+            } else {
+                throw new Error("Failed response");
             }
         } catch (error) {
             console.error("❌ Profile completion error:", error);
             alert("Failed to complete profile. Please try again.");
+            setIsSubmitting(false);
         }
     };
 
@@ -103,6 +118,32 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
             };
         });
     };
+    // Loading Spinner Overlay
+    if (isSubmitting) {
+        return (
+            <View className="flex-1 items-center justify-center bg-white">
+                <ActivityIndicator size="large" color="#000" />
+                <Text className="mt-4">Submitting your profile...</Text>
+            </View>
+        );
+    }
+
+    // Success Animation Overlay
+    if (showSuccess) {
+        return (
+            <View className="flex-1 items-center justify-center bg-white">
+                <LottieView
+                    ref={successAnimRef}
+                    source={require('../assets/lottie/success.json')}
+                    autoPlay
+                    loop={false}
+                    style={{ width: 200, height: 200 }}
+                />
+                <Text className="mt-4 text-lg font-semibold">Profile Completed!</Text>
+            </View>
+        );
+    }
+
 
 
 
@@ -163,6 +204,42 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                                     keyboardType="numeric"
                                     className="bg-gray-100 rounded-lg px-3 py-3"
                                 />
+                            </View>
+                            <View className="my-4">
+                                <Text className="mb-1">Gender</Text>
+                                <View className="flex-row justify-between">
+                                    {/* Male Button */}
+                                    <TouchableOpacity
+                                        onPress={() => setFormData(prev => ({ ...prev, gender: 'Male' }))}
+                                        style={{
+                                            flex: 1,
+                                            padding: 12,
+                                            backgroundColor: formData.gender === 'Male' ? '#000000' : '#e0e0e0', // Change color if selected
+                                            borderRadius: 8,
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            marginRight: 10,
+                                        }}
+                                    >
+                                        <Text style={{ color: formData.gender === 'Male' ? '#fff' : '#000' }}>Male</Text>
+                                    </TouchableOpacity>
+
+                                    {/* Female Button */}
+                                    <TouchableOpacity
+                                        onPress={() => setFormData(prev => ({ ...prev, gender: 'Female' }))}
+                                        style={{
+                                            flex: 1,
+                                            padding: 12,
+                                            backgroundColor: formData.gender === 'Female' ? '#000000' : '#e0e0e0', // Change color if selected
+                                            borderRadius: 8,
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            marginLeft: 10,
+                                        }}
+                                    >
+                                        <Text style={{ color: formData.gender === 'Female' ? '#fff' : '#000' }}>Female</Text>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         </View>
                     </View>
