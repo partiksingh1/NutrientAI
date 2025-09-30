@@ -4,7 +4,7 @@ import { authMiddleware } from '../middleware/auth_middleware.js';
 const goal_router = Router();
 
 goal_router.post('/', authMiddleware, createGoal);
-goal_router.put('/:id', authMiddleware, updateGoal);
+goal_router.put('/main/:id', authMiddleware, updateGoal);
 goal_router.put('/dailyGoals', authMiddleware, updateDailyGoals)
 goal_router.get('/dailyGoals', authMiddleware, getDailyGoals)
 
