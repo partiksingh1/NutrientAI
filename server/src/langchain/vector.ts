@@ -8,7 +8,7 @@ export async function loadVectorStore() {
 }
 
 // Define a similarity threshold (tune based on testing)
-const SIMILARITY_THRESHOLD = 0.75;
+const SIMILARITY_THRESHOLD = 0.38;
 
 export async function getRelevantChatContext(query: string, topK = 5): Promise<string[]> {
   // Retrieve topK candidates

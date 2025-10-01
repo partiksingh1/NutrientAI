@@ -11,7 +11,7 @@ import { getRelevantChatContext } from '../langchain/vector.js';
 import { saveChunksToVectorStore } from '../langchain/storeVector.js';
 import crypto from "crypto";
 
-const MAX_CHAT_HISTORY = 5;
+const MAX_CHAT_HISTORY = 10;
 const CACHE_TTL = 60 * 10; // 10 min
 
 interface RecommendationRequest {
@@ -27,33 +27,79 @@ interface RecommendationResponse {
 
 export const recommend = async (req: Request, res: Response) => {
   try {
+    console.log('[START] Recommend API called');
+
     const userId = req.user?.id;
     const { message }: RecommendationRequest = req.body;
+    console.log('[INFO] Extracted userId:', userId);
+    console.log('[INFO] Received message:', message);
 
     if (!userId || !message?.trim()) {
+      console.warn('[WARN] Missing userId or message');
       return res.status(400).json({ error: 'Missing userId or message' });
     }
 
-    // --- 1. Semantic-friendly Cache Lookup ---
+    // ---------- helpers ----------
+    const isMealSuggestionIntent = (text: string) => {
+      const t = text.toLowerCase();
+      return /\b(what should i eat|suggest (dinner|lunch|breakfast|snack)|suggest a (meal|dinner)|what to eat|dinner|lunch|breakfast|snack)\b/.test(t);
+    };
+    const isDetailedIntent = (text: string) => {
+      const t = text.toLowerCase();
+      return /\b(in detail|detailed|full breakdown|progress in detail|deep)\b/.test(t);
+    };
+
+    const calculateTargets = (u: {
+      weight?: number;
+      height?: number;
+      age?: number;
+      gender?: string | null;
+      activityLevel?: string | null;
+      goalType?: string | null;
+    }) => {
+      // Mifflin-St Jeor BMR
+      const weight = u.weight ?? 70;
+      const height = u.height ?? 170;
+      const age = u.age ?? 30;
+      const gender = (u.gender || '').toLowerCase();
+      let bmr = 10 * weight + 6.25 * height - 5 * age + (gender === 'female' ? -161 : 5);
+      // activity multiplier
+      const activity = (u.activityLevel || '').toLowerCase();
+      let mult = 1.2;
+      if (activity.includes('light')) mult = 1.375;
+      else if (activity.includes('moderate')) mult = 1.55;
+      else if (activity.includes('active')) mult = 1.725;
+      else if (activity.includes('very')) mult = 1.9;
+      const tdee = Math.round(bmr * mult);
+
+      // adjust by goal
+      let calorieTarget = tdee;
+      if (u.goalType === 'MUSCLE_GAIN') calorieTarget = Math.round(tdee + 350);
+      else if (u.goalType === 'FAT_LOSS') calorieTarget = Math.round(tdee - 400);
+      else if (u.goalType === 'RECOMP') calorieTarget = Math.round(tdee);
+
+      // protein target (2.0 g/kg for recomposition/muscle focus)
+      const proteinTarget = Math.round(weight * 2.0);
+
+      return { calorieTarget, proteinTarget, tdee };
+    };
+
+    // --- 1. Cache lookup ---
     const normalizedMessage = message.toLowerCase().replace(/\s+/g, ' ').trim();
     const hash = crypto.createHash('sha256').update(userId + normalizedMessage).digest('hex');
     const cacheKey = `cache:recommend:${hash}`;
+    console.log('[CACHE] Generated cacheKey:', cacheKey);
+
     const cached = await redis.get(cacheKey);
     if (cached) {
-      // Get or create user's single conversation
-      let conversation = await prisma.conversation.findUnique({
-        where: { userId: Number(userId) }
-      });
-
+      console.log('[CACHE HIT] Returning cached response');
+      let conversation = await prisma.conversation.findUnique({ where: { userId: Number(userId) } });
       if (!conversation) {
+        console.log('[INFO] No conversation found. Creating a new one.');
         conversation = await prisma.conversation.create({
-          data: {
-            userId: Number(userId),
-            title: 'AI Nutrition Assistant'
-          }
+          data: { userId: Number(userId), title: 'AI Nutrition Assistant' }
         });
       }
-
       return res.json({
         reply: cached,
         conversationId: conversation.id,
@@ -61,65 +107,22 @@ export const recommend = async (req: Request, res: Response) => {
         cached: true
       });
     }
+    console.log('[CACHE MISS] Proceeding to fetch user data');
 
-    // --- 2. Fetch User Data with Proper Relations ---
+    // --- 2. Fetch user data ---
     const now = new Date();
-    const startOfToday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
-    const endOfToday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    console.log('[TIME] startOfToday:', startOfToday, '| endOfToday:', endOfToday);
 
     const [user, goal, preferences, mealLogs, recentConversations] = await Promise.all([
       prisma.user.findUnique({
         where: { id: Number(userId) },
-        select: {
-          id: true,
-          username: true,
-          age: true,
-          weight: true,
-          height: true,
-          gender: true,
-          activityLevel: true,
-          profile_completed: true
-        }
+        select: { id: true, username: true, age: true, weight: true, height: true, gender: true, activityLevel: true, profile_completed: true }
       }),
-      prisma.goal.findFirst({
-        where: { userId: Number(userId), isActive: true },
-        orderBy: { startDate: 'desc' },
-        select: {
-          type: true,
-          description: true,
-          startDate: true,
-          endDate: true
-        }
-      }),
-      prisma.preferences.findUnique({
-        where: { userId: Number(userId) },
-        select: {
-          dietType: true,
-          allergies: true,
-          mealFrequency: true,
-          snackIncluded: true
-        }
-      }),
-      prisma.mealLog.findMany({
-        where: {
-          userId: Number(userId),
-          mealDate: { gte: startOfToday, lte: endOfToday }
-        },
-        select: {
-          id: true,
-          servings: true,
-          customName: true,
-          mealType: true,
-          calories: true,
-          protein: true,
-          carbs: true,
-          fats: true,
-          notes: true,
-          mealDate: true
-        },
-        orderBy: { mealDate: 'desc' }
-      }),
-      // Get recent conversations for context
+      prisma.goal.findFirst({ where: { userId: Number(userId), isActive: true }, orderBy: { startDate: 'desc' }, select: { type: true, description: true, startDate: true, endDate: true } }),
+      prisma.preferences.findUnique({ where: { userId: Number(userId) }, select: { dietType: true, allergies: true, mealFrequency: true, snackIncluded: true } }),
+      prisma.mealLog.findMany({ where: { userId: Number(userId), mealDate: { gte: startOfToday, lte: endOfToday } }, orderBy: { mealDate: 'desc' } }),
       prisma.conversation.findMany({
         where: { userId: Number(userId) },
         orderBy: { updatedAt: 'desc' },
@@ -127,87 +130,66 @@ export const recommend = async (req: Request, res: Response) => {
         select: {
           id: true,
           title: true,
-          messages: {
-            orderBy: { createdAt: 'desc' },
-            take: 5,
-            select: {
-              senderRole: true,
-              content: true,
-              createdAt: true
-            }
-          }
+          messages: { orderBy: { createdAt: 'desc' }, take: 5, select: { senderRole: true, content: true, createdAt: true } }
         }
       })
     ]);
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    console.log('[DATA FETCHED] User:', user);
+    console.log('[DATA FETCHED] Goal:', goal);
+    console.log('[DATA FETCHED] Preferences:', preferences);
+    console.log('[DATA FETCHED] Meal Logs:', mealLogs.length);
+    console.log('[DATA FETCHED] Recent Conversations:', recentConversations.length);
+
+    if (!user || !goal || !preferences) {
+      console.warn('[WARN] Required user data missing');
+      return res.status(400).json({ error: 'User, goal, or preferences not found' });
     }
 
-    if (!goal) {
-      return res.status(400).json({ error: 'No active goal found. Please set a dietary goal first.' });
-    }
-
-    if (!preferences) {
-      return res.status(400).json({ error: 'User preferences not found. Please complete your profile first.' });
-    }
-
-    // --- 3. Get or Create User's Single Conversation ---
-    let conversation = await prisma.conversation.findUnique({
-      where: { userId: Number(userId) }
-    });
-
+    // --- 3. Conversation ---
+    let conversation = await prisma.conversation.findUnique({ where: { userId: Number(userId) } });
     if (!conversation) {
-      conversation = await prisma.conversation.create({
-        data: {
-          userId: Number(userId),
-          title: 'AI Nutrition Assistant'
-        }
-      });
+      conversation = await prisma.conversation.create({ data: { userId: Number(userId), title: 'AI Nutrition Assistant' } });
     }
-
     const currentConversationId = conversation.id;
+    console.log('[INFO] Current Conversation ID:', currentConversationId);
 
-    // --- 4. Retrieve Recent Chat Memory from Database ---
+    // --- 4. Short-term memory ---
     const recentMessages = await prisma.message.findMany({
       where: { conversationId: currentConversationId },
       orderBy: { createdAt: 'desc' },
       take: MAX_CHAT_HISTORY * 2,
-      select: {
-        senderRole: true,
-        content: true,
-        createdAt: true
-      }
+      select: { senderRole: true, content: true, createdAt: true }
     });
+    console.log('[MEMORY] Retrieved short-term messages:', recentMessages.length);
+    const shortTermMemory = recentMessages.reverse().map(msg => `${msg.senderRole}: ${msg.content}`).join('\n');
 
-    const shortTermMemory = recentMessages
-      .reverse()
-      .map(msg => `${msg.senderRole}: ${msg.content}`)
-      .join('\n');
+    // --- 5. Long-term memory (vector) ---
+    const vectorResults = await getRelevantChatContext(message, 5).catch(e => {
+      console.warn('[VECTOR DB] retrieval failed:', e);
+      return [];
+    });
+    console.log('[VECTOR DB] Relevant context messages:', vectorResults.length || 0);
+    const vectorMemory = (vectorResults || []).join('\n');
 
-    // --- 5. Retrieve Relevant Long-Term Memory ---
-    const vectorResults = await getRelevantChatContext(message, 5);
-    const vectorMemory = vectorResults.join('\n');
-
-    // --- 6. Format Today's Meals (Enhanced) ---
+    // --- 6. Meals summary (grouped) ---
     const mealsByType = mealLogs.reduce((acc, meal) => {
       if (!acc[meal.mealType]) acc[meal.mealType] = [];
-      acc[meal.mealType]!.push(meal);
+      acc[meal.mealType]?.push(meal);
       return acc;
     }, {} as Record<string, typeof mealLogs>);
 
-    const mealsSummary = Object.entries(mealsByType)
-      .map(([type, meals]) => {
-        const totalCalories = meals.reduce((sum, m) => sum + (m.calories * m.servings), 0);
-        const totalProtein = meals.reduce((sum, m) => sum + (m.protein * m.servings), 0);
-        const totalCarbs = meals.reduce((sum, m) => sum + (m.carbs * m.servings), 0);
-        const totalFats = meals.reduce((sum, m) => sum + (m.fats * m.servings), 0);
+    const mealsSummary = Object.entries(mealsByType).map(([type, meals]) => {
+      const totalCalories = meals.reduce((sum, m) => sum + (m.calories * (m.servings ?? 1)), 0);
+      const totalProtein = meals.reduce((sum, m) => sum + (m.protein * (m.servings ?? 1)), 0);
+      const totalCarbs = meals.reduce((sum, m) => sum + (m.carbs * (m.servings ?? 1)), 0);
+      const totalFats = meals.reduce((sum, m) => sum + (m.fats * (m.servings ?? 1)), 0);
+      return `${type}: ${meals.length} items, ${totalCalories.toFixed(0)} kcal (${totalProtein.toFixed(1)}g P / ${totalCarbs.toFixed(1)}g C / ${totalFats.toFixed(1)}g F)`;
+    }).join('\n') || "No meals logged yet today.";
 
-        return `${type}: ${meals.length} items, ${totalCalories.toFixed(0)} kcal (${totalProtein.toFixed(1)}g P / ${totalCarbs.toFixed(1)}g C / ${totalFats.toFixed(1)}g F)`;
-      })
-      .join('\n') || "No meals logged yet today.";
+    console.log('[SUMMARY] Meals Summary:\n', mealsSummary);
 
-    // --- 7. Enhanced Profile Summary ---
+    // --- 7. Profile summary ---
     const profileSummary = `
 User: ${user.username} (${user.gender || 'Not specified'})
 Age: ${user.age || 'Not specified'}, Weight: ${user.weight || 'Not specified'}kg, Height: ${user.height || 'Not specified'}cm
@@ -218,145 +200,159 @@ Allergies: ${preferences.allergies || 'None'}
 Meal Frequency: ${preferences.mealFrequency} meals/day${preferences.snackIncluded ? ' (includes snacks)' : ''}
 Profile Completed: ${user.profile_completed ? 'Yes' : 'No'}
     `.trim();
+    console.log('[SUMMARY] Profile Summary:\n', profileSummary);
 
-    // --- 8. Prepare Enhanced Contextual Prompt ---
+    // --- 8. Numeric targets (precompute and pass) ---
+    const { calorieTarget, proteinTarget, tdee } = calculateTargets({
+      weight: Number(user.weight),
+      height: Number(user.height),
+      age: Number(user.age),
+      gender: user.gender,
+      activityLevel: user.activityLevel,
+      goalType: goal.type as string | null // Ensure goalType is compatible
+    });
+    console.log('[TARGETS] calorieTarget:', calorieTarget, 'proteinTarget:', proteinTarget, 'tdee:', tdee);
+
+    // --- 9. Decide response mode ---
+    const wantMealSuggestion = isMealSuggestionIntent(message);
+    const wantDetailed = isDetailedIntent(message);
+
+    // --- 10. Prompt (tight, with partial-data behavior baked in) ---
     const promptTemplate = new PromptTemplate({
       template: `
-You are a helpful, personalized nutrition assistant for a mobile app. You have access to the user's complete profile, goals, preferences, and meal history.
+You are a helpful, personalized nutrition assistant for a mobile app. 
+Keep responses SHORT, structured, and actionable — avoid unnecessary fluff.  
 
-User Profile:
-{profile}
+---  
+USER PROFILE (context):
+{profileSummary}
 
-Today's Meal Log:
-{meals}
+MEAL LOG (today):
+{mealsSummary}
 
-Recent Conversation Context:
+RECENT CHAT CONTEXT:
 {shortTermMemory}
 
-Relevant Past Conversations:
+RELEVANT PAST CONVERSATIONS:
 {vectorMemory}
 
-User's Question: {input}
+USER’S QUESTION:
+{input}
 
-IMPORTANT GUIDELINES:
-1. Be empathetic and supportive, understanding that nutrition is personal
-2. Consider their specific goals, dietary restrictions, and preferences
-3. Provide practical, actionable advice that fits their lifestyle
-4. Reference their meal history when relevant
-5. Suggest specific foods or meal ideas when appropriate
-6. Be encouraging about their progress
+---  
+RULES (STRICT):
+1. Always prioritize USER PROFILE info (calorieTarget, proteinTarget, dietType, allergies, preferences).
+2. MEAL LOGS (if available):
+   - Use them for ANALYSIS or PROGRESS tracking.
+   - If missing/empty → ignore them and still generate a valid answer.
+3. NEVER invent profile details (like allergies or diet type).
+4. Always return clear, concise, and structured answers.
+5. Use bullet points, short paragraphs, and avoid unnecessary explanations.
 
-FORMATTING RULES FOR MOBILE UI:
-- Use simple, clean formatting that works well on mobile screens
-- For lists, use numbered format (1. 2. 3.) or bullet points with dashes (-)
-- Use line breaks (\\n) to separate different sections or ideas
-- Keep paragraphs short and scannable (2-3 lines max)
-- Use **bold** for emphasis on important points
-- Avoid complex markdown syntax like tables or code blocks
-- Make responses conversational and easy to read on a small screen
-- Use emojis sparingly but effectively (🍎 🥗 💪 etc.)
+---  
+MODES:
 
-Give a clear, practical, and empathetic reply aligned with their goals, formatted for mobile readability.
-      `.trim(),
-      inputVariables: ['profile', 'meals', 'shortTermMemory', 'vectorMemory', 'input'],
+**ANALYSIS MODE (Triggered by: "analyze", "how did I eat", "summary", "progress")**
+- Summarize the meals logged today or over a given period.
+- Compare intake vs targets (calories, protein, macros).
+- Highlight progress, good habits, and areas to improve.
+- Suggest small adjustments (e.g., “add protein at dinner”).
+
+**PLANNING MODE (Triggered by: "plan", "diet", "tomorrow", "weekly", "monthly", "meal schedule")**
+- Create structured meal plans (daily, tomorrow, weekly, monthly).
+- Use calorie/protein targets + dietType + allergies + mealFrequency.
+- If meal logs exist → reference them for continuity.
+- If NO meals exist → still generate a full plan from profile info.
+- Plans should hit calorie/protein goals and be realistic, simple, and varied.
+
+---  
+OUTPUT FORMAT:
+- Always begin with context (e.g., “Here’s your weekly plan…”).
+- Use **short, clear sections**:
+  - 🥗 Meal Plan (with calories/macros per meal)
+  - 🎯 Targets (daily/weekly totals)
+  - ✅ Quick Tips (1–2 short tips only)
+
+      `,
+      inputVariables: ['profileSummary', 'mealsSummary', 'shortTermMemory', 'vectorMemory', 'input', 'calorieTarget', 'proteinTarget'],
     });
 
-    // --- 9. LLM Call with Retry ---
     const chain = new LLMChain({ llm: model, prompt: promptTemplate });
 
+    console.log('[LLM] Sending prompt to model...');
     let reply: string | undefined;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const result = await chain.call({
           input: message,
-          profile: profileSummary,
-          meals: mealsSummary,
+          profileSummary,
+          mealsSummary,
           shortTermMemory,
-          vectorMemory
+          vectorMemory,
+          calorieTarget: String(calorieTarget),
+          proteinTarget: String(proteinTarget)
         });
-        reply = result?.text?.trim();
+        reply = (result?.text || '').trim();
+        console.log(`[LLM] Attempt ${attempt + 1} successful. Reply:`, reply);
         if (reply) break;
       } catch (e) {
-        console.error(`LLM attempt ${attempt + 1} failed:`, e);
+        console.error(`[LLM] Attempt ${attempt + 1} failed:`, e);
         if (attempt === 1) throw e;
       }
     }
 
     if (!reply) {
+      console.error('[ERROR] No response generated from LLM');
       return res.status(500).json({ error: 'No response generated' });
     }
 
-    // --- 10. Save Messages to Database ---
+    // --- 11. Save messages ---
+    console.log('[DB] Saving user and AI messages...');
     const [userMessage, aiMessage] = await Promise.all([
-      prisma.message.create({
-        data: {
-          conversationId: currentConversationId,
-          senderRole: 'USER',
-          content: message,
-          metadata: { timestamp: new Date().toISOString() }
-        }
-      }),
-      prisma.message.create({
-        data: {
-          conversationId: currentConversationId,
-          senderRole: 'AI',
-          content: reply,
-          metadata: {
-            timestamp: new Date().toISOString(),
-            model: 'nutrition-assistant',
-            cached: false
-          }
-        }
-      })
+      prisma.message.create({ data: { conversationId: currentConversationId, senderRole: 'USER', content: message, metadata: { timestamp: new Date().toISOString() } } }),
+      prisma.message.create({ data: { conversationId: currentConversationId, senderRole: 'AI', content: reply, metadata: { timestamp: new Date().toISOString(), model: 'nutrition-assistant', cached: false } } })
     ]);
+    console.log('[DB] Messages saved. AI message ID:', aiMessage.id);
 
-    // --- 11. Update Conversation Timestamp ---
-    await prisma.conversation.update({
-      where: { id: currentConversationId },
-      data: { updatedAt: new Date() }
-    });
+    await prisma.conversation.update({ where: { id: currentConversationId }, data: { updatedAt: new Date() } });
 
-    // --- 12. Cache Response ---
+    // --- 12. Cache response ---
+    console.log('[CACHE] Caching response...');
     await redis.set(cacheKey, reply, { EX: CACHE_TTL });
 
-    // --- 13. Save to Long-Term Memory (Selective) ---
-    if (message.length > 60 && reply.length > 60) {
-      await saveChunksToVectorStore([
-        new Document({
-          pageContent: `User: ${message}`,
-          metadata: {
-            role: "user",
-            userId: userId.toString(),
-            conversationId: currentConversationId,
-            timestamp: new Date().toISOString()
-          }
-        }),
-        new Document({
-          pageContent: `Assistant: ${reply}`,
-          metadata: {
-            role: "assistant",
-            userId: userId.toString(),
-            conversationId: currentConversationId,
-            timestamp: new Date().toISOString()
-          }
-        })
-      ], userId.toString());
-    }
+    // --- 13. Save to vector DB (non-blocking best-effort) ---
+    (async () => {
+      try {
+        await saveChunksToVectorStore([
+          new Document({
+            pageContent: `User: ${message}\nAssistant: ${reply}`,
+            metadata: {
+              role: 'exchange',
+              userId: userId.toString(),
+              conversationId: currentConversationId,
+              userMessageId: userMessage.id,
+              aiMessageId: aiMessage.id,
+              timestamp: new Date().toISOString()
+            }
+          })
+        ], userId.toString());
+        console.log('[VECTOR DB] Saved successfully');
+      } catch (err) {
+        console.warn('[VECTOR DB] Save failed (non-blocking):', err);
+      }
+    })();
 
-    const response: RecommendationResponse = {
-      reply,
-      conversationId: currentConversationId,
-      messageId: aiMessage.id,
-      cached: false
-    };
-
-    return res.json(response);
+    console.log('[SUCCESS] Sending final response...');
+    return res.json({ reply, conversationId: currentConversationId, messageId: aiMessage.id, cached: false });
 
   } catch (err) {
-    console.error('Recommendation error:', err);
+    console.error('[ERROR] Recommend handler failed:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+
+
 
 // Get user's single conversation messages
 export const getConversationMessages = async (req: Request, res: Response) => {

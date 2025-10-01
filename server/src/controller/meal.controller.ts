@@ -2,6 +2,8 @@ import type { Request, Response } from 'express';
 import prisma from '../db/prisma.js';
 import { generateFollowUpQuestion, loadPartial, mergePartial, parseMealText, validateParsedData } from '../langchain/mealChain.js';
 import { Prisma } from '../../generated/prisma/index.js';
+import { saveChunksToVectorStore } from '../langchain/storeVector.js';
+import { Document } from '@langchain/core/documents';
 
 // Main API handler
 export const aiMealLogger = async (req: Request, res: Response) => {
@@ -82,6 +84,30 @@ export const createMealLog = async (req: Request, res: Response) => {
                 mealDate: new Date(mealDate),
             },
         });
+
+        if (newMealLog) {
+            // Build a semantic text for embedding
+            const mealText = `${mealType}: ${customName ?? ""}. Calories: ${calories}, Protein: ${protein}g, Carbs: ${carbs}g, Fats: ${fats}g, Servings: ${servings ?? 1}, Date: ${mealDate}`;
+
+            await saveChunksToVectorStore([
+                new Document({
+                    pageContent: mealText,
+                    metadata: {
+                        role: "meal",
+                        userId: userId.toString(),
+                        mealId: newMealLog.id.toString(),
+                        mealType,
+                        calories,
+                        protein,
+                        carbs,
+                        fats,
+                        servings: servings ?? 1,
+                        mealDate: new Date(mealDate).toISOString(),
+                        timestamp: new Date().toISOString(),
+                    }
+                })
+            ], userId.toString());
+        }
 
         res.status(201).json(newMealLog);
     } catch (error) {
