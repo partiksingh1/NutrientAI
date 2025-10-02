@@ -41,38 +41,15 @@ export const sendMessageToAI = async (userId: string, message: string): Promise<
         throw error;
     }
 };
-
-export const fetchConversation = async (): Promise<Conversation | null> => {
-    try {
-        const response = await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}/recommend/conversation`, {
-            method: 'GET'
-        });
-        const data = await response.json();
-        return data.conversation;
-    } catch (error: any) {
-        // Only show error toast for critical failures
-        if (error.response?.status >= 500) {
-            Toast.show({
-                type: 'error',
-                text1: 'Connection error',
-                text2: 'Please check your internet connection',
-                position: 'top',
-                visibilityTime: 3000,
-                autoHide: true,
-            });
-        }
-        throw error;
-    }
-};
-
 export const fetchConversationMessages = async (): Promise<LocalMessage[]> => {
     try {
         const response = await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}/recommend/conversation`, {
             method: 'GET'
         });
         const data = await response.json()
+        console.log(data);
         const messages = data.conversation.messages;
-
+        console.log(messages);
         return messages.map((msg: any) => ({
             id: msg.id.toString(),
             content: msg.content,

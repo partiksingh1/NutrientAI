@@ -227,26 +227,35 @@ export default function ChatScreen() {
             </Text>
           </View>
         )}
-        {messages.map(message => {
+        {messages.map((message) => {
+          const isUser = message.sender === 'user';
+          const time = new Date(message.timestamp).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+
           return (
             <View
               key={message.id}
-              className={`flex mb-3 ${message.sender === 'user' ? 'items-end' : 'items-start'}`}
+              className={`flex mb-3 ${isUser ? 'items-end' : 'items-start'}`}
             >
               <View
-                className={`max-w-[80%] p-3 rounded-2xl ${message.sender === 'user'
-                  ? 'bg-blue-500'
-                  : 'bg-gray-200 dark:bg-neutral-800'
+                className={`max-w-[85%] p-3 rounded-2xl ${isUser ? 'bg-blue-500' : 'bg-gray-200 dark:bg-neutral-800'
                   }`}
               >
-                <Text className={`${message.sender === 'user' ? 'text-white' : 'text-black dark:text-white'}`}>
-                  {message.content}
-                </Text>
-                <Text className={`text-xs mt-1 ${message.sender === 'user' ? 'text-blue-100' : 'text-gray-400'}`}>
-                  {message.timestamp.toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+                {message.content.split('\n').map((line, index) => (
+                  <Text
+                    key={index}
+                    className={`${isUser ? 'text-white' : 'text-black dark:text-white'} mb-1`}
+                  >
+                    {line.trim()}
+                  </Text>
+                ))}
+                <Text
+                  className={`text-xs mt-1 ${isUser ? 'text-blue-100' : 'text-gray-400'
+                    }`}
+                >
+                  {time}
                 </Text>
               </View>
             </View>

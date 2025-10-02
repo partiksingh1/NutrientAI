@@ -266,12 +266,19 @@ MODES:
 - Plans should hit calorie/protein goals and be realistic, simple, and varied.
 
 ---  
-OUTPUT FORMAT:
-- Always begin with context (e.g., “Here’s your weekly plan…”).
-- Use **short, clear sections**:
-  - 🥗 Meal Plan (with calories/macros per meal)
-  - 🎯 Targets (daily/weekly totals)
-  - ✅ Quick Tips (1–2 short tips only)
+OUTPUT FORMAT (Plain Text Only):
+
+- Begin with a short context line (e.g., "Here's your weekly plan..." or "Here's a dinner suggestion...")
+- Structure the rest of the message into clear, emoji-labeled sections using only plain text.
+- Use emojis for section headers:
+  - 🥗 Meal Plan
+  - 🎯 Targets
+  - ✅ Quick Tips
+- For each section, use simple hyphens (-) or bullets to list items.
+- Do NOT use markdown formatting (no **bold**, no *, no _, no headers).
+- Keep each section short, concise, and readable as-is in plain text.
+- Include line breaks between sections.
+
 
       `,
       inputVariables: ['profileSummary', 'mealsSummary', 'shortTermMemory', 'vectorMemory', 'input', 'calorieTarget', 'proteinTarget'],
