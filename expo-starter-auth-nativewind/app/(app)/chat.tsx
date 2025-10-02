@@ -20,61 +20,10 @@ import {
 } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useChat } from '@/hooks/useChat';
-const Button = ({
-  variant = 'default',
-  size = 'md',
-  disabled = false,
-  onPress,
-  children,
-  className = ''
-}: any) => {
-  const base = 'flex-row items-center justify-center rounded-xl px-4';
-  const sizes: any = {
-    sm: 'h-8',
-    md: 'h-12',
-    icon: 'h-12 w-12'
-  };
-  const styles =
-    variant === 'default'
-      ? 'bg-blue-500'
-      : variant === 'outline'
-        ? 'border border-gray-300'
-        : 'bg-transparent';
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={disabled}
-      className={`${base} ${sizes[size]} ${styles} ${disabled ? 'opacity-50' : ''} ${className}`}
-    >
-      {children}
-    </TouchableOpacity>
-  );
-};
+import Button from '@/components/chat/Button';
+import Input from '@/components/chat/Input';
+import TypingIndicator from '@/components/chat/TypeIndicator';
 
-const Input = ({
-  value,
-  onChangeText,
-  placeholder,
-  onSubmitEditing,
-  className = '',
-  maxLength = 500,
-  multiline = false
-}: any) => (
-  <TextInput
-    value={value}
-    onChangeText={onChangeText}
-    placeholder={placeholder}
-    placeholderTextColor="#9CA3AF"
-    onSubmitEditing={onSubmitEditing}
-    maxLength={maxLength}
-    multiline={multiline}
-    textAlignVertical={multiline ? 'top' : 'center'}
-    className={`flex-1 ${multiline ? 'min-h-12 max-h-24' : 'h-12'} px-4 rounded-xl bg-gray-100 dark:bg-neutral-800 text-black dark:text-white ${className}`}
-  />
-);
-
-
-// --- Main Chat Screen ---
 export default function ChatScreen() {
   const { user } = useAuth();
 
@@ -261,15 +210,7 @@ export default function ChatScreen() {
             </View>
           );
         })}
-
-        {isTyping && (
-          <View className="items-start">
-            <View className="bg-gray-200 dark:bg-neutral-800 p-3 rounded-2xl flex-row items-center space-x-2">
-              <ActivityIndicator size="small" color="#6B7280" />
-              <Text className="text-gray-500 text-sm">AI is thinking...</Text>
-            </View>
-          </View>
-        )}
+        {isTyping && <TypingIndicator />}
       </ScrollView>
 
       {/* Quick Suggestions + Input */}
