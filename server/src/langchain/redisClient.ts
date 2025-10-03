@@ -11,4 +11,8 @@ export const redis = createClient({
 });
 
 redis.on('error', (err) => console.log('Redis Client Error', err));
-await redis.connect();
+
+// Avoid connecting to Redis during tests
+if (process.env.NODE_ENV !== 'test') {
+    await redis.connect();
+}

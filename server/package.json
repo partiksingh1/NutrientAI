@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
     "start": "node dist/index.js",
     "dev": "node --loader ts-node/esm src/index.ts",
     "build": "tsc"
@@ -20,20 +20,26 @@
     "@neondatabase/serverless": "^0.6.0",
     "@prisma/client": "^6.15.0",
     "bcrypt": "^6.0.0",
-    "dotenv": "^17.2.2",
+    "dotenv": "^16.4.5",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "langchain": "^0.3.32",
     "redis": "^5.8.2"
+  },
+  "overrides": {
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.3.0",
+    "@types/supertest": "^2.0.16",
     "prisma": "^6.15.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "supertest": "^6.3.4",
+    "vitest": "^2.0.5"
   }
 }

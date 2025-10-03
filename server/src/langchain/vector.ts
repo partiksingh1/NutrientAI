@@ -2,6 +2,13 @@ import { NeonPostgres } from "@langchain/community/vectorstores/neon";
 import { embeddings } from './embeddings.js';
 
 export async function loadVectorStore() {
+  if (process.env.NODE_ENV === 'test') {
+    // Minimal stub for tests
+    return {
+      similaritySearchWithScore: async () => [],
+      addDocuments: async () => {},
+    } as any;
+  }
   return await NeonPostgres.initialize(embeddings, {
     connectionString: process.env.DATABASE_URL as string,
   });
