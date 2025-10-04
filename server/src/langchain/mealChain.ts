@@ -10,8 +10,6 @@ import type { Prisma } from "../../generated/prisma/index.js";
 
 // Constants
 const PARTIAL_PREFIX = "meal:partial:";
-const PARTIAL_TTL_SECONDS = 60 * 10; // 10 minutes
-const REQUIRED_FIELDS = ["mealType", "customName", "calories"] as const;
 
 // Zod schema for meal data
 export const mealZod = z.object({
@@ -161,18 +159,6 @@ export const mergePartial = (existing: MealData | null, parsed: MealData): MealD
     },
   };
 };
-
-// // Check for missing required fields
-// export const requiredFieldsMissing = (data: MealData): string[] => {
-//   const missing: string[] = [];
-//   if (!data.mealType && !data.customName) {
-//     missing.push("customName_or_mealType");
-//   }
-//   if (!data.calories) {
-//     missing.push("calories");
-//   }
-//   return missing;
-// };
 
 // Validate parsed data
 export const validateParsedData = (data: MealData): string[] => {
