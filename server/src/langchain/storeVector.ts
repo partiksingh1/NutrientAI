@@ -1,4 +1,3 @@
-// src/langchain/vectorStore/saveToVectorStore.ts
 import { v4 as uuidv4 } from 'uuid';
 import { Document } from '@langchain/core/documents';
 import { vectorStore } from './vector.js';

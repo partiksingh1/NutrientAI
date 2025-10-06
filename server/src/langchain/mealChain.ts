@@ -1,13 +1,9 @@
-import type { Request, Response } from "express";
 import { z } from "zod";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LLMChain } from "langchain/chains";
 import { model } from "./model/model.js";
 import { redis } from "./redisClient.js";
-import prisma from "../db/prisma.js";
-import type { Prisma } from "../../generated/prisma/index.js";
-
 // Constants
 const PARTIAL_PREFIX = "meal:partial:";
 
