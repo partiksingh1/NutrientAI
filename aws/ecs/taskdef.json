@@ -1,0 +1,46 @@
+{
+  "family": "app-server",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::123456789012:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::123456789012:role/appTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "server",
+      "image": "123456789012.dkr.ecr.us-east-1.amazonaws.com/app-server:latest",
+      "portMappings": [
+        { "containerPort": 3000, "hostPort": 3000, "protocol": "tcp" }
+      ],
+      "essential": true,
+      "environment": [
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "PORT", "value": "3000" }
+      ],
+      "secrets": [
+        { "name": "DATABASE_URL", "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:app/DATABASE_URL-abc" },
+        { "name": "JWT_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:app/JWT_SECRET-abc" },
+        { "name": "REFRESH_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:app/REFRESH_SECRET-abc" },
+        { "name": "REDIS_HOST", "valueFrom": "arn:aws:ssm:us-east-1:123456789012:parameter/app/REDIS_HOST" },
+        { "name": "REDIS_PASSWORD", "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:app/REDIS_PASSWORD-abc" },
+        { "name": "GOOGLE_API_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:app/GOOGLE_API_KEY-abc" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/app-server",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 10
+      }
+    }
+  ]
+}
