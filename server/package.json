@@ -15,7 +15,7 @@
   "description": "",
   "dependencies": {
     "@langchain/community": "^0.3.54",
-    "@langchain/core": "^0.3.73",
+    "@langchain/core": "^0.3.78",
     "@langchain/google-genai": "^0.2.17",
     "@neondatabase/serverless": "^0.6.0",
     "@prisma/client": "^6.15.0",
@@ -23,8 +23,9 @@
     "dotenv": "^16.6.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "langchain": "^0.3.32",
-    "redis": "^5.8.2"
+    "langchain": "^0.3.35",
+    "redis": "^5.8.2",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

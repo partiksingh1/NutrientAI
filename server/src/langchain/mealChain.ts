@@ -27,7 +27,7 @@ export const mealZod = z.object({
 });
 
 export type MealData = z.infer<typeof mealZod>;
-export const mealParser = StructuredOutputParser.fromZodSchema(mealZod);
+export const mealParser = StructuredOutputParser.fromZodSchema(mealZod as any);
 
 
 // Clean LLM JSON output
@@ -76,7 +76,7 @@ export const parseMealText = async (userText: string): Promise<MealData> => {
     const response = await chain.invoke({ meal: userText });
     const rawOutput = (response as any).text ?? (response as any).output_text ?? JSON.stringify(response);
     const llmOutput = cleanLLMJson(rawOutput);
-    return await mealParser.parse(llmOutput);
+    return await mealParser.parse(llmOutput) as any;
   } catch (error) {
     console.error(`Failed to parse meal text: ${userText}`, error);
     return {

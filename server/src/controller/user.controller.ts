@@ -129,7 +129,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         });
     } catch (error) {
         if (error instanceof z.ZodError) {
-            return res.status(400).json({ error: 'Invalid input data', details: error.errors });
+            return res.status(400).json({ error: 'Invalid input data', details: error });
         }
         console.error('Update user profile error:', error);
         return res.status(500).json({ error: 'Failed to update profile' });
@@ -171,7 +171,7 @@ export const updateUserPreferences = async (req: Request, res: Response) => {
         });
     } catch (error) {
         if (error instanceof z.ZodError) {
-            return res.status(400).json({ error: 'Invalid input data', details: error.errors });
+            return res.status(400).json({ error: 'Invalid input data', details: error });
         }
         console.error('Update preferences error:', error);
         return res.status(500).json({ error: 'Failed to update preferences' });

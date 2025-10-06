@@ -121,7 +121,7 @@ export const mainController = async (req: Request, res: Response) => {
         if (error instanceof z.ZodError) {
             return res.status(400).json({
                 error: 'Validation failed',
-                details: error.errors,
+                details: error,
             });
         }
 

@@ -13,9 +13,9 @@ export const redis = createClient({
         host: process.env.REDIS_HOST,
         port: 14609,
     },
-});
+}) as any;
 
-redis.on('error', (err) => console.error('Redis Client Error', err));
+redis.on('error', (err: any) => console.error('Redis Client Error', err));
 
 (async () => {
     try {

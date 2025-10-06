@@ -1,15 +1,13 @@
-// src/controller/recommendation.controller.ts
-
 import type { Request, Response } from 'express';
 import { redis } from '../langchain/redisClient.js';
 import prisma from '../db/prisma.js';
-import { PromptTemplate } from '@langchain/core/prompts';
-import { LLMChain } from 'langchain/chains';
+import { ChatPromptTemplate, PromptTemplate } from '@langchain/core/prompts';;
 import { model } from '../langchain/model/model.js';
 import { Document } from '@langchain/core/documents';
 import { getRelevantChatContext } from '../langchain/vector.js';
 import { saveChunksToVectorStore } from '../langchain/storeVector.js';
 import crypto from "crypto";
+import { LLMChain } from 'langchain/chains';
 
 const MAX_CHAT_HISTORY = 10;
 const CACHE_TTL = 60 * 10; // 10 min
@@ -218,8 +216,7 @@ Profile Completed: ${user.profile_completed ? 'Yes' : 'No'}
     const wantDetailed = isDetailedIntent(message);
 
     // --- 10. Prompt (tight, with partial-data behavior baked in) ---
-    const promptTemplate = new PromptTemplate({
-      template: `
+    const prompt = ChatPromptTemplate.fromTemplate(`
 You are a helpful, personalized nutrition assistant for a mobile app. 
 Keep responses SHORT, structured, and actionable — avoid unnecessary fluff.  
 
@@ -280,34 +277,20 @@ OUTPUT FORMAT (Plain Text Only):
 - Include line breaks between sections.
 
 
-      `,
-      inputVariables: ['profileSummary', 'mealsSummary', 'shortTermMemory', 'vectorMemory', 'input', 'calorieTarget', 'proteinTarget'],
-    });
+      `);
 
-    const chain = new LLMChain({ llm: model, prompt: promptTemplate });
-
+    const chain = prompt.pipe(model);
     console.log('[LLM] Sending prompt to model...');
-    let reply: string | undefined;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const result = await chain.call({
-          input: message,
-          profileSummary,
-          mealsSummary,
-          shortTermMemory,
-          vectorMemory,
-          calorieTarget: String(calorieTarget),
-          proteinTarget: String(proteinTarget)
-        });
-        reply = (result?.text || '').trim();
-        console.log(`[LLM] Attempt ${attempt + 1} successful. Reply:`, reply);
-        if (reply) break;
-      } catch (e) {
-        console.error(`[LLM] Attempt ${attempt + 1} failed:`, e);
-        if (attempt === 1) throw e;
-      }
-    }
-
+    const response = await chain.invoke({
+      input: message,
+      profileSummary,
+      mealsSummary,
+      shortTermMemory,
+      vectorMemory,
+      calorieTarget: String(calorieTarget),
+      proteinTarget: String(proteinTarget)
+    });
+    const reply = response.content as string
     if (!reply) {
       console.error('[ERROR] No response generated from LLM');
       return res.status(500).json({ error: 'No response generated' });
