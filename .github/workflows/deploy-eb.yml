@@ -3,6 +3,7 @@ name: Deploy server to Elastic Beanstalk
 on:
   push:
     branches: [main]
+
 env:
   EB_APPLICATION_NAME: ${{ secrets.EB_APPLICATION_NAME }}
   EB_ENVIRONMENT_NAME: ${{ secrets.EB_ENVIRONMENT_NAME }}
