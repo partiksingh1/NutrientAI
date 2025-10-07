@@ -1,0 +1,40 @@
+name: CI - Lint, Build, Test
+
+on:
+    pull_request:
+        branches: [main]
+    push:
+        branches: [main]
+        paths:
+            - "server/**"
+
+jobs:
+    ci:
+        name: Run Lint & Build
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Use Node.js 20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - name: Install dependencies
+              working-directory: server
+              run: npm ci
+
+            - name: Lint
+              working-directory: server
+              run: npm run lint
+
+            - name: Build
+              working-directory: server
+              run: npm run build
+
+            # Optional: Run tests
+            # - name: Test
+            #   working-directory: server
+            #   run: npm test

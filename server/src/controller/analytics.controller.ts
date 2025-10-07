@@ -1,5 +1,16 @@
 import type { Request, Response } from 'express';
 import prisma from '../db/prisma.js';
+import type { $Enums } from '../../generated/prisma/index.js';
+
+type DailyTotal = {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+    meals: number;
+};
+
+type DailyTotals = Record<string, DailyTotal>;
 
 // Get user progress analytics
 export const getProgressAnalytics = async (req: Request, res: Response) => {
@@ -54,7 +65,7 @@ export const getProgressAnalytics = async (req: Request, res: Response) => {
         });
 
         // Calculate daily nutrition totals
-        const dailyTotals: Record<string, { calories: number; protein: number; carbs: number; fats: number; meals: number }> = {};
+        const dailyTotals: DailyTotals = {};
 
         mealLogs.forEach(meal => {
             const date = meal.mealDate.toISOString().split('T')[0] as string;
@@ -136,7 +147,7 @@ export const getProgressAnalytics = async (req: Request, res: Response) => {
 };
 
 // Calculate user achievements
-const calculateAchievements = async (userId: number, mealLogs: any[], dailyTotals: Record<string, any>) => {
+const calculateAchievements = async (userId: number, mealLogs: { id: number; userId: number; protein: number; carbs: number; fats: number; calories: number; createdAt: Date; updatedAt: Date; mealType: $Enums.MealType; customName: string | null; servings: number; notes: string | null; mealDate: Date; }[], dailyTotals: DailyTotals) => {
     const achievements = [];
 
     // 7-Day Streak
@@ -189,7 +200,7 @@ const calculateAchievements = async (userId: number, mealLogs: any[], dailyTotal
 };
 
 // Calculate consecutive days with meal logs
-const calculateConsecutiveDays = (dailyTotals: Record<string, any>) => {
+const calculateConsecutiveDays = (dailyTotals: DailyTotals) => {
     const dates = Object.keys(dailyTotals).sort();
     let maxStreak = 0;
     let currentStreak = 0;

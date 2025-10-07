@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import prisma from '../db/prisma.js';
-import { generateFollowUpQuestion, loadPartial, mergePartial, parseMealText, validateParsedData } from '../langchain/mealChain.js';
+import { generateFollowUpQuestion, parseMealText, validateParsedData } from '../langchain/mealChain.js';
 import { Prisma } from '../../generated/prisma/index.js';
 import { saveChunksToVectorStore } from '../langchain/storeVector.js';
 import { Document } from '@langchain/core/documents';
@@ -43,7 +43,7 @@ export const aiMealLogger = async (req: Request, res: Response) => {
         // 6) Save to database
         const finalData: Prisma.MealLogUncheckedCreateInput = {
             userId, // 👈 raw foreign key
-            mealType: parsed.mealType?.toUpperCase() as any,
+            mealType: parsed.mealType?.toUpperCase() as Prisma.MealLogCreateInput['mealType'],
             customName: parsed.customName ?? null,
             calories: parsed.calories!,
             protein: parsed.protein!,
@@ -132,7 +132,7 @@ export const updateMealLog = async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Meal log not found or unauthorized' });
         }
 
-        const updateData: any = {
+        const updateData = {
             mealType,
             customName,
             calories,
@@ -140,6 +140,7 @@ export const updateMealLog = async (req: Request, res: Response) => {
             carbs,
             fats,
             servings,
+            mealDate
         };
 
         if (mealDate) {

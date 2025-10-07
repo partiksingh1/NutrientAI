@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const normalizeForPrisma = (obj: Record<string, any>) => {
     return Object.fromEntries(
         Object.entries(obj).map(([k, v]) => [k, v === undefined ? null : v])

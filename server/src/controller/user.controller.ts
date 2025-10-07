@@ -59,7 +59,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
         }
 
         // Remove sensitive data
-        const { password, ...userProfile } = user;
+        const { ...userProfile } = user;
 
         return res.json({
             user: userProfile,
@@ -103,6 +103,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
                 ...(weight && { weight }),
                 ...(height && { height }),
                 ...(age && { age }),
+                ...(gender && { gender }),
                 ...(activityLevel && { activityLevel }),
             },
             include: {
@@ -121,7 +122,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         });
 
         // Remove sensitive data
-        const { password, ...userProfile } = updatedUser;
+        const { ...userProfile } = updatedUser;
 
         return res.json({
             message: 'Profile updated successfully',

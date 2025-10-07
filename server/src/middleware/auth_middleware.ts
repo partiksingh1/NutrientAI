@@ -6,12 +6,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 // Extend the Express Request type to include the `user` property
 declare module 'express' {
     interface Request {
-        user?: { id: Number };
+        user?: { id: number };
     }
 }
 
 interface TokenPayload extends JwtPayload {
-    userId: Number;
+    userId: number;
 }
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -24,7 +24,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     const token = authHeader.split(' ')[1];
 
     try {
-        const decoded = jwt.verify(token as any, JWT_SECRET);
+        const decoded = jwt.verify(token as string, JWT_SECRET);
 
         // Type guard to ensure decoded is a JwtPayload with userId
         if (typeof decoded === 'object' && decoded !== null && 'userId' in decoded) {

@@ -1,13 +1,12 @@
 import type { Request, Response } from 'express';
 import { redis } from '../langchain/redisClient.js';
 import prisma from '../db/prisma.js';
-import { ChatPromptTemplate, PromptTemplate } from '@langchain/core/prompts';;
+import { ChatPromptTemplate } from '@langchain/core/prompts';;
 import { model } from '../langchain/model/model.js';
 import { Document } from '@langchain/core/documents';
 import { getRelevantChatContext } from '../langchain/vector.js';
 import { saveChunksToVectorStore } from '../langchain/storeVector.js';
 import crypto from "crypto";
-import { LLMChain } from 'langchain/chains';
 
 const MAX_CHAT_HISTORY = 10;
 const CACHE_TTL = 60 * 10; // 10 min
@@ -15,14 +14,6 @@ const CACHE_TTL = 60 * 10; // 10 min
 interface RecommendationRequest {
   message: string;
 }
-
-interface RecommendationResponse {
-  reply: string;
-  conversationId: number;
-  messageId: number;
-  cached: boolean;
-}
-
 export const recommend = async (req: Request, res: Response) => {
   try {
     console.log('[START] Recommend API called');
@@ -37,16 +28,6 @@ export const recommend = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Missing userId or message' });
     }
 
-    // ---------- helpers ----------
-    const isMealSuggestionIntent = (text: string) => {
-      const t = text.toLowerCase();
-      return /\b(what should i eat|suggest (dinner|lunch|breakfast|snack)|suggest a (meal|dinner)|what to eat|dinner|lunch|breakfast|snack)\b/.test(t);
-    };
-    const isDetailedIntent = (text: string) => {
-      const t = text.toLowerCase();
-      return /\b(in detail|detailed|full breakdown|progress in detail|deep)\b/.test(t);
-    };
-
     const calculateTargets = (u: {
       weight?: number;
       height?: number;
@@ -60,7 +41,7 @@ export const recommend = async (req: Request, res: Response) => {
       const height = u.height ?? 170;
       const age = u.age ?? 30;
       const gender = (u.gender || '').toLowerCase();
-      let bmr = 10 * weight + 6.25 * height - 5 * age + (gender === 'female' ? -161 : 5);
+      const bmr = 10 * weight + 6.25 * height - 5 * age + (gender === 'female' ? -161 : 5);
       // activity multiplier
       const activity = (u.activityLevel || '').toLowerCase();
       let mult = 1.2;
@@ -210,11 +191,6 @@ Profile Completed: ${user.profile_completed ? 'Yes' : 'No'}
       goalType: goal.type as string | null // Ensure goalType is compatible
     });
     console.log('[TARGETS] calorieTarget:', calorieTarget, 'proteinTarget:', proteinTarget, 'tdee:', tdee);
-
-    // --- 9. Decide response mode ---
-    const wantMealSuggestion = isMealSuggestionIntent(message);
-    const wantDetailed = isDetailedIntent(message);
-
     // --- 10. Prompt (tight, with partial-data behavior baked in) ---
     const prompt = ChatPromptTemplate.fromTemplate(`
 You are a helpful, personalized nutrition assistant for a mobile app. 

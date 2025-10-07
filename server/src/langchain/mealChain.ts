@@ -27,7 +27,9 @@ export const mealZod = z.object({
 });
 
 export type MealData = z.infer<typeof mealZod>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const mealParser = StructuredOutputParser.fromZodSchema(mealZod as any);
+
 
 
 // Clean LLM JSON output
@@ -74,9 +76,11 @@ export const parseMealText = async (userText: string): Promise<MealData> => {
   const chain = inferPrompt.pipe(model);
   try {
     const response = await chain.invoke({ meal: userText });
-    const rawOutput = (response as any).text ?? (response as any).output_text ?? JSON.stringify(response);
+    type LLMResponse = { text?: string; output_text?: string };
+    const rawOutput = (response as LLMResponse).text ?? (response as LLMResponse).output_text ?? JSON.stringify(response);
     const llmOutput = cleanLLMJson(rawOutput);
-    return await mealParser.parse(llmOutput) as any;
+    return await mealParser.parse(llmOutput) as MealData;
+
   } catch (error) {
     console.error(`Failed to parse meal text: ${userText}`, error);
     return {
@@ -189,7 +193,6 @@ export const generateFollowUpQuestion = async (
   issues: string[]
 ): Promise<string> => {
   const name = data.customName || "your meal";
-  const type = data.mealType || "meal";
 
   // 1. Ask about meal type if it's missing or unclear
   if (issues.includes("mealType_invalid") || issues.includes("mealType_low_confidence")) {

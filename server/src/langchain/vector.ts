@@ -15,7 +15,7 @@ export async function getRelevantChatContext(query: string, topK = 5): Promise<s
   const results = await vectorStore.similaritySearchWithScore(query, topK);
 
   // Filter based on threshold
-  const filtered = results.filter(([doc, score]) => score >= SIMILARITY_THRESHOLD);
+  const filtered = results.filter(([, score]) => score >= SIMILARITY_THRESHOLD);
 
   // Deduplicate by content (case-insensitive)
   const seen = new Set<string>();
