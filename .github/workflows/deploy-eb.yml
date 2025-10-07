@@ -1,0 +1,65 @@
+name: Deploy server to Elastic Beanstalk
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  EB_APPLICATION_NAME: ${{ secrets.EB_APPLICATION_NAME }}
+  EB_ENVIRONMENT_NAME: ${{ secrets.EB_ENVIRONMENT_NAME }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  S3_BUCKET: ${{ secrets.EB_S3_BUCKET }}
+  VERSION_LABEL: ${{ github.sha }}
+
+jobs:
+  deploy:
+    name: Build and Deploy to EB
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        working-directory: server
+        run: npm install --no-audit --no-fund
+
+      - name: Generate Prisma client
+        working-directory: server
+        run: npx prisma generate
+
+      - name: Build server
+        working-directory: server
+        run: npm run build
+
+      - name: Create deployment package (server folder root in zip)
+        working-directory: server
+        run: zip -r ../app.zip . -x "**/node_modules/**" "**/.git/**" "**/.github/**"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload package to S3
+        run: aws s3 cp app.zip s3://${{ env.S3_BUCKET }}/${{ env.EB_APPLICATION_NAME }}/${{ env.VERSION_LABEL }}.zip
+
+      - name: Create EB application version
+        run: >
+          aws elasticbeanstalk create-application-version
+          --application-name "${{ env.EB_APPLICATION_NAME }}"
+          --version-label "${{ env.VERSION_LABEL }}"
+          --source-bundle S3Bucket="${{ env.S3_BUCKET }}",S3Key="${{ env.EB_APPLICATION_NAME }}/${{ env.VERSION_LABEL }}.zip"
+          --auto-create-application
+
+      - name: Deploy new version to environment
+        run: >
+          aws elasticbeanstalk update-environment
+          --environment-name "${{ env.EB_ENVIRONMENT_NAME }}"
+          --version-label "${{ env.VERSION_LABEL }}"
