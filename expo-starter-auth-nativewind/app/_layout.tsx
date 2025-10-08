@@ -1,9 +1,10 @@
-import 'react-native-reanimated';
+import "react-native-reanimated";
 import { Stack, useSegments, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useCallback } from "react";
 import { Text, View } from "react-native";
 import ToastManager from "toastify-react-native";
+
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import "../global.css";
 
@@ -11,16 +12,6 @@ function AuthRoot() {
   const { isAuthenticated, isLoading, isProfileComplete } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-
-  const toastConfig = {
-    success: (props: any) => (
-      <View style={{ backgroundColor: '#4CAF50', padding: 16, borderRadius: 10 }}>
-        <Text style={{ color: 'white', fontWeight: 'bold' }}>{props.text1}</Text>
-        {props.text2 && <Text style={{ color: 'white' }}>{props.text2}</Text>}
-      </View>
-    ),
-    // Override other toast types as needed
-  }
   const handleNavigation = useCallback(() => {
     if (isLoading) return;
 
@@ -80,7 +71,10 @@ function AuthRoot() {
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
         <Stack.Screen name="OnBoarding" options={{ headerShown: false }} />
         <Stack.Screen name="auth/login" options={{ title: "Login", headerShown: false }} />
-        <Stack.Screen name="auth/register" options={{ title: "Create Account", headerShown: false }} />
+        <Stack.Screen
+          name="auth/register"
+          options={{ title: "Create Account", headerShown: false }}
+        />
       </Stack>
     </>
   );
@@ -90,7 +84,7 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <AuthRoot />
-      <ToastManager useModal={true} />
+      <ToastManager useModal />
     </AuthProvider>
   );
 }

@@ -1,6 +1,14 @@
-import React, { useState } from "react";
-import { View, TextInput, Text, Alert, ActivityIndicator, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
 import { Eye, EyeOff } from "lucide-react-native";
+import React, { useState } from "react";
+import {
+  View,
+  TextInput,
+  Text,
+  Alert,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 
 import Button from "./Button";
 import { LoginCredentials } from "../types/user";

@@ -44,7 +44,7 @@ export default function AppLayout() {
             title: "Home",
             tabBarIcon: getTabBarIcon("home-outline"),
             tabBarLabel: "Home",
-            headerShown: false
+            headerShown: false,
           }}
         />
         <Tabs.Screen
@@ -53,7 +53,7 @@ export default function AppLayout() {
             title: "Chat",
             tabBarIcon: getTabBarIcon("chatbubble-ellipses"),
             tabBarLabel: "AI Chat",
-            headerShown: false
+            headerShown: false,
           }}
         />
         <Tabs.Screen
@@ -62,7 +62,7 @@ export default function AppLayout() {
             title: "Progress",
             tabBarIcon: getTabBarIcon("analytics-outline"),
             tabBarLabel: "Progress",
-            headerShown: false
+            headerShown: false,
           }}
         />
         <Tabs.Screen
@@ -71,7 +71,7 @@ export default function AppLayout() {
             title: "Settings",
             tabBarIcon: getTabBarIcon("settings-outline"),
             tabBarLabel: "Settings",
-            headerShown: false
+            headerShown: false,
           }}
         />
       </Tabs>

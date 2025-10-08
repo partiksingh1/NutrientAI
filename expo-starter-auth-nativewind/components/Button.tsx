@@ -1,5 +1,5 @@
-import { Pressable, Text, View } from "react-native";
 import { LucideIcon } from "lucide-react-native";
+import { Pressable, Text, View } from "react-native";
 
 type Props = {
   label: string;
@@ -90,16 +90,14 @@ export default function Button({
       {loading ? (
         <View className="flex-row items-center">
           <View className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-          <Text className={`${getTextColor()} font-semibold ${getTextSize()}`}>
-            Loading...
-          </Text>
+          <Text className={`${getTextColor()} font-semibold ${getTextSize()}`}>Loading...</Text>
         </View>
       ) : (
         <View className="flex-row items-center">
-          {Icon && <Icon size={16} color={variant === "outline" ? "#374151" : "white"} className="mr-2" />}
-          <Text className={`${getTextColor()} font-semibold ${getTextSize()}`}>
-            {label}
-          </Text>
+          {Icon && (
+            <Icon size={16} color={variant === "outline" ? "#374151" : "white"} className="mr-2" />
+          )}
+          <Text className={`${getTextColor()} font-semibold ${getTextSize()}`}>{label}</Text>
         </View>
       )}
     </Pressable>
