@@ -72,12 +72,13 @@ export default class AuthService {
         const errorData = await response.json();
         throw new Error(errorData.message || "Registration failed");
       }
+      const { accessToken, refreshToken, user } = await response.json();
 
-      const data = await response.json();
-      const { token, user } = data;
-
-      await AsyncStorage.setItem(AUTH_TOKEN_KEY, token);
-      await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
+      await AsyncStorage.multiSet([
+        [AUTH_TOKEN_KEY, accessToken],
+        [REFRESH_TOKEN_KEY, refreshToken],
+        [USER_DATA_KEY, JSON.stringify(user)],
+      ]);
 
       return {
         id: String(user.id),
