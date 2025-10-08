@@ -1,7 +1,7 @@
+import { useRouter } from "expo-router";
 import { Alert, Text, View } from "react-native";
 
 import Button from "@/components/Button";
-import { useRouter } from "expo-router";
 
 export default function Index() {
   const router = useRouter();
@@ -15,7 +15,7 @@ export default function Index() {
       <Button
         label="Sounds good!"
         onPress={() => {
-          router.replace("/OnBoarding/onboarding")
+          router.replace("/OnBoarding/onboarding");
           Alert.alert("NativeWind", "You're all set up!");
         }}
       />

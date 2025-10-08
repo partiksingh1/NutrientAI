@@ -1,9 +1,43 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, Switch, Alert, ActivityIndicator, Modal, FlatList } from 'react-native';
-import { User, Palette, HelpCircle, LogOut, Edit, Save, X, User2Icon, Trash2, ChevronDown } from 'lucide-react-native';
-import { UserProfile, UpdateProfileData, UpdatePreferencesData, getUserProfile, updateUserProfile, updateUserPreferences, deleteUserAccount, DailyGoals, getDailyGoals, updateDailyGoals } from '@/services/userService';
-import { useRouter } from 'expo-router';
-import { useAuth } from '@/context/AuthContext';
+import { useRouter } from "expo-router";
+import {
+  User,
+  Palette,
+  HelpCircle,
+  LogOut,
+  Edit,
+  Save,
+  X,
+  User2Icon,
+  Trash2,
+  ChevronDown,
+} from "lucide-react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+  Alert,
+  ActivityIndicator,
+  Modal,
+  FlatList,
+} from "react-native";
+
+import { useAuth } from "@/context/AuthContext";
+import {
+  UserProfile,
+  UpdateProfileData,
+  UpdatePreferencesData,
+  getUserProfile,
+  updateUserProfile,
+  updateUserPreferences,
+  deleteUserAccount,
+  DailyGoals,
+  getDailyGoals,
+  updateDailyGoals,
+} from "@/services/userService";
 
 export default function ProfileScreen() {
   const [isEditing, setIsEditing] = useState(false);
@@ -16,29 +50,29 @@ export default function ProfileScreen() {
   const [showMealFrequencyModal, setShowMealFrequencyModal] = useState(false);
   const [dailyGoals, setDailyGoals] = useState<DailyGoals | null>(null);
   const [editGoals, setEditGoals] = useState<Partial<DailyGoals>>({});
-  const goalKeys: (keyof DailyGoals)[] = ['calories', 'protein', 'carbs', 'fats'];
+  const goalKeys: (keyof DailyGoals)[] = ["calories", "protein", "carbs", "fats"];
   const { logout } = useAuth();
   const router = useRouter();
 
   // Diet type options
   const dietTypes = [
-    { value: 'OMNIVORE', label: 'Omnivore' },
-    { value: 'VEGETARIAN', label: 'Vegetarian' },
-    { value: 'VEGAN', label: 'Vegan' },
-    { value: 'KETO', label: 'Keto' },
-    { value: 'PALEO', label: 'Paleo' },
-    { value: 'GLUTEN_FREE', label: 'Gluten Free' },
-    { value: 'OTHER', label: 'Other' },
+    { value: "OMNIVORE", label: "Omnivore" },
+    { value: "VEGETARIAN", label: "Vegetarian" },
+    { value: "VEGAN", label: "Vegan" },
+    { value: "KETO", label: "Keto" },
+    { value: "PALEO", label: "Paleo" },
+    { value: "GLUTEN_FREE", label: "Gluten Free" },
+    { value: "OTHER", label: "Other" },
   ];
 
   // Meal frequency options
   const mealFrequencies = [
-    { value: 1, label: '1 meal per day' },
-    { value: 2, label: '2 meals per day' },
-    { value: 3, label: '3 meals per day' },
-    { value: 4, label: '4 meals per day' },
-    { value: 5, label: '5 meals per day' },
-    { value: 6, label: '6 meals per day' },
+    { value: 1, label: "1 meal per day" },
+    { value: 2, label: "2 meals per day" },
+    { value: 3, label: "3 meals per day" },
+    { value: 4, label: "4 meals per day" },
+    { value: 5, label: "5 meals per day" },
+    { value: 6, label: "6 meals per day" },
   ];
 
   // Load user profile on component mount
@@ -68,7 +102,7 @@ export default function ProfileScreen() {
       setDailyGoals(goals);
       setEditGoals(goals);
     } catch (error) {
-      console.error('Failed to load profile:', error);
+      console.error("Failed to load profile:", error);
     } finally {
       setIsLoading(false);
     }
@@ -79,8 +113,8 @@ export default function ProfileScreen() {
       setIsSaving(true);
 
       // Update profile if there are changes
-      const hasProfileChanges = Object.keys(editProfile).some(key =>
-        editProfile[key as keyof UpdateProfileData] !== profile?.[key as keyof UserProfile]
+      const hasProfileChanges = Object.keys(editProfile).some(
+        key => editProfile[key as keyof UpdateProfileData] !== profile?.[key as keyof UserProfile],
       );
 
       if (hasProfileChanges) {
@@ -88,17 +122,17 @@ export default function ProfileScreen() {
       }
 
       // Update preferences if there are changes
-      const hasPreferenceChanges = Object.keys(preferences).some(key =>
-        preferences[key as keyof UpdatePreferencesData] !== profile?.preferences?.[key as keyof typeof profile.preferences]
+      const hasPreferenceChanges = Object.keys(preferences).some(
+        key =>
+          preferences[key as keyof UpdatePreferencesData] !==
+          profile?.preferences?.[key as keyof typeof profile.preferences],
       );
 
       if (hasPreferenceChanges) {
         await updateUserPreferences(preferences);
       }
 
-      const hasGoalChanges = goalKeys.some(key =>
-        editGoals[key] !== dailyGoals?.[key]
-      );
+      const hasGoalChanges = goalKeys.some(key => editGoals[key] !== dailyGoals?.[key]);
 
       if (hasGoalChanges && profile) {
         await updateDailyGoals(profile.id, editGoals);
@@ -108,7 +142,7 @@ export default function ProfileScreen() {
       await loadUserProfile();
       setIsEditing(false);
     } catch (error) {
-      console.error('Failed to save profile:', error);
+      console.error("Failed to save profile:", error);
     } finally {
       setIsSaving(false);
     }
@@ -144,16 +178,16 @@ export default function ProfileScreen() {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      'Delete Account',
-      'Are you sure you want to delete your account? This action cannot be undone.',
+      "Delete Account",
+      "Are you sure you want to delete your account? This action cannot be undone.",
       [
         {
-          text: 'Cancel',
-          style: 'cancel',
+          text: "Cancel",
+          style: "cancel",
         },
         {
-          text: 'Delete',
-          style: 'destructive',
+          text: "Delete",
+          style: "destructive",
           onPress: async () => {
             try {
               await deleteUserAccount();
@@ -164,7 +198,7 @@ export default function ProfileScreen() {
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -214,7 +248,7 @@ export default function ProfileScreen() {
             className="px-3 py-2 border rounded-md border-gray-300 flex-row items-center gap-2"
           >
             {isEditing ? <X size={16} color="black" /> : <Edit size={16} color="black" />}
-            <Text>{isEditing ? 'Cancel' : 'Edit'}</Text>
+            <Text>{isEditing ? "Cancel" : "Edit"}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -252,8 +286,8 @@ export default function ProfileScreen() {
               {isEditing ? (
                 <TextInput
                   className="border border-border rounded-md px-2 py-1 mt-1"
-                  value={editProfile.username || ''}
-                  onChangeText={(text) => setEditProfile((p) => ({ ...p, username: text }))}
+                  value={editProfile.username ?? ""}
+                  onChangeText={text => setEditProfile(p => ({ ...p, username: text }))}
                 />
               ) : (
                 <Text className="text-sm mt-1">{profile?.username}</Text>
@@ -265,11 +299,15 @@ export default function ProfileScreen() {
                 <TextInput
                   className="border border-border rounded-md px-2 py-1 mt-1"
                   keyboardType="numeric"
-                  value={editProfile.age?.toString() || ''}
-                  onChangeText={(text) => setEditProfile((p) => ({ ...p, age: parseInt(text) || undefined }))}
+                  value={editProfile.age?.toString() ?? ""}
+                  onChangeText={text =>
+                    setEditProfile(p => ({ ...p, age: parseInt(text) ?? undefined }))
+                  }
                 />
               ) : (
-                <Text className="text-sm mt-1">{profile?.age ? `${profile.age} years` : 'Not set'}</Text>
+                <Text className="text-sm mt-1">
+                  {profile?.age ? `${profile.age} years` : "Not set"}
+                </Text>
               )}
             </View>
           </View>
@@ -282,11 +320,15 @@ export default function ProfileScreen() {
                 <TextInput
                   className="border border-border rounded-md px-2 py-1 mt-1"
                   keyboardType="numeric"
-                  value={editProfile.weight?.toString() || ''}
-                  onChangeText={(text) => setEditProfile((p) => ({ ...p, weight: parseFloat(text) || undefined }))}
+                  value={editProfile.weight?.toString() ?? ""}
+                  onChangeText={text =>
+                    setEditProfile(p => ({ ...p, weight: parseFloat(text) ?? undefined }))
+                  }
                 />
               ) : (
-                <Text className="text-sm mt-1">{profile?.weight ? `${profile.weight} kg` : 'Not set'}</Text>
+                <Text className="text-sm mt-1">
+                  {profile?.weight ? `${profile.weight} kg` : "Not set"}
+                </Text>
               )}
             </View>
             <View className="flex-1">
@@ -295,11 +337,15 @@ export default function ProfileScreen() {
                 <TextInput
                   className="border border-border rounded-md px-2 py-1 mt-1"
                   keyboardType="numeric"
-                  value={editProfile.height?.toString() || ''}
-                  onChangeText={(text) => setEditProfile((p) => ({ ...p, height: parseFloat(text) || undefined }))}
+                  value={editProfile.height?.toString() ?? ""}
+                  onChangeText={text =>
+                    setEditProfile(p => ({ ...p, height: parseFloat(text) ?? undefined }))
+                  }
                 />
               ) : (
-                <Text className="text-sm mt-1">{profile?.height ? `${profile.height} cm` : 'Not set'}</Text>
+                <Text className="text-sm mt-1">
+                  {profile?.height ? `${profile.height} cm` : "Not set"}
+                </Text>
               )}
             </View>
           </View>
@@ -308,11 +354,11 @@ export default function ProfileScreen() {
           <View className="flex-row gap-4">
             <View className="flex-1">
               <Text className="text-xs text-muted-foreground">Activity Level</Text>
-              <Text className="text-sm mt-1 capitalize">{profile?.activityLevel || 'Not set'}</Text>
+              <Text className="text-sm mt-1 capitalize">{profile?.activityLevel ?? "Not set"}</Text>
             </View>
             <View className="flex-1">
               <Text className="text-xs text-muted-foreground">Gender</Text>
-              <Text className="text-sm mt-1 capitalize">{profile?.gender || 'Not set'}</Text>
+              <Text className="text-sm mt-1 capitalize">{profile?.gender ?? "Not set"}</Text>
             </View>
           </View>
         </View>
@@ -353,15 +399,19 @@ export default function ProfileScreen() {
                 className="border border-border rounded-md px-3 py-2 flex-row items-center justify-between"
               >
                 <Text className="text-sm">
-                  {preferences.dietType ? getDietTypeLabel(preferences.dietType) :
-                    profile?.preferences?.dietType ? getDietTypeLabel(profile.preferences.dietType) :
-                      'Select diet type'}
+                  {preferences.dietType
+                    ? getDietTypeLabel(preferences.dietType)
+                    : profile?.preferences?.dietType
+                      ? getDietTypeLabel(profile.preferences.dietType)
+                      : "Select diet type"}
                 </Text>
                 <ChevronDown size={16} color="gray" />
               </TouchableOpacity>
             ) : (
               <Text className="text-sm mt-1">
-                {profile?.preferences?.dietType ? getDietTypeLabel(profile.preferences.dietType) : 'Not set'}
+                {profile?.preferences?.dietType
+                  ? getDietTypeLabel(profile.preferences.dietType)
+                  : "Not set"}
               </Text>
             )}
           </View>
@@ -375,15 +425,19 @@ export default function ProfileScreen() {
                 className="border border-border rounded-md px-3 py-2 flex-row items-center justify-between"
               >
                 <Text className="text-sm">
-                  {preferences.mealFrequency ? getMealFrequencyLabel(preferences.mealFrequency) :
-                    profile?.preferences?.mealFrequency ? getMealFrequencyLabel(profile.preferences.mealFrequency) :
-                      'Select meal frequency'}
+                  {preferences.mealFrequency
+                    ? getMealFrequencyLabel(preferences.mealFrequency)
+                    : profile?.preferences?.mealFrequency
+                      ? getMealFrequencyLabel(profile.preferences.mealFrequency)
+                      : "Select meal frequency"}
                 </Text>
                 <ChevronDown size={16} color="gray" />
               </TouchableOpacity>
             ) : (
               <Text className="text-sm mt-1">
-                {profile?.preferences?.mealFrequency ? getMealFrequencyLabel(profile.preferences.mealFrequency) : 'Not set'}
+                {profile?.preferences?.mealFrequency
+                  ? getMealFrequencyLabel(profile.preferences.mealFrequency)
+                  : "Not set"}
               </Text>
             )}
           </View>
@@ -392,8 +446,12 @@ export default function ProfileScreen() {
           <View className="flex-row items-center justify-between py-2 mb-4">
             <Text className="text-sm">Include Snacks</Text>
             <Switch
-              value={preferences.snackIncluded !== undefined ? preferences.snackIncluded : (profile?.preferences?.snackIncluded || false)}
-              onValueChange={(checked) => setPreferences((p) => ({ ...p, snackIncluded: checked }))}
+              value={
+                preferences.snackIncluded !== undefined
+                  ? preferences.snackIncluded
+                  : (profile?.preferences?.snackIncluded ?? false)
+              }
+              onValueChange={checked => setPreferences(p => ({ ...p, snackIncluded: checked }))}
               disabled={!isEditing}
             />
           </View>
@@ -405,15 +463,17 @@ export default function ProfileScreen() {
               <TextInput
                 className="border border-border rounded-md px-3 py-2 text-sm"
                 placeholder="Enter allergies (comma separated)"
-                value={preferences.allergies !== undefined ? preferences.allergies : (profile?.preferences?.allergies || '')}
-                onChangeText={(text) => setPreferences((p) => ({ ...p, allergies: text }))}
+                value={
+                  preferences.allergies !== undefined
+                    ? preferences.allergies
+                    : (profile?.preferences?.allergies ?? "")
+                }
+                onChangeText={text => setPreferences(p => ({ ...p, allergies: text }))}
                 multiline
                 numberOfLines={2}
               />
             ) : (
-              <Text className="text-sm mt-1">
-                {profile?.preferences?.allergies || 'None'}
-              </Text>
+              <Text className="text-sm mt-1">{profile?.preferences?.allergies ?? "None"}</Text>
             )}
           </View>
         </View>
@@ -445,29 +505,30 @@ export default function ProfileScreen() {
             )}
           </View>
 
-          {goalKeys.map((key) => (
+          {goalKeys.map(key => (
             <View key={key} className="mb-4">
               <Text className="text-xs text-muted-foreground capitalize">{key}</Text>
               {isEditing ? (
                 <TextInput
                   className="border border-border rounded-md px-2 py-1 mt-1"
                   keyboardType="numeric"
-                  value={editGoals?.[key] !== undefined ? editGoals[key]?.toString() : ''}
-                  onChangeText={(text) =>
-                    setEditGoals((prev) => ({
+                  value={editGoals?.[key] !== undefined ? editGoals[key]?.toString() : ""}
+                  onChangeText={text =>
+                    setEditGoals(prev => ({
                       ...prev,
-                      [key]: parseInt(text) || 0,
+                      [key]: parseInt(text) ?? 0,
                     }))
                   }
                 />
               ) : (
-                <Text className="text-sm mt-1">{dailyGoals?.[key]} {key === 'calories' ? 'kcal' : 'g'}</Text>
+                <Text className="text-sm mt-1">
+                  {dailyGoals?.[key]} {key === "calories" ? "kcal" : "g"}
+                </Text>
               )}
             </View>
           ))}
         </View>
       </View>
-
 
       {/* Settings */}
       <View className="px-6 pb-6">
@@ -482,7 +543,10 @@ export default function ProfileScreen() {
             <Text className="text-sm text-red-500">Sign Out</Text>
           </TouchableOpacity>
           <View className="h-[1px] bg-border" />
-          <TouchableOpacity className="flex-row items-center gap-3 p-4" onPress={handleDeleteAccount}>
+          <TouchableOpacity
+            className="flex-row items-center gap-3 p-4"
+            onPress={handleDeleteAccount}
+          >
             <Trash2 size={18} color="red" />
             <Text className="text-sm text-red-500">Delete Account</Text>
           </TouchableOpacity>
@@ -492,7 +556,7 @@ export default function ProfileScreen() {
       {/* Diet Type Modal */}
       <Modal
         visible={showDietTypeModal}
-        transparent={true}
+        transparent
         animationType="slide"
         onRequestClose={() => setShowDietTypeModal(false)}
       >
@@ -506,11 +570,11 @@ export default function ProfileScreen() {
             </View>
             <FlatList
               data={dietTypes}
-              keyExtractor={(item) => item.value}
+              keyExtractor={item => item.value}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => {
-                    setPreferences((p) => ({ ...p, dietType: item.value }));
+                    setPreferences(p => ({ ...p, dietType: item.value }));
                     setShowDietTypeModal(false);
                   }}
                   className="py-3 px-4 border-b border-gray-100"
@@ -526,7 +590,7 @@ export default function ProfileScreen() {
       {/* Meal Frequency Modal */}
       <Modal
         visible={showMealFrequencyModal}
-        transparent={true}
+        transparent
         animationType="slide"
         onRequestClose={() => setShowMealFrequencyModal(false)}
       >
@@ -540,11 +604,11 @@ export default function ProfileScreen() {
             </View>
             <FlatList
               data={mealFrequencies}
-              keyExtractor={(item) => item.value.toString()}
+              keyExtractor={item => item.value.toString()}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => {
-                    setPreferences((p) => ({ ...p, mealFrequency: item.value }));
+                    setPreferences(p => ({ ...p, mealFrequency: item.value }));
                     setShowMealFrequencyModal(false);
                   }}
                   className="py-3 px-4 border-b border-gray-100"

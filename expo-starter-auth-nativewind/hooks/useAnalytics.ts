@@ -1,47 +1,53 @@
-import { useState, useEffect } from 'react';
-import { getNutritionTrends, getProgressAnalytics, ProgressAnalytics, TrendsResponse } from '@/services/analyticsService';
+import { useState, useEffect } from "react";
 
-export type Period = 'week' | 'month' | 'quarter';
+import {
+  getNutritionTrends,
+  getProgressAnalytics,
+  ProgressAnalytics,
+  TrendsResponse,
+} from "@/services/analyticsService";
 
-export const useAnalytics = (period: Period = 'week') => {
-    const [analytics, setAnalytics] = useState<ProgressAnalytics | null>(null);
-    const [trends, setTrends] = useState<TrendsResponse | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+export type Period = "week" | "month" | "quarter";
 
-    const fetchAnalytics = async () => {
-        try {
-            setLoading(true);
-            setError(null);
+export const useAnalytics = (period: Period = "week") => {
+  const [analytics, setAnalytics] = useState<ProgressAnalytics | null>(null);
+  const [trends, setTrends] = useState<TrendsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-            const [analyticsData, trendsData] = await Promise.all([
-                getProgressAnalytics(period),
-                getNutritionTrends(period)
-            ]);
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-            setAnalytics(analyticsData);
-            setTrends(trendsData);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to fetch analytics');
-            console.error('Analytics fetch error:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
+      const [analyticsData, trendsData] = await Promise.all([
+        getProgressAnalytics(period),
+        getNutritionTrends(period),
+      ]);
 
-    useEffect(() => {
-        fetchAnalytics();
-    }, [period]);
+      setAnalytics(analyticsData);
+      setTrends(trendsData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch analytics");
+      console.error("Analytics fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const refetch = () => {
-        fetchAnalytics();
-    };
+  useEffect(() => {
+    fetchAnalytics();
+  }, [period]);
 
-    return {
-        analytics,
-        trends,
-        loading,
-        error,
-        refetch
-    };
+  const refetch = () => {
+    fetchAnalytics();
+  };
+
+  return {
+    analytics,
+    trends,
+    loading,
+    error,
+    refetch,
+  };
 };

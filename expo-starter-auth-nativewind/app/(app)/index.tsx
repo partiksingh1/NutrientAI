@@ -1,13 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-  TextInput,
-} from 'react-native';
+import { router } from "expo-router";
 import {
   MessageCircle,
   Plus,
@@ -16,17 +7,28 @@ import {
   User2Icon,
   UtensilsCrossed,
   X,
-} from 'lucide-react-native';
-import Svg, { Circle } from 'react-native-svg';
-import { useAuth } from '@/context/AuthContext';
-import { MealLoggingModal } from '@/components/MeallogModal';
-import Button from '@/components/Button';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Toast } from 'toastify-react-native';
-import { router } from 'expo-router';
-import { fetchDailyGoalsApi, fetchTodayMealsApi, MealData, updateDailyGoalsApi } from '@/services/mealService';
+} from "lucide-react-native";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+  TextInput,
+} from "react-native";
+import Svg, { Circle } from "react-native-svg";
+import { Toast } from "toastify-react-native";
 
-
+import { MealLoggingModal } from "@/components/MeallogModal";
+import { useAuth } from "@/context/AuthContext";
+import {
+  fetchDailyGoalsApi,
+  fetchTodayMealsApi,
+  MealData,
+  updateDailyGoalsApi,
+} from "@/services/mealService";
 
 const Progress = ({ value }: { value: number }) => (
   <View className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -55,7 +57,7 @@ const MacroRing = ({
   return (
     <View className="items-center">
       <View className="relative w-full p-2 h-20">
-        <Svg width="80" height="80" style={{ transform: [{ rotate: '-90deg' }] }}>
+        <Svg width="80" height="80" style={{ transform: [{ rotate: "-90deg" }] }}>
           <Circle cx="40" cy="40" r={radius} stroke="#e5e7eb" strokeWidth="6" fill="none" />
           <Circle
             cx="40"
@@ -71,7 +73,7 @@ const MacroRing = ({
         </Svg>
         <View className="absolute inset-0 items-center justify-center mt-4">
           <Text className="text-xs">{current}</Text>
-          <Text className="text-xs text-gray-500">/ {target ?? '--'}</Text>
+          <Text className="text-xs text-gray-500">/ {target ?? "--"}</Text>
         </View>
       </View>
       <Text className="text-xs mt-4">{label}</Text>
@@ -101,17 +103,15 @@ export default function HomeScreen() {
   const [showSetGoalsForm, setShowSetGoalsForm] = useState(false);
   const [goalsMissing, setGoalsMissing] = useState(false);
   const [goalInputs, setGoalInputs] = useState({
-    calories: '',
-    protein: '',
-    carbs: '',
-    fats: '',
+    calories: "",
+    protein: "",
+    carbs: "",
+    fats: "",
   });
 
-
-  const name = user?.username ?? 'User';
+  const name = user?.username ?? "User";
 
   const fetchDailyGoals = async (isRefresh = false) => {
-    const token = await AsyncStorage.getItem("auth_token");
     if (!user?.id) return;
 
     try {
@@ -131,14 +131,13 @@ export default function HomeScreen() {
       setGoalsMissing(isAnyNull);
     } catch (error: any) {
       console.error("Error fetching Daily goals", error);
-      setError(error?.response?.data?.message || 'Failed to load goals');
+      setError(error?.response?.data?.message || "Failed to load goals");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
   const handleSetGoals = async () => {
-    const token = await AsyncStorage.getItem("auth_token");
     if (!user?.id) return;
 
     const payload = {
@@ -153,10 +152,10 @@ export default function HomeScreen() {
 
       const updatedGoals = await updateDailyGoalsApi(payload);
       Toast.show({
-        type: 'success',
-        text1: 'Goals updated successfully!',
-        text2: 'Your daily goals have been saved.',
-        position: 'top',
+        type: "success",
+        text1: "Goals updated successfully!",
+        text2: "Your daily goals have been saved.",
+        position: "top",
         visibilityTime: 3000,
         autoHide: true,
       });
@@ -164,17 +163,17 @@ export default function HomeScreen() {
       setDailyGoals(updatedGoals);
       setShowSetGoalsForm(false);
       setGoalsMissing(false);
-      setGoalInputs({ calories: '', protein: '', carbs: '', fats: '' });
+      setGoalInputs({ calories: "", protein: "", carbs: "", fats: "" });
       fetchDailyGoals();
     } catch (error: any) {
-      console.error('Error updating goals:', error);
-      setError(error?.response?.data?.message || 'Failed to update goals');
+      console.error("Error updating goals:", error);
+      setError(error?.response?.data?.message || "Failed to update goals");
 
       Toast.show({
-        type: 'error',
-        text1: 'Update Failed',
-        text2: error?.response?.data?.error || 'Please try again',
-        position: 'top',
+        type: "error",
+        text1: "Update Failed",
+        text2: error?.response?.data?.error || "Please try again",
+        position: "top",
         visibilityTime: 3000,
         autoHide: true,
       });
@@ -182,8 +181,6 @@ export default function HomeScreen() {
       setLoading(false);
     }
   };
-
-
 
   const fetchTodayMeals = async (isRefresh = false) => {
     if (!user?.id) return;
@@ -207,12 +204,12 @@ export default function HomeScreen() {
           acc.fats += meal.fats;
           return acc;
         },
-        { calories: 0, protein: 0, carbs: 0, fats: 0 }
+        { calories: 0, protein: 0, carbs: 0, fats: 0 },
       );
       setDailyTotals(totals);
     } catch (error: any) {
       console.error("Error fetching today's meals:", error);
-      setError(error?.response?.data?.message || 'Failed to load meals');
+      setError(error?.response?.data?.message || "Failed to load meals");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -224,7 +221,7 @@ export default function HomeScreen() {
     fetchDailyGoals();
   }, [user?.id]);
 
-  const handleSaveMeal = (newMeal: MealData) => {
+  const handleSaveMeal = () => {
     fetchTodayMeals();
   };
 
@@ -242,11 +239,7 @@ export default function HomeScreen() {
       <ScrollView
         className="flex-1 bg-gray-50 dark:bg-neutral-950"
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#3b82f6"
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3b82f6" />
         }
       >
         <View className="p-6 pb-4 mt-4">
@@ -265,7 +258,9 @@ export default function HomeScreen() {
           <View className="w-full flex-row gap-3 mb-6 justify-between items-center">
             <TouchableOpacity
               className="flex-1 flex-row items-center justify-center rounded-xl h-16 px-6 bg-blue-600"
-              onPress={() => { router.replace('/(app)/chat') }}
+              onPress={() => {
+                router.replace("/(app)/chat");
+              }}
             >
               <MessageCircle size={18} color="white" />
               <Text className="text-white text-base ml-2 font-medium">Ask AI</Text>
@@ -309,7 +304,7 @@ export default function HomeScreen() {
                   <X size={20} color="gray" />
                 </TouchableOpacity>
 
-                {['calories', 'protein', 'carbs', 'fats'].map((macro) => (
+                {["calories", "protein", "carbs", "fats"].map(macro => (
                   <View key={macro} className="mb-3">
                     <Text className="mb-1 capitalize text-sm text-black dark:text-white">
                       {macro}
@@ -318,9 +313,7 @@ export default function HomeScreen() {
                       keyboardType="numeric"
                       placeholder={`Enter ${macro}`}
                       value={goalInputs[macro as keyof typeof goalInputs]}
-                      onChangeText={(value) =>
-                        setGoalInputs((prev) => ({ ...prev, [macro]: value }))
-                      }
+                      onChangeText={value => setGoalInputs(prev => ({ ...prev, [macro]: value }))}
                       className="border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
                     />
                   </View>
@@ -355,14 +348,12 @@ export default function HomeScreen() {
                       <View className="flex-row justify-between items-center mb-1">
                         <Text>Carbs</Text>
                         <Text>
-                          {dailyTotals.carbs}g / {dailyGoals?.carbs ?? '--'}g
+                          {dailyTotals.carbs}g / {dailyGoals?.carbs ?? "--"}g
                         </Text>
                       </View>
                       <Progress
                         value={
-                          dailyGoals?.carbs
-                            ? (dailyTotals.carbs / dailyGoals?.carbs) * 100
-                            : 0
+                          dailyGoals?.carbs ? (dailyTotals.carbs / dailyGoals?.carbs) * 100 : 0
                         }
                       />
                     </View>
@@ -370,15 +361,11 @@ export default function HomeScreen() {
                       <View className="flex-row justify-between items-center mb-1">
                         <Text>Fats</Text>
                         <Text>
-                          {dailyTotals.fats}g / {dailyGoals?.fats ?? '--'}g
+                          {dailyTotals.fats}g / {dailyGoals?.fats ?? "--"}g
                         </Text>
                       </View>
                       <Progress
-                        value={
-                          dailyGoals?.fats
-                            ? (dailyTotals.fats / dailyGoals?.fats) * 100
-                            : 0
-                        }
+                        value={dailyGoals?.fats ? (dailyTotals.fats / dailyGoals?.fats) * 100 : 0}
                       />
                     </View>
                   </View>
@@ -387,8 +374,6 @@ export default function HomeScreen() {
             )}
           </View>
         </View>
-
-
 
         {/* Today's Meals */}
         <View className="px-6 mb-6">
@@ -415,7 +400,7 @@ export default function HomeScreen() {
               )}
               {todayMeals.map((meal, index) => (
                 <View
-                  key={meal.id || index}
+                  key={meal.id ?? index}
                   className="flex-row justify-between py-3 border-b border-gray-200 last:border-b-0"
                 >
                   <View className="flex-1">
@@ -423,17 +408,17 @@ export default function HomeScreen() {
                     <Text className="text-xs text-gray-500 mt-1">
                       {meal?.mealDate
                         ? new Date(meal.mealDate).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })
-                        : 'No time'}
+                        : "No time"}
                     </Text>
                   </View>
                   <View className="items-end">
-                    <Text className="text-sm font-semibold text-gray-900">{meal.calories} kcal</Text>
-                    <Text className="text-xs text-gray-500 capitalize mt-1">
-                      {meal.mealType}
+                    <Text className="text-sm font-semibold text-gray-900">
+                      {meal.calories} kcal
                     </Text>
+                    <Text className="text-xs text-gray-500 capitalize mt-1">{meal.mealType}</Text>
                   </View>
                 </View>
               ))}
@@ -456,8 +441,8 @@ export default function HomeScreen() {
       <MealLoggingModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={(mealData: MealData) => {
-          handleSaveMeal(mealData);
+        onSave={() => {
+          handleSaveMeal();
           setIsModalOpen(false);
         }}
       />

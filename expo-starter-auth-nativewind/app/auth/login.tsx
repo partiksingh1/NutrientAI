@@ -1,11 +1,11 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { View, Text, Alert, ScrollView, TouchableOpacity } from 'react-native';
+import { router } from "expo-router";
+import React, { useState } from "react";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { Toast } from "toastify-react-native";
 
-import LoginForm from '../../components/LoginForm';
-import { useAuth } from '../../context/AuthContext';
-import { LoginCredentials } from '../../types/user';
-import { Toast } from 'toastify-react-native';
+import LoginForm from "../../components/LoginForm";
+import { useAuth } from "../../context/AuthContext";
+import { LoginCredentials } from "../../types/user";
 
 export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
@@ -17,14 +17,14 @@ export default function LoginScreen() {
       await login(credentials);
     } catch (err) {
       Toast.show({
-        type: 'error',
-        text1: 'Login Error',
+        type: "error",
+        text1: "Login Error",
         text2: `${err}`,
-        position: 'top',
+        position: "top",
         visibilityTime: 3000,
         autoHide: true,
-      })
-      setError(err instanceof Error ? err.message : 'Failed to login');;
+      });
+      setError(err instanceof Error ? err.message : "Failed to login");
     }
   };
 
@@ -53,7 +53,7 @@ export default function LoginScreen() {
 
           <View className="mt-6 flex-row justify-center">
             <Text className="text-gray-600">Don't have an account? </Text>
-            <TouchableOpacity onPress={() => router.push('/auth/register')}>
+            <TouchableOpacity onPress={() => router.push("/auth/register")}>
               <Text className="text-indigo-700 font-bold">Sign Up</Text>
             </TouchableOpacity>
           </View>

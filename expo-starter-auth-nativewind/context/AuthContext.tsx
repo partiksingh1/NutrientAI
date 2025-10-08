@@ -19,11 +19,11 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   error: null,
   isProfileComplete: false,
-  login: async () => { },
-  register: async () => { },
-  logout: async () => { },
-  clearError: () => { },
-  completeProfile: async () => { },
+  login: async () => {},
+  register: async () => {},
+  logout: async () => {},
+  clearError: () => {},
+  completeProfile: async () => {},
 });
 
 interface AuthProviderProps {
@@ -129,7 +129,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       user: prev.user ? { ...prev.user, profile_completed: true } : prev.user,
     }));
   };
-
 
   const logout = async () => {
     try {

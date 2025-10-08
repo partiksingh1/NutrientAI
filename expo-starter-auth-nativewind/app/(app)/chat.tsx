@@ -1,28 +1,21 @@
-import React, { useState } from 'react';
+import { Send, Sparkles, Utensils, TrendingUp, Clock, Trash2 } from "lucide-react-native";
+import React, { useState } from "react";
 import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  RefreshControl
-} from 'react-native';
-import {
-  Send,
-  Sparkles,
-  Utensils,
-  TrendingUp,
-  Clock,
-  Trash2
-} from 'lucide-react-native';
-import { useAuth } from '../../context/AuthContext';
-import { useChat } from '@/hooks/useChat';
-import Button from '@/components/chat/Button';
-import Input from '@/components/chat/Input';
-import TypingIndicator from '@/components/chat/TypeIndicator';
+  RefreshControl,
+} from "react-native";
+
+import { useAuth } from "../../context/AuthContext";
+
+import Button from "@/components/chat/Button";
+import Input from "@/components/chat/Input";
+import TypingIndicator from "@/components/chat/TypeIndicator";
+import { useChat } from "@/hooks/useChat";
 
 export default function ChatScreen() {
   const { user } = useAuth();
@@ -39,15 +32,15 @@ export default function ChatScreen() {
     handleSend,
     clearConversationMessages,
     loadConversationMessages,
-  } = useChat({ userId: user?.id || null });
+  } = useChat({ userId: user?.id ?? null });
 
   const [refreshing, setRefreshing] = useState(false);
 
   const quickSuggestions = [
-    { text: 'Log my breakfast', icon: Utensils },
+    { text: "Log my breakfast", icon: Utensils },
     { text: "How's my progress?", icon: TrendingUp },
-    { text: 'Suggest dinner', icon: Sparkles },
-    { text: 'Weekly summary', icon: Clock }
+    { text: "Suggest dinner", icon: Sparkles },
+    { text: "Weekly summary", icon: Clock },
   ];
 
   const onRefresh = async () => {
@@ -63,7 +56,6 @@ export default function ChatScreen() {
       // Focus will be handled by the input component
     }, 100);
   };
-
 
   // Show loading state while messages are loading
   if (isLoadingMessages) {
@@ -91,7 +83,7 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       className="bg-gray-50 dark:bg-neutral-950"
     >
       {/* Header */}
@@ -153,11 +145,7 @@ export default function ChatScreen() {
         className="flex-1 p-4"
         contentContainerStyle={{ paddingBottom: 80 }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#3B82F6"
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3B82F6" />
         }
       >
         {messages.length === 0 && (
@@ -169,41 +157,37 @@ export default function ChatScreen() {
               Welcome to NutriAI!
             </Text>
             <Text className="text-gray-500 dark:text-gray-400 text-center mb-6">
-              I'm your personal nutrition assistant. Ask me about meals, track your progress, or get personalized recommendations.
+              I'm your personal nutrition assistant. Ask me about meals, track your progress, or get
+              personalized recommendations.
             </Text>
             <Text className="text-sm text-gray-400 text-center">
               Try one of the suggestions below to get started
             </Text>
           </View>
         )}
-        {messages.map((message) => {
-          const isUser = message.sender === 'user';
+        {messages.map(message => {
+          const isUser = message.sender === "user";
           const time = new Date(message.timestamp).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
+            hour: "2-digit",
+            minute: "2-digit",
           });
 
           return (
-            <View
-              key={message.id}
-              className={`flex mb-3 ${isUser ? 'items-end' : 'items-start'}`}
-            >
+            <View key={message.id} className={`flex mb-3 ${isUser ? "items-end" : "items-start"}`}>
               <View
-                className={`max-w-[85%] p-3 rounded-2xl ${isUser ? 'bg-blue-500' : 'bg-gray-200 dark:bg-neutral-800'
-                  }`}
+                className={`max-w-[85%] p-3 rounded-2xl ${
+                  isUser ? "bg-blue-500" : "bg-gray-200 dark:bg-neutral-800"
+                }`}
               >
-                {message.content.split('\n').map((line, index) => (
+                {message.content.split("\n").map((line, index) => (
                   <Text
                     key={index}
-                    className={`${isUser ? 'text-white' : 'text-black dark:text-white'} mb-1`}
+                    className={`${isUser ? "text-white" : "text-black dark:text-white"} mb-1`}
                   >
                     {line.trim()}
                   </Text>
                 ))}
-                <Text
-                  className={`text-xs mt-1 ${isUser ? 'text-blue-100' : 'text-gray-400'
-                    }`}
-                >
+                <Text className={`text-xs mt-1 ${isUser ? "text-blue-100" : "text-gray-400"}`}>
                   {time}
                 </Text>
               </View>
@@ -239,13 +223,13 @@ export default function ChatScreen() {
             placeholder="Ask about meals, progress, or get suggestions..."
             onSubmitEditing={handleSend}
             maxLength={500}
-            multiline={true}
+            multiline
           />
           <Button
             size="icon"
             onPress={handleSend}
             disabled={!inputValue.trim() || isLoading || !user?.id}
-            className={`${!inputValue.trim() || isLoading ? 'bg-gray-300' : 'bg-blue-500'}`}
+            className={`${!inputValue.trim() || isLoading ? "bg-gray-300" : "bg-blue-500"}`}
           >
             {isLoading ? (
               <ActivityIndicator size="small" color="white" />
@@ -260,7 +244,6 @@ export default function ChatScreen() {
           </Text>
         )}
       </View>
-
     </KeyboardAvoidingView>
   );
 }
