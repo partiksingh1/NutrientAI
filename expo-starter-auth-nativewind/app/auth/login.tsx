@@ -34,9 +34,6 @@ export default function LoginScreen() {
         <View className="w-full max-w-sm">
           {/* Logo placeholder - replace with your actual logo */}
           <View className="items-center mb-8">
-            <View className="w-20 h-20 bg-indigo-700 rounded-full mb-4 items-center justify-center">
-              <Text className="text-white text-xl font-bold">LOGO</Text>
-            </View>
             <Text className="text-3xl font-bold mb-1 text-center">Welcome Back</Text>
             <Text className="text-gray-600 mb-8 text-center">
               Sign in to continue to your account

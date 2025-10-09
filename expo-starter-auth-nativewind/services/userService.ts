@@ -221,7 +221,7 @@ export const getDailyGoals = async (): Promise<DailyGoals> => {
 
 export const updateDailyGoals = async (userId: number, goals: Partial<DailyGoals>) => {
   const response = await fetchWithAuth(
-    `${process.env.EXPO_PUBLIC_API_URL}/goals/dailyGoals/${userId}`,
+    `${process.env.EXPO_PUBLIC_API_URL}/goals/dailyGoals`,
     {
       method: "PUT",
       body: JSON.stringify(goals),

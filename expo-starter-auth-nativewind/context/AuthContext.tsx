@@ -3,6 +3,7 @@ import { Alert } from "react-native";
 
 import AuthService from "../services/authService";
 import { AuthState, LoginCredentials, RegisterCredentials } from "../types/user";
+import { Toast } from "toastify-react-native";
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
@@ -19,11 +20,11 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   error: null,
   isProfileComplete: false,
-  login: async () => {},
-  register: async () => {},
-  logout: async () => {},
-  clearError: () => {},
-  completeProfile: async () => {},
+  login: async () => { },
+  register: async () => { },
+  logout: async () => { },
+  clearError: () => { },
+  completeProfile: async () => { },
 });
 
 interface AuthProviderProps {
@@ -149,7 +150,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: false,
         error: error instanceof Error ? error.message : "Logout failed",
       });
-      Alert.alert("Logout Error", "Failed to log out. Please try again.");
+      Toast.error("Logout Error");
     }
   };
 
