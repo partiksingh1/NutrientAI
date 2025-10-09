@@ -175,9 +175,8 @@ export default function ChatScreen() {
           return (
             <View key={message.id} className={`flex mb-3 ${isUser ? "items-end" : "items-start"}`}>
               <View
-                className={`max-w-[85%] p-3 rounded-2xl ${
-                  isUser ? "bg-blue-500" : "bg-gray-200 dark:bg-neutral-800"
-                }`}
+                className={`max-w-[85%] p-3 rounded-2xl ${isUser ? "bg-blue-500" : "bg-gray-200 dark:bg-neutral-800"
+                  }`}
               >
                 {message.content.split("\n").map((line, index) => (
                   <Text
