@@ -8,6 +8,8 @@ import { Toast } from "toastify-react-native";
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (credentials: RegisterCredentials) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  registerWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
   isProfileComplete: boolean;
@@ -22,6 +24,8 @@ const AuthContext = createContext<AuthContextType>({
   isProfileComplete: false,
   login: async () => { },
   register: async () => { },
+  loginWithGoogle: async () => { },
+  registerWithGoogle: async () => { },
   logout: async () => { },
   clearError: () => { },
   completeProfile: async () => { },
@@ -122,6 +126,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       throw error;
     }
   };
+  const loginWithGoogle = async () => {
+    try {
+      setState({ ...state, isLoading: true, error: null });
+
+      const user = await AuthService.signInWithGoogle();
+
+      setState({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+        isProfileComplete: user.profile_completed ?? false,
+      });
+    } catch (error) {
+      setState({
+        ...state,
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Google sign-in failed",
+      });
+      throw error;
+    }
+  };
+
+  const registerWithGoogle = async () => {
+    try {
+      setState({ ...state, isLoading: true, error: null });
+
+      const user = await AuthService.signUpWithGoogle();
+
+      setState({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+        isProfileComplete: user.profile_completed ?? false,
+      });
+    } catch (error) {
+      setState({
+        ...state,
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Google registration failed",
+      });
+      throw error;
+    }
+  };
+
   const completeProfile = async () => {
     await AuthService.markProfileComplete();
     setState(prev => ({
@@ -162,6 +212,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     ...state,
     login,
     register,
+    loginWithGoogle,
+    registerWithGoogle,
     logout,
     clearError,
     completeProfile,

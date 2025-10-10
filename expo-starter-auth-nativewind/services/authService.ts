@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Toast } from "toastify-react-native";
+import { authClient } from "../lib/better-auth";
 
 import { User, LoginCredentials } from "../types/user";
 
@@ -164,6 +165,99 @@ export default class AuthService {
     } catch (error) {
       console.error("Auth check error:", error);
       return false;
+    }
+  }
+
+  /**
+   * Sign in with Google using BetterAuth
+   */
+  static async signInWithGoogle(): Promise<User> {
+    try {
+      const result = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "exp://localhost:8081/--/auth/callback",
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message || "Google sign-in failed");
+      }
+
+      if (!result.data?.user) {
+        throw new Error("No user data received from Google sign-in");
+      }
+
+      const user = result.data.user;
+
+      // Store session data
+      await AsyncStorage.multiSet([
+        [AUTH_TOKEN_KEY, result.data.session?.token || ""],
+        [USER_DATA_KEY, JSON.stringify({
+          id: String(user.id),
+          email: user.email,
+          username: user.name || user.email?.split("@")[0],
+          profile_completed: user.profile_completed || false,
+        })],
+      ]);
+
+      Toast.show({
+        type: "success",
+        text1: "Google Sign-In Successful",
+        position: "top",
+        visibilityTime: 3000,
+        autoHide: true,
+      });
+
+      return {
+        id: String(user.id),
+        email: user.email || "",
+        username: user.name || user.email?.split("@")[0] || "",
+        profile_completed: user.profile_completed || false,
+      };
+    } catch (error: any) {
+      console.error("Google sign-in error:", error);
+      throw new Error(error.message || "Something went wrong during Google sign-in");
+    }
+  }
+
+  /**
+   * Sign up with Google using BetterAuth
+   */
+  static async signUpWithGoogle(): Promise<User> {
+    // For OAuth providers, sign up and sign in are the same
+    return this.signInWithGoogle();
+  }
+
+  /**
+   * Get current session from BetterAuth
+   */
+  static async getSession() {
+    try {
+      const session = await authClient.getSession();
+      return session;
+    } catch (error) {
+      console.error("Get session error:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Sign out using BetterAuth
+   */
+  static async signOut(): Promise<void> {
+    try {
+      await authClient.signOut();
+      await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, USER_DATA_KEY]);
+
+      Toast.show({
+        type: "warn",
+        text1: "Sign Out Successful",
+        position: "top",
+        visibilityTime: 3000,
+        autoHide: true,
+      });
+    } catch (error) {
+      console.error("Sign out error:", error);
+      throw error;
     }
   }
 }

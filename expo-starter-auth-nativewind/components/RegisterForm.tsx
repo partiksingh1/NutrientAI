@@ -10,6 +10,7 @@ import {
 } from "react-native";
 
 import Button from "./Button";
+import GoogleSignInButton from "./GoogleSignInButton";
 import { RegisterCredentials } from "../types/user";
 
 interface RegisterFormProps {
@@ -163,6 +164,20 @@ export default function RegisterForm({ onSubmit, isLoading = false }: RegisterFo
         loading={isLoading}
         size="lg"
       />
+
+      <View className="mt-6">
+        <View className="flex-row items-center mb-4">
+          <View className="flex-1 h-px bg-gray-300" />
+          <Text className="mx-4 text-gray-500 text-sm">or</Text>
+          <View className="flex-1 h-px bg-gray-300" />
+        </View>
+        
+        <GoogleSignInButton
+          variant="register"
+          isLoading={isLoading}
+          disabled={isLoading}
+        />
+      </View>
     </KeyboardAvoidingView>
   );
 }
