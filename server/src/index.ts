@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from "express";
 import router from "./routes/auth.routes.js";
+import betterAuthRouter from "./routes/better-auth.routes.js";
 import goal_router from "./routes/goal.routes.js";
 import meal_logs from "./routes/meals.routes.js";
 import preference from "./routes/preferences.routes.js";
@@ -15,6 +16,7 @@ app.get("/", (req: Request, res: Response) => {
     res.send("Hello, TypeScript + Express + Live Reload!");
 });
 app.use(express.json());
+app.use(betterAuthRouter);
 app.use('/api/auth', router);
 app.use('/api/goals', goal_router);
 app.use('/api/meals', meal_logs);

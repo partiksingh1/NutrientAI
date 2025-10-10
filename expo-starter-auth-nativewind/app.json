@@ -21,6 +21,9 @@
     "scheme": "myapp",
     "android": {
       "package": "com.partiksingh.expostarterauthnativewind"
+    },
+    "ios": {
+      "bundleIdentifier": "com.partiksingh.expostarterauthnativewind"
     }
   }
 }
