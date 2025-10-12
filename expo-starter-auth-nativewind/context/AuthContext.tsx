@@ -8,6 +8,11 @@ import { Toast } from "toastify-react-native";
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (credentials: RegisterCredentials) => Promise<void>;
+  loginWithToken: (data: {
+    accessToken: string;
+    refreshToken: string;
+    user: any; // Replace with proper User type
+  }) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
   isProfileComplete: boolean;
@@ -21,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
   error: null,
   isProfileComplete: false,
   login: async () => { },
+  loginWithToken: async () => { },
   register: async () => { },
   logout: async () => { },
   clearError: () => { },
@@ -130,6 +136,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       user: prev.user ? { ...prev.user, profile_completed: true } : prev.user,
     }));
   };
+  const loginWithToken = async ({
+    accessToken,
+    refreshToken,
+    user,
+  }: {
+    accessToken: string;
+    refreshToken: string;
+    user: any;
+  }) => {
+    try {
+      // Save tokens to storage
+      await AuthService.saveTokens({ accessToken, refreshToken });
+      await AuthService.setCurrentUser(user);
+
+      setState({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+        isProfileComplete: user.profile_completed ?? false,
+      });
+    } catch (error) {
+      console.error("Token login error", error);
+      setState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: "Token-based login failed",
+        isProfileComplete: false,
+      });
+      throw error;
+    }
+  };
+
 
   const logout = async () => {
     try {
@@ -163,6 +203,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
+    loginWithToken,
     clearError,
     completeProfile,
   };
