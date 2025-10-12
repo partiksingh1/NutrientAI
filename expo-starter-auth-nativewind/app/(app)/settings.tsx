@@ -1,6 +1,6 @@
 // screens/ProfileScreen.tsx
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, View, Text } from "react-native";
+import { ActivityIndicator, ScrollView, View, Text, RefreshControl } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -10,7 +10,6 @@ import {
   getUserProfile,
   updateUserProfile,
   updateUserPreferences,
-  deleteUserAccount,
   DailyGoals,
   getDailyGoals,
   updateDailyGoals,
@@ -40,7 +39,7 @@ const mealFrequencies = [
 export default function ProfileScreen() {
   const router = useRouter();
   const { logout } = useAuth();
-
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -127,28 +126,28 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      "Delete Account",
-      "Are you sure you want to delete your account? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteUserAccount();
-              await logout();
-              router.replace("/auth/login");
-            } catch (err) {
-              console.error("Delete account failed:", err);
-            }
-          },
-        },
-      ]
-    );
-  };
+  // const handleDeleteAccount = () => {
+  //   Alert.alert(
+  //     "Delete Account",
+  //     "Are you sure you want to delete your account? This action cannot be undone.",
+  //     [
+  //       { text: "Cancel", style: "cancel" },
+  //       {
+  //         text: "Delete",
+  //         style: "destructive",
+  //         onPress: async () => {
+  //           try {
+  //             await deleteUserAccount();
+  //             await logout();
+  //             router.replace("/auth/login");
+  //           } catch (err) {
+  //             console.error("Delete account failed:", err);
+  //           }
+  //         },
+  //       },
+  //     ]
+  //   );
+  // };
 
   const handleSave = async () => {
     if (!profile) return;
@@ -188,18 +187,23 @@ export default function ProfileScreen() {
       setIsSaving(false);
     }
   };
+  const onRefresh = () => {
+    loadUserProfile();
+  };
 
-  if (isLoading) {
-    return (
-      <View className="flex-1 bg-background items-center justify-center">
-        <ActivityIndicator size="large" color="#3B82F6" />
-        <Text className="text-muted-foreground mt-4">Loading profile...</Text>
+  {
+    isLoading && (
+      <View className="absolute inset-0 flex-1 items-center justify-center bg-white/80">
+        <ActivityIndicator size="large" color="#000" />
       </View>
-    );
+    )
   }
 
   return (
-    <ScrollView className="flex-1 bg-background mt-4">
+    <ScrollView className="flex-1 bg-background"
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3b82f6" />
+      }>
       <ProfileSections
         profile={profile}
         editProfile={editProfile}
@@ -215,7 +219,7 @@ export default function ProfileScreen() {
         onSave={handleSave}
         onCancel={handleCancel}
         onLogout={handleLogout}
-        onDeleteAccount={handleDeleteAccount}
+        // onDeleteAccount={handleDeleteAccount}
         openDietModal={() => setShowDietTypeModal(true)}
         openMealModal={() => setShowMealFrequencyModal(true)}
         getDietTypeLabel={getDietTypeLabel}

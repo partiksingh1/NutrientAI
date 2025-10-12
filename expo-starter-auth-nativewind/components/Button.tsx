@@ -27,7 +27,7 @@ export default function Button({
 
     switch (variant) {
       case "primary":
-        return "bg-blue-600";
+        return "bg-green-600";
       case "secondary":
         return "bg-gray-600";
       case "danger":
@@ -35,7 +35,7 @@ export default function Button({
       case "outline":
         return "bg-transparent border border-gray-300";
       default:
-        return "bg-blue-600";
+        return "bg-green-600";
     }
   };
 

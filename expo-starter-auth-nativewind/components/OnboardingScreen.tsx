@@ -317,7 +317,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 key={option.value}
                 onPress={() => setFormData(prev => ({ ...prev, activityLevel: option.value }))}
                 className={`my-3 p-4 border rounded-lg ${formData.activityLevel === option.value
-                  ? "border-blue-500 bg-blue-100"
+                  ? "border-green-600 bg-green-200"
                   : "border-gray-300"
                   }`}
               >
@@ -348,7 +348,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                   key={option.value}
                   onPress={() => setFormData(prev => ({ ...prev, goal: option.value }))}
                   className={`w-[48%] p-4 border rounded-lg mb-4 ${formData.goal === option.value
-                    ? "border-blue-500 bg-blue-100"
+                    ? "border-green-600 bg-green-200"
                     : "border-gray-300"
                     }`}
                 >
@@ -524,7 +524,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
       {/* Progress */}
       <View className="mb-4">
         <View className="h-2 bg-gray-200 rounded-full overflow-hidden">
-          <View className="h-full bg-blue-500" style={{ width: `${progress}%` }} />
+          <View className="h-full bg-green-600" style={{ width: `${progress}%` }} />
         </View>
       </View>
 

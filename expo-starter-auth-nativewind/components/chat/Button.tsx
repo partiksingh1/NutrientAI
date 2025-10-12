@@ -16,7 +16,7 @@ export default function Button({
   };
   const styles =
     variant === "default"
-      ? "bg-blue-500"
+      ? "bg-green-600"
       : variant === "outline"
         ? "border border-gray-300"
         : "bg-transparent";

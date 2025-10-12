@@ -47,7 +47,7 @@ export default function ProgressScreen() {
     return (
       <View className="flex-1 bg-background justify-center items-center p-6">
         <Text className="text-red-500 text-center mb-4">{error}</Text>
-        <Pressable onPress={refetch} className="bg-blue-500 px-4 py-2 rounded-lg">
+        <Pressable onPress={refetch} className="bg-green-600 px-4 py-2 rounded-lg">
           <Text className="text-white">Try Again</Text>
         </Pressable>
       </View>
@@ -98,7 +98,7 @@ export default function ProgressScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-background mt-4"
+      className="flex-1 bg-gray-50"
       refreshControl={<RefreshControl refreshing={loading} onRefresh={refetch} />}
     >
       {/* Header */}
@@ -112,15 +112,13 @@ export default function ProgressScreen() {
         {(["week", "month", "quarter"] as Period[]).map(period => (
           <Pressable
             key={period}
-            className={`px-4 py-2 rounded-full border ${
-              selectedPeriod === period ? "bg-blue-500 border-blue-500" : "border-gray-300 bg-white"
-            }`}
+            className={`px-4 py-2 rounded-full border ${selectedPeriod === period ? "bg-green-600 border-green-500" : "border-gray-300 bg-white"
+              }`}
             onPress={() => setSelectedPeriod(period)}
           >
             <Text
-              className={`text-sm capitalize font-medium ${
-                selectedPeriod === period ? "text-white" : "text-gray-700"
-              }`}
+              className={`text-sm capitalize font-medium ${selectedPeriod === period ? "text-white" : "text-gray-700"
+                }`}
             >
               {period}
             </Text>
@@ -151,7 +149,7 @@ export default function ProgressScreen() {
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-base font-medium">Daily Calories</Text>
               <Pressable onPress={toggleChart} className="px-3 py-1 bg-gray-100 rounded-full">
-                <Text className="text-xs text-blue-600 font-medium">
+                <Text className="text-xs text-green-600 font-medium">
                   Switch to {chartType === "bar" ? "Line" : "Bar"}
                 </Text>
               </Pressable>

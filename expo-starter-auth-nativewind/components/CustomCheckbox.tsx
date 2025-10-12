@@ -1,4 +1,3 @@
-// components/CustomCheckbox.tsx
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -12,9 +11,8 @@ export const CustomCheckbox = ({ value, onValueChange, label }: CustomCheckboxPr
   return (
     <Pressable onPress={() => onValueChange(!value)} className="flex-row items-center">
       <View
-        className={`w-5 h-5 rounded-md border ${
-          value ? "bg-blue-500 border-blue-500" : "bg-gray-100 border-gray-300"
-        } items-center justify-center`}
+        className={`w-5 h-5 rounded-md border ${value ? "bg-green-600 border-green-500" : "bg-gray-100 border-gray-300"
+          } items-center justify-center`}
       >
         {value && <Text className="text-white text-xs">✓</Text>}
       </View>

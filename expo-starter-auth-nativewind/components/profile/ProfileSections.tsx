@@ -1,4 +1,3 @@
-// components/ProfileSections.tsx
 import React from "react";
 import {
     View,
@@ -10,15 +9,12 @@ import {
     FlatList,
 } from "react-native";
 import {
-    User,
-    Palette,
     HelpCircle,
     LogOut,
     Edit,
     Save,
     X,
     User2Icon,
-    Trash2,
     ChevronDown,
 } from "lucide-react-native";
 
@@ -44,7 +40,7 @@ type Props = {
     onSave: () => Promise<void>;
     onCancel: () => void;
     onLogout: () => void;
-    onDeleteAccount: () => void;
+    // onDeleteAccount: () => void;
     openDietModal: () => void;
     openMealModal: () => void;
     getDietTypeLabel: (s?: string) => string;
@@ -67,7 +63,7 @@ export default function ProfileSections(props: Props) {
         onSave,
         onCancel,
         onLogout,
-        onDeleteAccount,
+        // onDeleteAccount,
         openDietModal,
         openMealModal,
         getDietTypeLabel,
@@ -82,7 +78,7 @@ export default function ProfileSections(props: Props) {
             <View className="p-6 pb-4">
                 <View className="flex-row items-center justify-between mb-6">
                     <View className="flex-row items-center gap-4">
-                        <View className="w-10 h-10 bg-blue-500 rounded-full items-center justify-center">
+                        <View className="w-10 h-10 bg-green-600 rounded-full items-center justify-center">
                             <User2Icon size={18} color="white" />
                         </View>
                         <View>
@@ -307,10 +303,10 @@ export default function ProfileSections(props: Props) {
                         <Text className="text-sm text-red-500">Sign Out</Text>
                     </TouchableOpacity>
                     <View className="h-[1px] bg-border" />
-                    <TouchableOpacity className="flex-row items-center gap-3 p-4" onPress={onDeleteAccount}>
+                    {/* <TouchableOpacity className="flex-row items-center gap-3 p-4" onPress={onDeleteAccount}>
                         <Trash2 size={18} color="red" />
                         <Text className="text-sm text-red-500">Delete Account</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                 </View>
             </View>
         </View>

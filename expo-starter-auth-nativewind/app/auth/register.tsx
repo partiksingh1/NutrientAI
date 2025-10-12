@@ -1,6 +1,12 @@
-import { router } from "expo-router";
 import React, { useState } from "react";
-import { View, Text, Alert, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  Alert,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import { router } from "expo-router";
 
 import RegisterForm from "../../components/RegisterForm";
 import { useAuth } from "../../context/AuthContext";
@@ -15,17 +21,15 @@ export default function RegisterScreen() {
       setError(null);
       await register(credentials);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to register");
-      Alert.alert(
-        "Registration Failed",
-        err instanceof Error ? err.message : "Something went wrong",
-      );
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      setError(message);
+      Alert.alert("Registration Failed", message);
     }
   };
 
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-      <View className="flex-1 justify-center items-center p-4 bg-white">
+      <View className="flex-1 justify-center items-center px-6 py-10 bg-white">
         <View className="w-full max-w-sm">
           <View className="items-center mb-8">
             <Text className="text-3xl font-bold mb-1 text-center">Create Account</Text>
@@ -33,8 +37,8 @@ export default function RegisterScreen() {
           </View>
 
           {error && (
-            <View className="bg-red-100 p-3 rounded-md mb-4">
-              <Text className="text-red-700">{error}</Text>
+            <View className="bg-red-100 border border-red-400 p-3 rounded-md mb-4">
+              <Text className="text-red-700 font-medium text-sm">{error}</Text>
             </View>
           )}
 
@@ -42,7 +46,7 @@ export default function RegisterScreen() {
 
           <View className="mt-6 flex-row justify-center">
             <Text className="text-gray-600">Already have an account? </Text>
-            <TouchableOpacity onPress={() => router.push("/auth/login")}>
+            <TouchableOpacity onPress={() => router.replace("/auth/login")}>
               <Text className="text-indigo-700 font-bold">Sign In</Text>
             </TouchableOpacity>
           </View>

@@ -1,16 +1,16 @@
-import { Eye, EyeOff } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   View,
-  TextInput,
-  Text,
   Alert,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Text,
 } from "react-native";
+import { Eye, EyeOff } from "lucide-react-native";
 
 import Button from "./Button";
+import FormInput from "./FormInput";
 import { LoginCredentials } from "../types/user";
 
 interface LoginFormProps {
@@ -26,7 +26,6 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
 
   const validate = (): boolean => {
     const newErrors: { email?: string; password?: string } = {};
-
     if (!email) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
@@ -56,59 +55,49 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="w-full p-4"
+      className="w-full"
     >
-      <View className="mb-4">
-        <Text className="mb-2 text-gray-700 font-medium">Email</Text>
-        <TextInput
-          className={`p-4 border rounded-lg ${errors.email ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"}`}
-          value={email}
-          onChangeText={setEmail}
-          placeholder="your@email.com"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          autoComplete="email"
-          onFocus={() => setErrors({ ...errors, email: undefined })}
-        />
-        {errors.email && <Text className="mt-1 text-red-500 text-sm">{errors.email}</Text>}
-      </View>
+      <FormInput
+        label="Email"
+        placeholder="you@example.com"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoComplete="email"
+        onFocus={() => setErrors({ ...errors, email: undefined })}
+        error={errors.email}
+      />
 
       <View className="mb-6">
-        <Text className="mb-2 text-gray-700 font-medium">Password</Text>
-        <View className="relative">
-          <TextInput
-            className={`p-4 border rounded-lg pr-12 ${errors.password ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"}`}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Your password"
-            secureTextEntry={!showPassword}
-            autoComplete="password"
-            onFocus={() => setErrors({ ...errors, password: undefined })}
-          />
-          <TouchableOpacity
-            className="absolute right-3 top-4"
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? (
-              <EyeOff size={20} color="#6b7280" />
-            ) : (
-              <Eye size={20} color="#6b7280" />
-            )}
-          </TouchableOpacity>
-        </View>
-        {errors.password && <Text className="mt-1 text-red-500 text-sm">{errors.password}</Text>}
+        <FormInput
+          label="Password"
+          placeholder="Your password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+          textContentType="password"
+          autoCapitalize="none"
+          autoComplete="password"
+          onFocus={() => setErrors({ ...errors, password: undefined })}
+          error={errors.password}
+        />
+        <TouchableOpacity
+          className="absolute right-4 top-[40px]"
+          onPress={() => setShowPassword(!showPassword)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          {showPassword ? <EyeOff size={20} color="#6b7280" /> : <Eye size={20} color="#6b7280" />}
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity
         className="mb-6 self-end"
         onPress={() =>
-          Alert.alert(
-            "Reset Password",
-            "This feature would redirect to a password reset flow in a real app.",
-          )
+          Alert.alert("Reset Password", "This would redirect to password reset in a real app.")
         }
       >
-        <Text className="text-blue-600 font-medium">Forgot password?</Text>
+        <Text className="text-blue-600 font-medium text-sm">Forgot password?</Text>
       </TouchableOpacity>
 
       <Button

@@ -141,7 +141,7 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
   const renderInputStep = () => (
     <View className="space-y-6">
       <View className="items-center">
-        <View className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+        <View className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
           <ForkKnife size={24} color="#3b82f6" />
         </View>
         <Text className="text-lg font-semibold">Describe Your Meal</Text>
@@ -169,7 +169,7 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
               onSubmitEditing={handleProcessInput}
             />
             <TouchableOpacity
-              className="bg-blue-500 px-4 py-3 rounded-lg items-center justify-center"
+              className="bg-green-600 px-4 py-3 rounded-lg items-center justify-center"
               disabled={!inputValue.trim() || isProcessing}
               onPress={handleProcessInput}
             >

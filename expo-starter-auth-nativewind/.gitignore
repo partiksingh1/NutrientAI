@@ -6,12 +6,13 @@ android/
 ios/
 .env
 # Expo
+app.json
+eas.json
 .expo/
 dist/
 web-build/
 expo-env.d.ts
 package-lock.json
-
 # Native
 *.orig.*
 *.jks
