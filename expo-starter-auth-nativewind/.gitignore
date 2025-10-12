@@ -2,12 +2,15 @@
 
 # dependencies
 node_modules/
-
+android/
+ios/
+.env
 # Expo
 .expo/
 dist/
 web-build/
 expo-env.d.ts
+package-lock.json
 
 # Native
 *.orig.*

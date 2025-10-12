@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "expo-starter-auth-nativewind",
-    "slug": "expo-starter-auth-nativewind",
+    "name": "Nutrential",
+    "slug": "nutrient-app",
+    "icon": "./assets/icon.jpeg",
     "version": "1.0.0",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -11,11 +12,15 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true
     },
-    "scheme": "myapp"
+    "scheme": "myapp",
+    "android": {
+      "package": "com.partiksingh.expostarterauthnativewind"
+    }
   }
 }

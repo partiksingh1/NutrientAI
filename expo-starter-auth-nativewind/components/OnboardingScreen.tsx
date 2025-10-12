@@ -16,6 +16,7 @@ import { CustomCheckbox } from "./CustomCheckbox";
 
 import { useAuth } from "@/context/AuthContext";
 import { fetchWithAuth } from "@/utils/apiWithAuth";
+import { Toast } from "toastify-react-native";
 
 interface OnboardingScreenProps {
   onComplete: () => void;
@@ -52,6 +53,51 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   };
 
   const handleNext = async () => {
+    // Step 1 Validation
+    if (step === 1) {
+      const { age, weight, height, gender } = formData;
+      if (!age || isNaN(Number(age))) {
+        Toast.error("Please enter a valid age");
+        return;
+      }
+      if (!weight || isNaN(Number(weight))) {
+        Toast.error("Please enter a valid weight");
+        return;
+      }
+      if (!height || isNaN(Number(height))) {
+        Toast.error("Please enter a valid height");
+        return;
+      }
+      if (!gender) {
+        Toast.error("Please select your gender");
+        return;
+      }
+    }
+
+    // Step 2 Validation
+    if (step === 2) {
+      if (!formData.activityLevel) {
+        Toast.error("Please select your activity level");
+        return;
+      }
+    }
+
+    // Step 3 Validation
+    if (step === 3) {
+      if (!formData.goal) {
+        Toast.error("Please select a goal");
+        return;
+      }
+      if (!formData.goalDescription) {
+        Toast.error("Please provide goal description");
+        return;
+      }
+      if (!formData.goalEndDate) {
+        Toast.error("Please select target date");
+        return;
+      }
+    }
+
     if (step < totalSteps) {
       setStep(step + 1);
       return;
@@ -100,7 +146,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
       }
     } catch (error) {
       console.error("❌ Profile completion error:", error);
-      alert("Failed to complete profile. Please try again.");
+      Toast.error("Failed to complete profile. Please try again.");
       setIsSubmitting(false);
     }
   };
@@ -158,7 +204,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 <Sparkles color="white" size={32} />
               </View>
               <Text className="text-3xl font-bold mb-4">Hi {user?.username}</Text>
-              <Text className="text-xl font-bold mb-2">Welcome to NutriAI</Text>
+              <Text className="text-xl font-bold mb-2">Welcome to Nutrential</Text>
               <Text className="text-gray-500">Your personal AI nutritionist assistant</Text>
             </View>
 
@@ -271,8 +317,8 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 key={option.value}
                 onPress={() => setFormData(prev => ({ ...prev, activityLevel: option.value }))}
                 className={`my-3 p-4 border rounded-lg ${formData.activityLevel === option.value
-                    ? "border-blue-500 bg-blue-100"
-                    : "border-gray-300"
+                  ? "border-blue-500 bg-blue-100"
+                  : "border-gray-300"
                   }`}
               >
                 <Text className="text-md font-medium">{option.label}</Text>
@@ -302,8 +348,8 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                   key={option.value}
                   onPress={() => setFormData(prev => ({ ...prev, goal: option.value }))}
                   className={`w-[48%] p-4 border rounded-lg mb-4 ${formData.goal === option.value
-                      ? "border-blue-500 bg-blue-100"
-                      : "border-gray-300"
+                    ? "border-blue-500 bg-blue-100"
+                    : "border-gray-300"
                     }`}
                 >
                   <View className="flex-row justify-center items-center">
@@ -464,7 +510,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
             <View className="bg-gray-100 p-4 rounded-lg mt-4">
               <Text className="text-sm font-semibold mb-2">🎉 You're all set!</Text>
               <Text className="text-xs text-gray-500">
-                NutriAI will use this information to provide personalized nutrition advice and meal
+                Nutrential will use this information to provide personalized nutrition advice and meal
                 plans.
               </Text>
             </View>

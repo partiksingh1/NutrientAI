@@ -7,6 +7,7 @@ import ToastManager from "toastify-react-native";
 
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import "../global.css";
+import toastConfig from "@/utils/toastConfig";
 
 function AuthRoot() {
   const { isAuthenticated, isLoading, isProfileComplete } = useAuth();
@@ -84,7 +85,7 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <AuthRoot />
-      <ToastManager useModal />
+      <ToastManager config={toastConfig} />
     </AuthProvider>
   );
 }

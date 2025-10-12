@@ -50,6 +50,24 @@ export default class AuthService {
       throw new Error(error.message || "Something went wrong during login");
     }
   }
+  static async saveTokens({ accessToken, refreshToken }: { accessToken: string; refreshToken: string }) {
+    try {
+      await AsyncStorage.setItem(AUTH_TOKEN_KEY, accessToken);
+      await AsyncStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    } catch (error) {
+      console.error("Failed to save tokens:", error);
+      throw error;
+    }
+  }
+
+  static async setCurrentUser(user: User) {
+    try {
+      await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
+    } catch (error) {
+      console.error("Failed to save user data:", error);
+      throw error;
+    }
+  }
 
   /**
    * Register a new user

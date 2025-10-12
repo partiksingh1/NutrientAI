@@ -83,8 +83,9 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={"height"}
       className="bg-gray-50 dark:bg-neutral-950"
+      keyboardVerticalOffset={0}
     >
       {/* Header */}
       <View className="p-4 border-b border-gray-200 dark:border-neutral-800 flex-row items-center justify-between mt-4">
@@ -93,7 +94,7 @@ export default function ChatScreen() {
             <Sparkles size={30} color="white" />
           </View>
           <View className="flex-1">
-            <Text className="text-xl text-black dark:text-white">NutriAI Assistant</Text>
+            <Text className="text-xl text-black dark:text-white">Nutrential's AI Assistant</Text>
             <Text className="text-lg text-gray-500">Always here to help</Text>
           </View>
         </View>
@@ -109,7 +110,7 @@ export default function ChatScreen() {
         </View>
       </View>
 
-      {/* Daily Summary Card */}
+      {/* Daily Summary Card
       <View className="p-4 border-b border-gray-200 dark:border-neutral-800">
         <View className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <View className="p-3">
@@ -137,7 +138,7 @@ export default function ChatScreen() {
             </View>
           </View>
         </View>
-      </View>
+      </View> */}
 
       {/* Messages */}
       <ScrollView
@@ -154,7 +155,7 @@ export default function ChatScreen() {
               <Sparkles size={32} color="#3B82F6" />
             </View>
             <Text className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Welcome to NutriAI!
+              Welcome to Nutrential!
             </Text>
             <Text className="text-gray-500 dark:text-gray-400 text-center mb-6">
               I'm your personal nutrition assistant. Ask me about meals, track your progress, or get
@@ -175,9 +176,8 @@ export default function ChatScreen() {
           return (
             <View key={message.id} className={`flex mb-3 ${isUser ? "items-end" : "items-start"}`}>
               <View
-                className={`max-w-[85%] p-3 rounded-2xl ${
-                  isUser ? "bg-blue-500" : "bg-gray-200 dark:bg-neutral-800"
-                }`}
+                className={`max-w-[85%] p-3 rounded-2xl ${isUser ? "bg-blue-500" : "bg-gray-200 dark:bg-neutral-800"
+                  }`}
               >
                 {message.content.split("\n").map((line, index) => (
                   <Text
