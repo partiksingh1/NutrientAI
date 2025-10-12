@@ -2,7 +2,10 @@ import type { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import prisma from '../db/prisma.js';
+import { OAuth2Client } from 'google-auth-library';
 
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
+const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'superrefreshsecret'; // use separate env var
 
@@ -154,5 +157,69 @@ export const logout = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Logout Error:', error)
         return res.status(500).json({ error: 'Logout failed' });
+    }
+};
+
+
+export const googleLogin = async (req: Request, res: Response) => {
+    console.log("req is", req.body);
+    const { token } = req.body;
+    console.log("token is", token);
+
+    if (!token) {
+        return res.status(400).json({ error: 'Missing Google access token' });
+    }
+
+    try {
+        // Verify the Google token
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: GOOGLE_CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+
+        if (!payload || !payload.email) {
+            return res.status(400).json({ error: 'Invalid Google token' });
+        }
+
+        const email = payload.email;
+        const username = payload.name || email.split('@')[0] as string;
+
+        let user = await prisma.user.findUnique({ where: { email } });
+
+        if (!user) {
+            // Create user with a dummy password since it's a Google login
+            user = await prisma.user.create({
+                data: {
+                    email,
+                    username,
+                    password: '', // optional: mark with isGoogleAccount flag
+                },
+            });
+        }
+
+        const accessToken = generateAccessToken(user.id);
+        const refreshToken = generateRefreshToken(user.id);
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { refreshToken },
+        });
+
+        return res.json({
+            accessToken,
+            refreshToken,
+            user: {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                profile_completed: user.profile_completed,
+            },
+        });
+
+    } catch (error) {
+        console.error('Google Sign-In Error:', error);
+        return res.status(500).json({ error: 'Google sign-in failed' });
     }
 };
