@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
+import { walkthroughable, CopilotStep } from "react-native-copilot";
 
 import { useAuth } from "../../context/AuthContext";
 import Button from "@/components/chat/Button";
@@ -23,6 +24,9 @@ import TypingIndicator from "@/components/chat/TypeIndicator";
 import { useChat } from "@/hooks/useChat";
 import MessageBubble from "@/components/chat/MessageBubble";
 import EmptyState from "@/components/chat/EmptyState";
+
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
 
 export default function ChatScreen() {
   const { user } = useAuth();
@@ -89,9 +93,11 @@ export default function ChatScreen() {
       {/* Header */}
       <View className="p-6 border-b border-gray-200 dark:border-neutral-800 flex-row items-center justify-between">
         <View className="flex-row items-center gap-3 flex-1">
-          <View className="w-14 h-14 bg-green-600 rounded-full items-center justify-center">
-            <Sparkles size={30} color="white" />
-          </View>
+          <CopilotStep text="This is your AI nutritionist assistant - ask questions about nutrition, get meal suggestions, and track your progress!" order={3} name="ai-assistant">
+            <WalkthroughableView className="w-14 h-14 bg-green-600 rounded-full items-center justify-center">
+              <Sparkles size={30} color="white" />
+            </WalkthroughableView>
+          </CopilotStep>
           <View className="flex-1">
             <Text className="text-xl text-black dark:text-white">Nutrential's AI Assistant</Text>
             <Text className="text-lg text-gray-500">Always here to help</Text>

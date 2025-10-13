@@ -22,9 +22,16 @@ import { MealLoggingModal } from "@/components/MeallogModal";
 import { useAuth } from "@/context/AuthContext";
 import { MacroRing, ProgressBar } from "@/components/home/MacroRing";
 import GoalsForm from "@/components/home/GoalsForm";
+import { walkthroughable, CopilotStep } from "react-native-copilot";
+import { useOnboarding } from "@/hooks/useOnboarding";
+
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
+const WalkthroughableTouchableOpacity = walkthroughable(TouchableOpacity);
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const { completeOnboarding } = useOnboarding();
   const name = user?.username ?? "User";
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showSetGoalsForm, setShowSetGoalsForm] = useState(false);
@@ -75,38 +82,45 @@ export default function HomeScreen() {
               </Text>
               <Text className="text-lg text-gray-500">Let's track your nutrition today</Text>
             </View>
-            <View className="w-10 h-10 bg-green-600 rounded-full items-center justify-center">
-              <User2Icon size={18} color="white" />
-            </View>
+            <CopilotStep text="Welcome to your nutrition tracking dashboard!" order={1} name="welcome">
+              <WalkthroughableView className="w-10 h-10 bg-green-600 rounded-full items-center justify-center">
+                <User2Icon size={18} color="white" />
+              </WalkthroughableView>
+            </CopilotStep>
           </View>
 
           <View className="w-full flex-row gap-3 mb-6 justify-between items-center">
-            <TouchableOpacity
-              className="flex-1 flex-row items-center justify-center rounded-xl h-16 bg-green-600"
-              onPress={() => router.replace("/(app)/chat")}
-            >
-              <MessageCircle size={18} color="white" />
-              <Text className="text-white text-base ml-2 font-medium">Ask AI</Text>
-            </TouchableOpacity>
+            <CopilotStep text="Chat with our AI nutritionist for personalized advice and meal suggestions!" order={3} name="ai-chat">
+              <WalkthroughableTouchableOpacity
+                className="flex-1 flex-row items-center justify-center rounded-xl h-16 bg-green-600"
+                onPress={() => router.replace("/(app)/chat")}
+              >
+                <MessageCircle size={18} color="white" />
+                <Text className="text-white text-base ml-2 font-medium">Ask AI</Text>
+              </WalkthroughableTouchableOpacity>
+            </CopilotStep>
 
-            <TouchableOpacity
-              className="flex-1 flex-row items-center justify-center rounded-xl h-16 border border-gray-300 bg-white"
-              onPress={() => setIsModalOpen(true)}
-            >
-              <Plus size={18} color="black" />
-              <Text className="text-black text-base ml-2 font-medium">Log Meal</Text>
-            </TouchableOpacity>
+            <CopilotStep text="Log your meals here to track your daily nutrition intake!" order={2} name="log-meal">
+              <WalkthroughableTouchableOpacity
+                className="flex-1 flex-row items-center justify-center rounded-xl h-16 border border-gray-300 bg-white"
+                onPress={() => setIsModalOpen(true)}
+              >
+                <Plus size={18} color="black" />
+                <Text className="text-black text-base ml-2 font-medium">Log Meal</Text>
+              </WalkthroughableTouchableOpacity>
+            </CopilotStep>
           </View>
         </View>
 
         {/* Progress Section */}
         <View className="px-6 mb-6">
-          <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 shadow-md border border-gray-200">
-            <View className="flex-row justify-between items-center mb-3">
-              <View className="flex-row items-center gap-2">
-                <TargetIcon size={24} color="black" />
-                <Text className="text-xl text-black dark:text-white">Today's Progress</Text>
-              </View>
+          <CopilotStep text="Track your daily nutrition progress with macro rings and goal tracking!" order={4} name="progress-tracking">
+            <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 shadow-md border border-gray-200">
+              <View className="flex-row justify-between items-center mb-3">
+                <View className="flex-row items-center gap-2">
+                  <TargetIcon size={24} color="black" />
+                  <Text className="text-xl text-black dark:text-white">Today's Progress</Text>
+                </View>
 
               {goalsMissing && !showSetGoalsForm && (
                 <TouchableOpacity
@@ -191,17 +205,19 @@ export default function HomeScreen() {
                 </>
               )
             )}
-          </View>
+            </View>
+          </CopilotStep>
         </View>
 
         {/* Meals Section */}
         <View className="px-6 mb-6">
-          <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 shadow-md border border-gray-200">
-            <View className="mb-3 flex-row justify-between items-center">
-              <View className="flex flex-row gap-2">
-                <UtensilsCrossed size={24} color="black" />
-                <Text className="text-xl">Today's Meals</Text>
-              </View>
+          <CopilotStep text="View and manage your logged meals for today!" order={5} name="meals-section">
+            <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 shadow-md border border-gray-200">
+              <View className="mb-3 flex-row justify-between items-center">
+                <View className="flex flex-row gap-2">
+                  <UtensilsCrossed size={24} color="black" />
+                  <Text className="text-xl">Today's Meals</Text>
+                </View>
               <TouchableOpacity
                 onPress={() => router.push("/meals")}
                 className="ml-3 px-3 py-1.5 bg-gray-100 rounded-full"
@@ -263,7 +279,8 @@ export default function HomeScreen() {
                 </View>
               ))
             )}
-          </View>
+            </View>
+          </CopilotStep>
         </View>
       </ScrollView>
 

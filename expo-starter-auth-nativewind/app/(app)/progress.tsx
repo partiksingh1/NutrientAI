@@ -10,9 +10,13 @@ import {
   Dimensions,
 } from "react-native";
 import { BarChart, LineChart, PieChart } from "react-native-gifted-charts";
+import { walkthroughable, CopilotStep } from "react-native-copilot";
 
 import { Card } from "@/components/Card";
 import { useAnalytics, Period } from "@/hooks/useAnalytics";
+
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
 
 export default function ProgressScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState<Period>("week");
@@ -103,8 +107,12 @@ export default function ProgressScreen() {
     >
       {/* Header */}
       <View className="p-6 pb-4">
-        <Text className="text-2xl mb-1 font-semibold">Progress Tracking</Text>
-        <Text className="text-lg text-muted-foreground">Your nutrition journey over time</Text>
+        <CopilotStep text="Track your nutrition progress with detailed analytics and charts!" order={4} name="progress-analytics">
+          <WalkthroughableView>
+            <Text className="text-2xl mb-1 font-semibold">Progress Tracking</Text>
+            <Text className="text-lg text-muted-foreground">Your nutrition journey over time</Text>
+          </WalkthroughableView>
+        </CopilotStep>
       </View>
 
       {/* Period Selector */}

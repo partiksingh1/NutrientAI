@@ -1,16 +1,30 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { useOnboarding } from "@/hooks/useOnboarding";
 /**
  * This is the layout for the authenticated app with tab navigation
  */
 export default function AppLayout() {
+  const { isOnboardingCompleted, isLoading: onboardingLoading, startOnboarding, completeOnboarding } = useOnboarding();
+
   const getTabBarIcon = (name: keyof typeof Ionicons.glyphMap) => {
     return ({ color, size }: { color: string; size: number }) => (
       <Ionicons name={name} size={size} color={color} />
     );
   };
+
+  // Trigger onboarding when user first enters the app
+  useEffect(() => {
+    if (!onboardingLoading && isOnboardingCompleted === false) {
+      // Small delay to ensure the UI is fully rendered
+      const timer = setTimeout(() => {
+        startOnboarding();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOnboardingCompleted, onboardingLoading, startOnboarding]);
 
   return (
     <SafeAreaProvider>

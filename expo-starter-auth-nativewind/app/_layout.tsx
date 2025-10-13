@@ -6,6 +6,7 @@ import { Text, View } from "react-native";
 import ToastManager from "toastify-react-native";
 
 import { AuthProvider, useAuth } from "../context/AuthContext";
+import CopilotProvider from "../components/CopilotProvider";
 import "../global.css";
 import toastConfig from "@/utils/toastConfig";
 
@@ -85,8 +86,10 @@ function AuthRoot() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <AuthRoot />
-      <ToastManager config={toastConfig} useModal={false} />
+      <CopilotProvider>
+        <AuthRoot />
+        <ToastManager config={toastConfig} useModal={false} />
+      </CopilotProvider>
     </AuthProvider>
   );
 }

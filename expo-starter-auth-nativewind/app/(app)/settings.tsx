@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, View, Text, RefreshControl } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
+import { walkthroughable, CopilotStep } from "react-native-copilot";
 import {
   UserProfile,
   UpdateProfileData,
@@ -35,6 +36,9 @@ const mealFrequencies = [
   { value: 5, label: "5 meals per day" },
   { value: 6, label: "6 meals per day" },
 ] as const;
+
+// Create walkthroughable components
+const WalkthroughableView = walkthroughable(View);
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -204,7 +208,9 @@ export default function ProfileScreen() {
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3b82f6" />
       }>
-      <ProfileSections
+      <CopilotStep text="Manage your profile, goals, and app settings here!" order={5} name="settings-profile">
+        <WalkthroughableView>
+          <ProfileSections
         profile={profile}
         editProfile={editProfile}
         setEditProfile={setEditProfile}
@@ -224,7 +230,9 @@ export default function ProfileScreen() {
         openMealModal={() => setShowMealFrequencyModal(true)}
         getDietTypeLabel={getDietTypeLabel}
         getMealFrequencyLabel={getMealFrequencyLabel}
-      />
+          />
+        </WalkthroughableView>
+      </CopilotStep>
 
       <DietTypeModal
         visible={showDietTypeModal}
