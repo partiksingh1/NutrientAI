@@ -203,6 +203,15 @@ export default function HomeScreen() {
                 <Text className="text-xl">Today's Meals</Text>
               </View>
               <TouchableOpacity
+                onPress={() => router.push("/meals")}
+                className="ml-3 px-3 py-1.5 bg-gray-100 rounded-full"
+              >
+                <View>
+                  <Text className="text-sm text-gray-700 font-medium">See All Meals</Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 onPress={() => setIsModalOpen(true)}
                 className="p-2 rounded-full bg-green-50"
               >
