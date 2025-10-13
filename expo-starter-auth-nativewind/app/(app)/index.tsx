@@ -49,22 +49,9 @@ export default function HomeScreen() {
   } = useNutritionData();
 
   const onRefresh = () => {
-    fetchTodayMeals(true);
+    fetchTodayMeals();
     fetchDailyGoals();
   };
-
-  const handleSetGoals = () => {
-    const payload = {
-      calories: Number(goalInputs.calories),
-      protein: Number(goalInputs.protein),
-      carbs: Number(goalInputs.carbs),
-      fats: Number(goalInputs.fats),
-    };
-    updateGoals(payload);
-    setShowSetGoalsForm(false);
-    setGoalInputs({ calories: "", protein: "", carbs: "", fats: "" });
-  };
-
   return (
     <>
       {loading && (

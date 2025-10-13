@@ -85,7 +85,7 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <AuthRoot />
-      <ToastManager config={toastConfig} />
+      <ToastManager config={toastConfig} useModal={false} />
     </AuthProvider>
   );
 }

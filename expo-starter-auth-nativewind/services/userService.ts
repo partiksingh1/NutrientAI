@@ -214,8 +214,6 @@ export const getDailyGoals = async (): Promise<DailyGoals> => {
   }
 
   const data = await response.json();
-  console.log("getDailyGoals is ", getDailyGoals);
-
   return data.createDailyGoals;
 };
 
