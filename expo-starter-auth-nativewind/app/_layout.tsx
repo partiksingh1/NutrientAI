@@ -70,6 +70,7 @@ function AuthRoot() {
         }}
       >
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
+        <Stack.Screen name="meals" options={{ headerShown: false }} />
         <Stack.Screen name="OnBoarding" options={{ headerShown: false }} />
         <Stack.Screen name="auth/login" options={{ title: "Login", headerShown: false }} />
         <Stack.Screen
@@ -85,7 +86,7 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <AuthRoot />
-      <ToastManager config={toastConfig} />
+      <ToastManager config={toastConfig} useModal={false} />
     </AuthProvider>
   );
 }

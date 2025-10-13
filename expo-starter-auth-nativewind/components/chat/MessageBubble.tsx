@@ -10,7 +10,7 @@ export default function MessageBubble({ message }: any) {
   return (
     <View className={`flex mb-3 ${isUser ? "items-end" : "items-start"}`}>
       <View
-        className={`max-w-[85%] p-3 rounded-2xl ${isUser ? "bg-blue-500" : "bg-gray-200 dark:bg-neutral-800"}`}
+        className={`max-w-[85%] p-3 rounded-2xl ${isUser ? "bg-green-500" : "bg-gray-200 dark:bg-neutral-800"}`}
       >
         {message.content.split("\n").map((line: string, index: number) => (
           <Text
@@ -20,7 +20,7 @@ export default function MessageBubble({ message }: any) {
             {line.trim()}
           </Text>
         ))}
-        <Text className={`text-xs mt-1 ${isUser ? "text-blue-100" : "text-gray-400"}`}>{time}</Text>
+        <Text className={`text-xs mt-1 ${isUser ? "text-green-100" : "text-gray-400"}`}>{time}</Text>
       </View>
     </View>
   );

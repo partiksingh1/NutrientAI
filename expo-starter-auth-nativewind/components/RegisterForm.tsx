@@ -1,15 +1,14 @@
-import { Eye, EyeOff } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   View,
-  TextInput,
-  Text,
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
 } from "react-native";
+import { Eye, EyeOff } from "lucide-react-native";
 
 import Button from "./Button";
+import FormInput from "./FormInput";
 import { RegisterCredentials } from "../types/user";
 
 interface RegisterFormProps {
@@ -34,9 +33,7 @@ export default function RegisterForm({ onSubmit, isLoading = false }: RegisterFo
   const validate = (): boolean => {
     const newErrors: typeof errors = {};
 
-    if (!name) {
-      newErrors.name = "Name is required";
-    }
+    if (!name) newErrors.name = "Name is required";
 
     if (!email) {
       newErrors.email = "Email is required";
@@ -71,89 +68,77 @@ export default function RegisterForm({ onSubmit, isLoading = false }: RegisterFo
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="w-full p-4"
+      className="w-full"
     >
-      <View className="mb-4">
-        <Text className="mb-2 text-gray-700 font-medium">Full Name</Text>
-        <TextInput
-          className={`p-4 border rounded-lg ${errors.name ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"}`}
-          value={name}
-          onChangeText={setName}
-          placeholder="Your full name"
-          autoCapitalize="words"
-          autoComplete="name"
-          onFocus={() => setErrors({ ...errors, name: undefined })}
-        />
-        {errors.name && <Text className="mt-1 text-red-500 text-sm">{errors.name}</Text>}
-      </View>
+      <FormInput
+        label="Full Name"
+        placeholder="Your full name"
+        value={name}
+        onChangeText={setName}
+        autoCapitalize="words"
+        autoComplete="name"
+        onFocus={() => setErrors({ ...errors, name: undefined })}
+        error={errors.name}
+      />
 
-      <View className="mb-4">
-        <Text className="mb-2 text-gray-700 font-medium">Email</Text>
-        <TextInput
-          className={`p-4 border rounded-lg ${errors.email ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"}`}
-          value={email}
-          onChangeText={setEmail}
-          placeholder="your@email.com"
+      <FormInput
+        label="Email"
+        placeholder="you@example.com"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        autoComplete="email"
+        onFocus={() => setErrors({ ...errors, email: undefined })}
+        error={errors.email}
+      />
+
+      <View className="mb-5 relative">
+        <FormInput
+          label="Password"
+          placeholder="Create a password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
           autoCapitalize="none"
-          keyboardType="email-address"
-          autoComplete="email"
-          onFocus={() => setErrors({ ...errors, email: undefined })}
+          autoComplete="new-password"
+          onFocus={() => setErrors({ ...errors, password: undefined })}
+          error={errors.password}
         />
-        {errors.email && <Text className="mt-1 text-red-500 text-sm">{errors.email}</Text>}
+        <TouchableOpacity
+          className="absolute right-4 top-[40px]"
+          onPress={() => setShowPassword(!showPassword)}
+        >
+          {showPassword ? (
+            <EyeOff size={20} color="#6b7280" />
+          ) : (
+            <Eye size={20} color="#6b7280" />
+          )}
+        </TouchableOpacity>
       </View>
 
-      <View className="mb-4">
-        <Text className="mb-2 text-gray-700 font-medium">Password</Text>
-        <View className="relative">
-          <TextInput
-            className={`p-4 border rounded-lg pr-12 ${errors.password ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"}`}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Create a password"
-            secureTextEntry={!showPassword}
-            autoComplete="new-password"
-            onFocus={() => setErrors({ ...errors, password: undefined })}
-          />
-          <TouchableOpacity
-            className="absolute right-3 top-4"
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? (
-              <EyeOff size={20} color="#6b7280" />
-            ) : (
-              <Eye size={20} color="#6b7280" />
-            )}
-          </TouchableOpacity>
-        </View>
-        {errors.password && <Text className="mt-1 text-red-500 text-sm">{errors.password}</Text>}
-      </View>
-
-      <View className="mb-6">
-        <Text className="mb-2 text-gray-700 font-medium">Confirm Password</Text>
-        <View className="relative">
-          <TextInput
-            className={`p-4 border rounded-lg pr-12 ${errors.confirmPassword ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"}`}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder="Confirm your password"
-            secureTextEntry={!showConfirmPassword}
-            autoComplete="new-password"
-            onFocus={() => setErrors({ ...errors, confirmPassword: undefined })}
-          />
-          <TouchableOpacity
-            className="absolute right-3 top-4"
-            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-          >
-            {showConfirmPassword ? (
-              <EyeOff size={20} color="#6b7280" />
-            ) : (
-              <Eye size={20} color="#6b7280" />
-            )}
-          </TouchableOpacity>
-        </View>
-        {errors.confirmPassword && (
-          <Text className="mt-1 text-red-500 text-sm">{errors.confirmPassword}</Text>
-        )}
+      <View className="mb-6 relative">
+        <FormInput
+          label="Confirm Password"
+          placeholder="Confirm your password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry={!showConfirmPassword}
+          autoCapitalize="none"
+          autoComplete="new-password"
+          onFocus={() => setErrors({ ...errors, confirmPassword: undefined })}
+          error={errors.confirmPassword}
+        />
+        <TouchableOpacity
+          className="absolute right-4 top-[40px]"
+          onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+        >
+          {showConfirmPassword ? (
+            <EyeOff size={20} color="#6b7280" />
+          ) : (
+            <Eye size={20} color="#6b7280" />
+          )}
+        </TouchableOpacity>
       </View>
 
       <Button

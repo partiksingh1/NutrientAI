@@ -9,6 +9,7 @@ import {
   Modal,
   ScrollView,
   ActivityIndicator,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { Toast } from "toastify-react-native";
 
@@ -141,7 +142,7 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
   const renderInputStep = () => (
     <View className="space-y-6">
       <View className="items-center">
-        <View className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+        <View className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
           <ForkKnife size={24} color="#3b82f6" />
         </View>
         <Text className="text-lg font-semibold">Describe Your Meal</Text>
@@ -169,7 +170,7 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
               onSubmitEditing={handleProcessInput}
             />
             <TouchableOpacity
-              className="bg-blue-500 px-4 py-3 rounded-lg items-center justify-center"
+              className="bg-green-600 px-4 py-3 rounded-lg items-center justify-center"
               disabled={!inputValue.trim() || isProcessing}
               onPress={handleProcessInput}
             >
@@ -359,12 +360,21 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
 
   return (
     <Modal visible={open} transparent animationType="slide" onRequestClose={handleClose}>
-      <View className="flex-1 bg-black/40 justify-center px-4">
-        <View className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-h-[85%]">
-          <Text className="text-lg font-bold flex-row items-center mb-4">Log Your Meal</Text>
-          <ScrollView>{step === "input" ? renderInputStep() : renderConfirmStep()}</ScrollView>
+      <TouchableWithoutFeedback
+        onPress={handleClose}
+        accessible={false}
+      >
+        <View className="flex-1 bg-black/40 justify-center px-4">
+          <TouchableWithoutFeedback onPress={() => { }}>
+            <View className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-h-[85%]">
+              <Text className="text-lg font-bold flex-row items-center mb-4">Log Your Meal</Text>
+              <ScrollView>
+                {step === "input" ? renderInputStep() : renderConfirmStep()}
+              </ScrollView>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }

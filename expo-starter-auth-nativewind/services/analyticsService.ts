@@ -1,6 +1,5 @@
+import { fetchWithAuth } from "@/utils/apiWithAuth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
 export interface ProgressStats {
   avgCalories: number;
@@ -67,7 +66,7 @@ export const makeRequest = async <T = any>(
 ): Promise<T> => {
   const token = await AsyncStorage.getItem("auth_token");
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}${endpoint}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",

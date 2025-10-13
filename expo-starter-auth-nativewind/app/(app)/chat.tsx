@@ -1,4 +1,10 @@
-import { Send, Sparkles, Utensils, TrendingUp, Clock, Trash2 } from "lucide-react-native";
+import {
+  Send,
+  Sparkles,
+  TrendingUp,
+  Clock,
+  Trash2,
+} from "lucide-react-native";
 import React, { useState } from "react";
 import {
   View,
@@ -11,11 +17,12 @@ import {
 } from "react-native";
 
 import { useAuth } from "../../context/AuthContext";
-
 import Button from "@/components/chat/Button";
 import Input from "@/components/chat/Input";
 import TypingIndicator from "@/components/chat/TypeIndicator";
 import { useChat } from "@/hooks/useChat";
+import MessageBubble from "@/components/chat/MessageBubble";
+import EmptyState from "@/components/chat/EmptyState";
 
 export default function ChatScreen() {
   const { user } = useAuth();
@@ -27,7 +34,6 @@ export default function ChatScreen() {
     isLoading,
     isLoadingMessages,
     scrollViewRef,
-
     setInputValue,
     handleSend,
     clearConversationMessages,
@@ -37,7 +43,6 @@ export default function ChatScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const quickSuggestions = [
-    { text: "Log my breakfast", icon: Utensils },
     { text: "How's my progress?", icon: TrendingUp },
     { text: "Suggest dinner", icon: Sparkles },
     { text: "Weekly summary", icon: Clock },
@@ -51,16 +56,11 @@ export default function ChatScreen() {
 
   const handleSuggestionPress = (text: string) => {
     setInputValue(text);
-    // Auto-focus input after setting value
-    setTimeout(() => {
-      // Focus will be handled by the input component
-    }, 100);
   };
 
-  // Show loading state while messages are loading
   if (isLoadingMessages) {
     return (
-      <View className="flex-1 bg-gray-50 dark:bg-neutral-950 justify-center items-center p-4">
+      <View className="flex-1 bg-gray-50 dark:bg-neutral-950 justify-center items-center p-6">
         <ActivityIndicator size="large" color="#3B82F6" />
         <Text className="text-lg text-gray-600 dark:text-gray-400 text-center mt-4">
           Loading conversation...
@@ -69,10 +69,9 @@ export default function ChatScreen() {
     );
   }
 
-  // Show loading or error state if user is not available
   if (!user) {
     return (
-      <View className="flex-1 bg-gray-50 dark:bg-neutral-950 justify-center items-center p-4">
+      <View className="flex-1 bg-gray-50 dark:bg-neutral-950 justify-center items-center p-6">
         <Text className="text-lg text-gray-600 dark:text-gray-400 text-center">
           Please log in to access the AI nutritionist assistant.
         </Text>
@@ -83,14 +82,14 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={"height"}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={30}
       className="bg-gray-50 dark:bg-neutral-950"
-      keyboardVerticalOffset={0}
     >
       {/* Header */}
-      <View className="p-4 border-b border-gray-200 dark:border-neutral-800 flex-row items-center justify-between mt-4">
+      <View className="p-6 border-b border-gray-200 dark:border-neutral-800 flex-row items-center justify-between">
         <View className="flex-row items-center gap-3 flex-1">
-          <View className="w-14 h-14 bg-black rounded-full items-center justify-center">
+          <View className="w-14 h-14 bg-green-600 rounded-full items-center justify-center">
             <Sparkles size={30} color="white" />
           </View>
           <View className="flex-1">
@@ -98,106 +97,35 @@ export default function ChatScreen() {
             <Text className="text-lg text-gray-500">Always here to help</Text>
           </View>
         </View>
-        <View className="flex-row gap-2">
-          <Button
-            size="icon"
-            variant="outline"
-            onPress={clearConversationMessages}
-            className="w-10 h-10"
-          >
-            <Trash2 size={18} color="black" />
-          </Button>
-        </View>
+        <Button
+          size="icon"
+          variant="outline"
+          onPress={clearConversationMessages}
+          className="w-10 h-10"
+        >
+          <Trash2 size={18} color="black" />
+        </Button>
       </View>
-
-      {/* Daily Summary Card
-      <View className="p-4 border-b border-gray-200 dark:border-neutral-800">
-        <View className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <View className="p-3">
-            <View className="flex-row justify-between mb-2">
-              <Text className="text-sm text-black dark:text-white">Today's Summary</Text>
-              <Text className="text-xs text-gray-500">Dec 5</Text>
-            </View>
-            <View className="flex-row justify-between">
-              <View className="items-center">
-                <Text className="text-lg text-blue-500">1,850</Text>
-                <Text className="text-xs text-gray-500">kcal</Text>
-              </View>
-              <View className="items-center">
-                <Text className="text-lg text-green-600">95g</Text>
-                <Text className="text-xs text-gray-500">protein</Text>
-              </View>
-              <View className="items-center">
-                <Text className="text-lg text-blue-600">180g</Text>
-                <Text className="text-xs text-gray-500">carbs</Text>
-              </View>
-              <View className="items-center">
-                <Text className="text-lg text-orange-500">65g</Text>
-                <Text className="text-xs text-gray-500">fats</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </View> */}
 
       {/* Messages */}
       <ScrollView
         ref={scrollViewRef}
-        className="flex-1 p-4"
-        contentContainerStyle={{ paddingBottom: 80 }}
+        className="flex-1 p-6"
+        contentContainerStyle={{ paddingBottom: 30 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3B82F6" />
         }
       >
-        {messages.length === 0 && (
-          <View className="flex-1 justify-center items-center p-8">
-            <View className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full items-center justify-center mb-4">
-              <Sparkles size={32} color="#3B82F6" />
-            </View>
-            <Text className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Welcome to Nutrential!
-            </Text>
-            <Text className="text-gray-500 dark:text-gray-400 text-center mb-6">
-              I'm your personal nutrition assistant. Ask me about meals, track your progress, or get
-              personalized recommendations.
-            </Text>
-            <Text className="text-sm text-gray-400 text-center">
-              Try one of the suggestions below to get started
-            </Text>
-          </View>
-        )}
-        {messages.map(message => {
-          const isUser = message.sender === "user";
-          const time = new Date(message.timestamp).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+        {messages.length === 0 && <EmptyState />}
 
-          return (
-            <View key={message.id} className={`flex mb-3 ${isUser ? "items-end" : "items-start"}`}>
-              <View
-                className={`max-w-[85%] p-3 rounded-2xl ${isUser ? "bg-blue-500" : "bg-gray-200 dark:bg-neutral-800"
-                  }`}
-              >
-                {message.content.split("\n").map((line, index) => (
-                  <Text
-                    key={index}
-                    className={`${isUser ? "text-white" : "text-black dark:text-white"} mb-1`}
-                  >
-                    {line.trim()}
-                  </Text>
-                ))}
-                <Text className={`text-xs mt-1 ${isUser ? "text-blue-100" : "text-gray-400"}`}>
-                  {time}
-                </Text>
-              </View>
-            </View>
-          );
-        })}
+        {messages.map((message) => (
+          <MessageBubble key={message.id} message={message} />
+        ))}
+
         {isTyping && <TypingIndicator />}
       </ScrollView>
 
-      {/* Quick Suggestions + Input */}
+      {/* Suggestions + Input */}
       <View className="p-4 border-t border-gray-200 dark:border-neutral-800">
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
           <View className="flex-row gap-2">
@@ -207,10 +135,12 @@ export default function ChatScreen() {
                 variant="outline"
                 size="sm"
                 onPress={() => handleSuggestionPress(suggestion.text)}
-                className="flex-row items-center gap-1 px-3"
+                className="flex-row items-center gap-1 px-3 py-1 rounded-full"
               >
-                <suggestion.icon size={14} color="#6B7280" />
-                <Text className="text-xs text-gray-700 dark:text-gray-300">{suggestion.text}</Text>
+                <suggestion.icon size={16} color="#6B7280" />
+                <Text className="text-xs text-gray-700 dark:text-gray-300">
+                  {suggestion.text}
+                </Text>
               </Button>
             ))}
           </View>
@@ -220,7 +150,7 @@ export default function ChatScreen() {
           <Input
             value={inputValue}
             onChangeText={setInputValue}
-            placeholder="Ask about meals, progress, or get suggestions..."
+            placeholder="Ask about progress, or get suggestions..."
             onSubmitEditing={handleSend}
             maxLength={500}
             multiline
@@ -229,7 +159,8 @@ export default function ChatScreen() {
             size="icon"
             onPress={handleSend}
             disabled={!inputValue.trim() || isLoading || !user?.id}
-            className={`${!inputValue.trim() || isLoading ? "bg-gray-300" : "bg-blue-500"}`}
+            className={`w-12 h-12 rounded-full items-center justify-center ${!inputValue.trim() || isLoading ? "bg-gray-300" : "bg-green-600"
+              }`}
           >
             {isLoading ? (
               <ActivityIndicator size="small" color="white" />
