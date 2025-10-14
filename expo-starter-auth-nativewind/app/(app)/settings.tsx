@@ -200,7 +200,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-background"
+    <ScrollView className="flex-1 bg-gray-50"
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3b82f6" />
       }>

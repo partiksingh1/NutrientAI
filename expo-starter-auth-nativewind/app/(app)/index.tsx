@@ -111,7 +111,7 @@ export default function HomeScreen() {
               {goalsMissing && !showSetGoalsForm && (
                 <TouchableOpacity
                   onPress={() => setShowSetGoalsForm(true)}
-                  className="bg-green-500 px-3 py-1.5 rounded-full"
+                  className="bg-green-600 px-3 py-1.5 rounded-full"
                 >
                   <Text className="text-white text-sm font-medium">Set Daily Goals</Text>
                 </TouchableOpacity>

@@ -77,6 +77,10 @@ function AuthRoot() {
           name="auth/register"
           options={{ title: "Create Account", headerShown: false }}
         />
+        <Stack.Screen
+          name="auth/reset-password"
+          options={{ headerShown: false }}
+        />
       </Stack>
     </>
   );

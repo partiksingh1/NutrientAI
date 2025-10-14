@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { Alert } from "react-native";
-
 import AuthService from "../services/authService";
 import { AuthState, LoginCredentials, RegisterCredentials } from "../types/user";
 import { Toast } from "toastify-react-native";
@@ -169,8 +167,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       throw error;
     }
   };
-
-
   const logout = async () => {
     try {
       setState({ ...state, isLoading: true, error: null });
@@ -205,7 +201,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     loginWithToken,
     clearError,
-    completeProfile,
+    completeProfile
   };
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

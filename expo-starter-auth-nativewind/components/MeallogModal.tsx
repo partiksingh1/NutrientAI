@@ -10,6 +10,7 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableWithoutFeedback,
+  KeyboardAvoidingView,
 } from "react-native";
 import { Toast } from "toastify-react-native";
 
@@ -359,22 +360,27 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
   );
 
   return (
-    <Modal visible={open} transparent animationType="slide" onRequestClose={handleClose}>
-      <TouchableWithoutFeedback
-        onPress={handleClose}
-        accessible={false}
-      >
-        <View className="flex-1 bg-black/40 justify-center px-4">
-          <TouchableWithoutFeedback onPress={() => { }}>
-            <View className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-h-[85%]">
-              <Text className="text-lg font-bold flex-row items-center mb-4">Log Your Meal</Text>
-              <ScrollView>
-                {step === "input" ? renderInputStep() : renderConfirmStep()}
-              </ScrollView>
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
+    <Modal visible={open} transparent animationType="fade" onRequestClose={handleClose}>
+      <KeyboardAvoidingView
+        behavior={"height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={0}>
+        <TouchableWithoutFeedback
+          onPress={handleClose}
+          accessible={false}
+        >
+          <View className="flex-1 bg-black/40 justify-center px-4">
+            <TouchableWithoutFeedback onPress={() => { }}>
+              <View className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-h-[85%]">
+                <Text className="text-lg font-bold flex-row items-center mb-4">Log Your Meal</Text>
+                <ScrollView>
+                  {step === "input" ? renderInputStep() : renderConfirmStep()}
+                </ScrollView>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

@@ -184,4 +184,38 @@ export default class AuthService {
       return false;
     }
   }
+
+  static async forgotPassword(email: string): Promise<void> {
+    const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    if (res.status == 404) {
+      Toast.error("No user exists with this email")
+    }
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error?.error || "Failed to send OTP");
+    }
+  };
+
+  static async resetPassword(
+    email: string,
+    otp: string,
+    newPassword: string
+  ): Promise<void> {
+    const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/auth/reset-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, otp, newPassword }),
+    });
+    if (res.status == 400) {
+      Toast.error("Invalid or Expired OTP")
+    }
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error?.error || "Reset failed");
+    }
+  };
 }

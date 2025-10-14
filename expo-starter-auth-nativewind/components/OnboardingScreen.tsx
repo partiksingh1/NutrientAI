@@ -204,7 +204,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 <Sparkles color="white" size={32} />
               </View>
               <Text className="text-3xl font-bold mb-4">Hi {user?.username}</Text>
-              <Text className="text-xl font-bold mb-2">Welcome to Nutrential</Text>
+              <Text className="text-xl font-bold mb-2">Welcome to BalancedBite</Text>
               <Text className="text-gray-500">Your personal AI nutritionist assistant</Text>
             </View>
 
@@ -510,7 +510,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
             <View className="bg-gray-100 p-4 rounded-lg mt-4">
               <Text className="text-sm font-semibold mb-2">🎉 You're all set!</Text>
               <Text className="text-xs text-gray-500">
-                Nutrential will use this information to provide personalized nutrition advice and meal
+                BalancedBite will use this information to provide personalized nutrition advice and meal
                 plans.
               </Text>
             </View>
