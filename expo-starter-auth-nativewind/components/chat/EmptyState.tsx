@@ -8,7 +8,7 @@ const EmptyState = () => (
             <Sparkles size={32} color="green" />
         </View>
         <Text className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            Welcome to Nutrential!
+            Welcome to BalancedBite!
         </Text>
         <Text className="text-gray-500 dark:text-gray-400 text-center mb-6">
             I'm your personal nutrition assistant. Ask me about meals, track your progress, or get

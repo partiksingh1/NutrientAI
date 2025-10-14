@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  Alert,
   ScrollView,
   TouchableOpacity,
   KeyboardAvoidingView,
@@ -25,7 +24,7 @@ export default function RegisterScreen() {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong";
       setError(message);
-      Alert.alert("Registration Failed", message);
+      console.error(error);
     }
   };
 

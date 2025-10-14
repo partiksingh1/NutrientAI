@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   View,
-  Alert,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
@@ -12,6 +11,7 @@ import { Eye, EyeOff } from "lucide-react-native";
 import Button from "./Button";
 import FormInput from "./FormInput";
 import { LoginCredentials } from "../types/user";
+import { router } from "expo-router";
 
 interface LoginFormProps {
   onSubmit: (credentials: LoginCredentials) => Promise<void>;
@@ -93,9 +93,7 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
 
       <TouchableOpacity
         className="mb-6 self-end"
-        onPress={() =>
-          Alert.alert("Reset Password", "This would redirect to password reset in a real app.")
-        }
+        onPress={() => router.push("/auth/reset-password")}
       >
         <Text className="text-blue-600 font-medium text-sm">Forgot password?</Text>
       </TouchableOpacity>

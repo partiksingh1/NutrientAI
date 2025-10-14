@@ -50,7 +50,7 @@ export const useChat = ({ userId }: UseChatParams) => {
               await clearConversation();
               setMessages([]);
             } catch (error) {
-              Alert.alert("Error", "Failed to clear conversation");
+              console.error(error);
             }
           },
         },

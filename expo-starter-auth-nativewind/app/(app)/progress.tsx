@@ -112,7 +112,7 @@ export default function ProgressScreen() {
         {(["week", "month", "quarter"] as Period[]).map(period => (
           <Pressable
             key={period}
-            className={`px-4 py-2 rounded-full border ${selectedPeriod === period ? "bg-green-600 border-green-500" : "border-gray-300 bg-white"
+            className={`px-4 py-2 rounded-full border ${selectedPeriod === period ? "bg-green-600 border-green-600" : "border-gray-300 bg-white"
               }`}
             onPress={() => setSelectedPeriod(period)}
           >

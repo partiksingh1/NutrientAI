@@ -93,8 +93,8 @@ export default function ChatScreen() {
             <Sparkles size={30} color="white" />
           </View>
           <View className="flex-1">
-            <Text className="text-xl text-black dark:text-white">Nutrential's AI Assistant</Text>
-            <Text className="text-lg text-gray-500">Always here to help</Text>
+            <Text className="text-xl text-black dark:text-white">BalancedBite's AI</Text>
+            <Text className="text-md text-gray-500">Personalized Assistant</Text>
           </View>
         </View>
         <Button

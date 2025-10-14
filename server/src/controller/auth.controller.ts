@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import prisma from '../db/prisma.js';
 import { OAuth2Client } from 'google-auth-library';
+import nodemailer from 'nodemailer';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
@@ -17,6 +18,18 @@ const generateAccessToken = (userId: number) => {
 const generateRefreshToken = (userId: number) => {
     return jwt.sign({ userId }, REFRESH_SECRET, { expiresIn: '7d' });
 };
+
+const generateOTP = (): string => Math.floor(100000 + Math.random() * 900000).toString();
+
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+    },
+});
+
 
 type Signup = {
     username: string;
@@ -221,5 +234,108 @@ export const googleLogin = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Google Sign-In Error:', error);
         return res.status(500).json({ error: 'Google sign-in failed' });
+    }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    try {
+        const user = await prisma.user.findUnique({ where: { email } });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const otp = generateOTP();
+        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+        await prisma.user.update({
+            where: { email },
+            data: { otp, otpExpiry },
+        });
+
+        // Send email
+        await transporter.sendMail({
+            from: "BalancedBite",
+            to: email,
+            subject: "🔒 Your One-Time Passcode (OTP) for Secure Login",
+            html: `
+    <div style="
+      font-family: Arial, sans-serif;
+      background-color: #f7f9fc;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 420px;
+      margin: auto;
+      border: 1px solid #e3e3e3;
+    ">
+      <h2 style="color: #2d3748; text-align: center;">Welcome to BalancedBite</h2>
+      <p style="color: #4a5568; font-size: 16px;">
+        Hi there 👋,
+      </p>
+      <p style="color: #4a5568; font-size: 16px;">
+        Use the following one-time passcode (OTP) to continue your login:
+      </p>
+      <div style="
+        background-color: #edf2f7;
+        border: 1px dashed #a0aec0;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: #2b6cb0;
+        padding: 12px;
+        border-radius: 6px;
+        margin: 10px 0;
+      ">
+        ${otp}
+      </div>
+      <p style="color: #4a5568; font-size: 15px;">
+        This code will expire in <strong>10 minutes</strong> for security reasons.
+      </p>
+      <p style="color: #718096; font-size: 14px; margin-top: 20px;">
+        If you didn’t request this, you can safely ignore this email.
+      </p>
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+      <p style="text-align: center; color: #a0aec0; font-size: 12px;">
+        © ${new Date().getFullYear()} BalancedBite • Secure and Simple Nutrition Tracking
+      </p>
+    </div>
+  `,
+        });
+
+
+        return res.json({ message: 'OTP sent to email' });
+    } catch (error) {
+        console.error('Forgot Password Error:', error);
+        return res.status(500).json({ error: 'Failed to send OTP' });
+    }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+    const { email, otp, newPassword } = req.body;
+
+    try {
+        const user = await prisma.user.findUnique({ where: { email } });
+
+        if (!user || user.otp !== otp || !user.otpExpiry || user.otpExpiry < new Date()) {
+            return res.status(400).json({ error: 'Invalid or expired OTP' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await prisma.user.update({
+            where: { email },
+            data: {
+                password: hashedPassword,
+                otp: null,
+                otpExpiry: null,
+            },
+        });
+
+        return res.json({ message: 'Password reset successfully' });
+    } catch (error) {
+        console.error('Reset Password Error:', error);
+        return res.status(500).json({ error: 'Password reset failed' });
     }
 };

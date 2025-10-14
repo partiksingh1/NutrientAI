@@ -34,7 +34,9 @@ model User {
 
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
-  refreshToken  String?
+  refreshToken  String?  
+  otp           String?
+  otpExpiry     DateTime?
 }
 
 model Goal {

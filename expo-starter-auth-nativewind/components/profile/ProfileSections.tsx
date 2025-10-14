@@ -99,7 +99,7 @@ export default function ProfileSections(props: Props) {
 
             {/* Personal Info */}
             <View className="px-6 mb-6">
-                <View className="bg-card rounded-xl p-4 border border-gray-300">
+                <View className="bg-white rounded-2xl p-4 shadow-md border border-gray-200">
                     <SectionHeader title="Personal Information" isEditing={isEditing} onSave={onSave} isSaving={isSaving} />
 
                     <View className="flex-row gap-4 mb-4">
@@ -177,7 +177,7 @@ export default function ProfileSections(props: Props) {
 
             {/* Preferences */}
             <View className="px-6 mb-6">
-                <View className="bg-card rounded-xl p-4 border border-gray-300">
+                <View className="bg-white rounded-2xl p-4 shadow-md border border-gray-200">
                     <SectionHeader title="Preferences" isEditing={isEditing} onSave={onSave} isSaving={isSaving} />
 
                     {/* Diet Type */}
@@ -265,7 +265,7 @@ export default function ProfileSections(props: Props) {
 
             {/* Daily Goals */}
             <View className="px-6 mb-6">
-                <View className="bg-card rounded-xl p-4 border border-gray-300">
+                <View className="bg-white rounded-2xl p-4 shadow-md border border-gray-200">
                     <SectionHeader title="Daily Nutritional Goals" isEditing={isEditing} onSave={onSave} isSaving={isSaving} />
 
                     {goalKeys.map((key) => (
@@ -292,7 +292,7 @@ export default function ProfileSections(props: Props) {
 
             {/* Settings */}
             <View className="px-6 pb-6">
-                <View className="bg-card rounded-xl border border-gray-300">
+                <View className="bg-white rounded-2xl p-4 shadow-md border border-gray-200">
                     <TouchableOpacity className="flex-row items-center gap-3 p-4">
                         <HelpCircle size={18} color="black" />
                         <Text className="text-sm">Help & Support</Text>
