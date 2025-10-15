@@ -27,7 +27,7 @@ export default function LoginScreen() {
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
     webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
-    redirectUri: "com.partiksingh.expostarterauthnativewind:/",
+    redirectUri: "com.partiksingh.balancedbite:/",
     scopes: ["openid", "profile", "email"],
   });
 
@@ -78,8 +78,8 @@ export default function LoginScreen() {
     } catch (err) {
       Toast.show({
         type: "error",
-        text1: "Login Error",
-        text2: `${err}`,
+        text1: "Login Failed",
+        text2: `Please check your email and password`,
         position: "top",
         visibilityTime: 3000,
         autoHide: true,

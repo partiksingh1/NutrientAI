@@ -1,26 +1,33 @@
 {
   "expo": {
-    "name": "Nutrential",
-    "slug": "nutrient-app",
-    "icon": "./assets/icon.jpeg",
+    "name": "BalancedBite",
+    "slug": "balancedBite",
+    "icon": "./assets/icon.png",
     "version": "1.0.0",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "web": {
-      "bundler": "metro",
-      "output": "static"
-    },
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-asset"
+      "expo-asset",
+      "expo-font"
+    ],
+    "platforms": [
+      "android"
     ],
     "experiments": {
       "typedRoutes": true
     },
-    "scheme": "myapp",
+    "scheme": "com.partiksingh.balancedbite",
     "android": {
-      "package": "com.partiksingh.expostarterauthnativewind"
-    }
+      "package": "com.partiksingh.balancedbite"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e5c53a4b-6699-4ce5-9219-a021b5f1d755"
+      }
+    },
+    "owner": "partiksingh"
   }
 }
