@@ -22,7 +22,7 @@ function AuthRoot() {
     // 1️⃣ User not logged in → Go to login
     if (!isAuthenticated) {
       if (!inAuthGroup) {
-        router.replace("/auth/login");
+        router.replace("/");
       }
       return;
     }
@@ -79,6 +79,10 @@ function AuthRoot() {
         />
         <Stack.Screen
           name="auth/reset-password"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="index"
           options={{ headerShown: false }}
         />
       </Stack>

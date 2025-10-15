@@ -7,13 +7,14 @@ import recommend_router from "./routes/recommend.route.js";
 import main_router from "./routes/mainController.routes.js";
 import analytics from "./routes/analytics.routes.js";
 import user_router from "./routes/user.routes.js";
-
+import cors from "cors";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.get("/", (req: Request, res: Response) => {
     res.send("Hello, TypeScript + Express + Live Reload!");
 });
+app.use(cors());
 app.use(express.json());
 app.use('/api/auth', router);
 app.use('/api/goals', goal_router);
