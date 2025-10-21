@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Alert, ScrollView } from "react-native";
+import { Alert, Keyboard, ScrollView } from "react-native";
 
 import {
   clearConversation,
@@ -60,6 +60,7 @@ export const useChat = ({ userId }: UseChatParams) => {
 
   // Send a message to AI
   const handleSend = async () => {
+    Keyboard.dismiss();
     if (!inputValue.trim() || !userId || isLoading) return;
 
     const userMessage: LocalMessage = {

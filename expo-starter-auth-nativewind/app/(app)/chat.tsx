@@ -61,10 +61,7 @@ export default function ChatScreen() {
   if (isLoadingMessages) {
     return (
       <View className="flex-1 bg-gray-50 dark:bg-neutral-950 justify-center items-center p-6">
-        <ActivityIndicator size="large" color="#3B82F6" />
-        <Text className="text-lg text-gray-600 dark:text-gray-400 text-center mt-4">
-          Loading conversation...
-        </Text>
+        <ActivityIndicator size="large" color="green" />
       </View>
     );
   }

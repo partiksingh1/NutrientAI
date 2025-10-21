@@ -145,6 +145,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }) => {
     try {
       // Save tokens to storage
+
       await AuthService.saveTokens({ accessToken, refreshToken });
       await AuthService.setCurrentUser(user);
 

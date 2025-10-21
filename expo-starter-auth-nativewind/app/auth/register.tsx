@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from "react-native";
 import { router } from "expo-router";
 
@@ -18,6 +19,7 @@ export default function RegisterScreen() {
   const { register, isLoading } = useAuth();
 
   const handleRegister = async (credentials: RegisterCredentials) => {
+    Keyboard.dismiss
     try {
       setError(null);
       await register(credentials);

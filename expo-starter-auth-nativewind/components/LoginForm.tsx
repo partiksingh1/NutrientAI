@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Text,
+  Keyboard,
 } from "react-native";
 import { Eye, EyeOff } from "lucide-react-native";
 
@@ -43,6 +44,7 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
   };
 
   const handleSubmit = async () => {
+    Keyboard.dismiss();
     if (validate()) {
       try {
         await onSubmit({ email, password });
@@ -99,7 +101,7 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
       </TouchableOpacity>
 
       <Button
-        label={isLoading ? "Signing in..." : "Sign In"}
+        label={"Sign In"}
         onPress={handleSubmit}
         disabled={isLoading}
         loading={isLoading}

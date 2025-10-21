@@ -13,67 +13,67 @@ export default function AppLayout() {
   };
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#f9fafb", margin: 0, padding: 0 }}>
-        <Tabs
-          screenOptions={{
-            tabBarActiveTintColor: "green",
-            tabBarInactiveTintColor: "#6b7280", // gray-500
-            tabBarStyle: {
-              backgroundColor: "#ffffff",
-            },
-            tabBarLabelStyle: {
-              fontSize: 12,
-              fontWeight: "500",
-              margin: 0
-            },
-            headerStyle: {
-              backgroundColor: "#4338ca", // indigo-700
-            },
-            headerTintColor: "#ffffff",
-            headerTitleStyle: {
-              fontWeight: "bold",
-            },
+    <SafeAreaView edges={{
+      top: "maximum"
+    }} style={{ flex: 1, backgroundColor: "#f9fafb", margin: 0, padding: 0 }}>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: "green",
+          tabBarInactiveTintColor: "#6b7280", // gray-500
+          tabBarStyle: {
+            backgroundColor: "#ffffff",
+          },
+          tabBarLabelStyle: {
+            fontSize: 13,
+            fontWeight: "500",
+            margin: 0
+          },
+          headerStyle: {
+            backgroundColor: "#4338ca", // indigo-700
+          },
+          headerTintColor: "#ffffff",
+          headerTitleStyle: {
+            fontWeight: "bold",
+          },
+        }}
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: "Home",
+            tabBarIcon: getTabBarIcon("home-outline"),
+            tabBarLabel: "Home",
+            headerShown: false,
           }}
-        >
-          <Tabs.Screen
-            name="index"
-            options={{
-              title: "Home",
-              tabBarIcon: getTabBarIcon("home-outline"),
-              tabBarLabel: "Home",
-              headerShown: false,
-            }}
-          />
-          <Tabs.Screen
-            name="chat"
-            options={{
-              title: "Chat",
-              tabBarIcon: getTabBarIcon("chatbubble-ellipses"),
-              tabBarLabel: "AI Chat",
-              headerShown: false,
-            }}
-          />
-          <Tabs.Screen
-            name="progress"
-            options={{
-              title: "Progress",
-              tabBarIcon: getTabBarIcon("analytics-outline"),
-              tabBarLabel: "Progress",
-              headerShown: false,
-            }}
-          />
-          <Tabs.Screen
-            name="settings"
-            options={{
-              title: "Settings",
-              tabBarIcon: getTabBarIcon("settings-outline"),
-              tabBarLabel: "Settings",
-              headerShown: false,
-            }}
-          />
-        </Tabs>
-      </SafeAreaView>
-    </SafeAreaProvider>
+        />
+        <Tabs.Screen
+          name="chat"
+          options={{
+            title: "Chat",
+            tabBarIcon: getTabBarIcon("chatbubble-ellipses"),
+            tabBarLabel: "AI Chat",
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
+          name="progress"
+          options={{
+            title: "Progress",
+            tabBarIcon: getTabBarIcon("analytics-outline"),
+            tabBarLabel: "Progress",
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            title: "Settings",
+            tabBarIcon: getTabBarIcon("settings-outline"),
+            tabBarLabel: "Settings",
+            headerShown: false,
+          }}
+        />
+      </Tabs>
+    </SafeAreaView>
   );
 }

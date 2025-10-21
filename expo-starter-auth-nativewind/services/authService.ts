@@ -24,6 +24,7 @@ export default class AuthService {
       }
 
       const { accessToken, refreshToken, user } = await response.json();
+      await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_DATA_KEY]);
 
       await AsyncStorage.multiSet([
         [AUTH_TOKEN_KEY, accessToken],
@@ -52,6 +53,7 @@ export default class AuthService {
   }
   static async saveTokens({ accessToken, refreshToken }: { accessToken: string; refreshToken: string }) {
     try {
+      await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY]);
       await AsyncStorage.setItem(AUTH_TOKEN_KEY, accessToken);
       await AsyncStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     } catch (error) {
@@ -62,6 +64,7 @@ export default class AuthService {
 
   static async setCurrentUser(user: User) {
     try {
+      await AsyncStorage.multiRemove([USER_DATA_KEY]);
       await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
     } catch (error) {
       console.error("Failed to save user data:", error);
@@ -91,6 +94,7 @@ export default class AuthService {
         throw new Error(errorData.message || "Registration failed");
       }
       const { accessToken, refreshToken, user } = await response.json();
+      await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_DATA_KEY]);
 
       await AsyncStorage.multiSet([
         [AUTH_TOKEN_KEY, accessToken],
@@ -120,10 +124,6 @@ export default class AuthService {
       Toast.show({
         type: "warn",
         text1: "Logout Successful",
-        // text2: 'Secondary message',
-        position: "top",
-        visibilityTime: 3000,
-        autoHide: true,
       });
     } catch (error) {
       console.error("Logout error:", error);

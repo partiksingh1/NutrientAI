@@ -37,8 +37,7 @@ export default function ProgressScreen() {
   if (loading && !analytics) {
     return (
       <View className="flex-1 bg-background justify-center items-center">
-        <ActivityIndicator size="large" color="#3b82f6" />
-        <Text className="text-gray-500 mt-4">Loading your progress...</Text>
+        <ActivityIndicator size="large" color="green" accessibilityLabel="Loading indicator" />
       </View>
     );
   }

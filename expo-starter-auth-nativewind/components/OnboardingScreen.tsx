@@ -172,7 +172,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   if (isSubmitting) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#000" />
+        <ActivityIndicator size="large" color="green" />
         <Text className="mt-4">Submitting your profile...</Text>
       </View>
     );

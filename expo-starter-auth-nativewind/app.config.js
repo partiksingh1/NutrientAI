@@ -3,7 +3,7 @@ export default {
     name: "BalancedBite",
     slug: "balancedBite",
     icon: "./assets/icon.png",
-    version: "1.0.0",
+    version: "2.0.0",
     userInterfaceStyle: "light",
     newArchEnabled: true,
     plugins: [
