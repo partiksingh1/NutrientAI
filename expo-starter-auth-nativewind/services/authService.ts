@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Toast } from "toastify-react-native";
 
 import { User, LoginCredentials } from "../types/user";
+import { i18n } from "@/lib/i18next";
 
 const AUTH_TOKEN_KEY = "auth_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
@@ -12,18 +13,36 @@ export default class AuthService {
    */
   static async login(credentials: LoginCredentials): Promise<User> {
     try {
+      console.log("response is called ");
       const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/auth/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(credentials),
       });
 
-      if (!response.ok) {
+      console.log("response s is ", response);
+
+      if (response.status == 404) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Login failed");
+        console.log("errorData is ", errorData);
+
+        throw new Error(i18n.t("toast.loginFailed.title1"));
+      }
+      if (response.status == 401) {
+        const errorData = await response.json();
+        console.log("errorData is ", errorData);
+
+        throw new Error(i18n.t("toast.loginFailed.title2"));
+      }
+      if (response.status == 500) {
+        const errorData = await response.json();
+        console.log("errorData is ", errorData);
+
+        throw new Error(i18n.t("toast.loginFailed.title2"));
       }
 
       const { accessToken, refreshToken, user } = await response.json();
+      await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_DATA_KEY]);
 
       await AsyncStorage.multiSet([
         [AUTH_TOKEN_KEY, accessToken],
@@ -33,7 +52,7 @@ export default class AuthService {
 
       Toast.show({
         type: "success",
-        text1: "Login Successful",
+        text1: i18n.t("toast.loginSuccess.title"),
         position: "top",
         visibilityTime: 3000,
         autoHide: true,
@@ -52,6 +71,7 @@ export default class AuthService {
   }
   static async saveTokens({ accessToken, refreshToken }: { accessToken: string; refreshToken: string }) {
     try {
+      await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY]);
       await AsyncStorage.setItem(AUTH_TOKEN_KEY, accessToken);
       await AsyncStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     } catch (error) {
@@ -62,6 +82,7 @@ export default class AuthService {
 
   static async setCurrentUser(user: User) {
     try {
+      await AsyncStorage.multiRemove([USER_DATA_KEY]);
       await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
     } catch (error) {
       console.error("Failed to save user data:", error);
@@ -72,7 +93,7 @@ export default class AuthService {
   /**
    * Register a new user
    */
-  static async register(userData: LoginCredentials & { name: string }): Promise<User> {
+  static async register(userData: LoginCredentials & { name: string, language: string }): Promise<User> {
     try {
       const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/auth/signup`, {
         method: "POST",
@@ -83,14 +104,19 @@ export default class AuthService {
           username: userData.name, // The backend expects "username"
           email: userData.email,
           password: userData.password,
+          language: userData.language
         }),
       });
 
-      if (!response.ok) {
+      if (response.status == 400) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Registration failed");
+      } else if (response.status != 201) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Registration failed");
       }
       const { accessToken, refreshToken, user } = await response.json();
+      await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_DATA_KEY]);
 
       await AsyncStorage.multiSet([
         [AUTH_TOKEN_KEY, accessToken],
@@ -119,11 +145,7 @@ export default class AuthService {
 
       Toast.show({
         type: "warn",
-        text1: "Logout Successful",
-        // text2: 'Secondary message',
-        position: "top",
-        visibilityTime: 3000,
-        autoHide: true,
+        text1: i18n.t("toast.logoutSuccess.title")
       });
     } catch (error) {
       console.error("Logout error:", error);
@@ -192,7 +214,7 @@ export default class AuthService {
       body: JSON.stringify({ email }),
     });
     if (res.status == 404) {
-      Toast.error("No user exists with this email")
+      Toast.error(i18n.t("toast.noUserEmail.title"))
     }
     if (!res.ok) {
       const error = await res.json();
@@ -211,7 +233,7 @@ export default class AuthService {
       body: JSON.stringify({ email, otp, newPassword }),
     });
     if (res.status == 400) {
-      Toast.error("Invalid or Expired OTP")
+      Toast.error(i18n.t("toast.invalidOtp.title"))
     }
     if (!res.ok) {
       const error = await res.json();

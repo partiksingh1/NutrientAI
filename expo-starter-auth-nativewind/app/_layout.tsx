@@ -1,87 +1,125 @@
 import "react-native-reanimated";
-import { Stack, useSegments, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Slot, useSegments, useRouter, SplashScreen } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useCallback } from "react";
-import { Text, View } from "react-native";
-import ToastManager from "toastify-react-native";
+import { View, Text, ActivityIndicator, Modal } from "react-native";
+import NetInfo from '@react-native-community/netinfo';
+import ToastManager, { Toast } from "toastify-react-native";
 
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import "../global.css";
 import toastConfig from "@/utils/toastConfig";
+import { i18n } from "@/lib/i18next";
 
-function AuthRoot() {
+// Prevent splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync().catch(() => { });
+
+function AuthGate() {
   const { isAuthenticated, isLoading, isProfileComplete } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const handleNavigation = useCallback(() => {
-    if (isLoading) return;
+  const [appIsReady, setAppIsReady] = useState(false);
+  const [isConnected, setIsConnected] = useState(true);
+
+  // ✅ Listen to internet connectivity
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      const connected = !!(state.isConnected && state.isInternetReachable);
+      setIsConnected(connected);
+
+      if (!connected) {
+        Toast.show({
+          type: "warn",
+          text1: i18n.t("toast.noInternet.title"),
+          text2: i18n.t("toast.noInternet.msg")
+        });
+
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  // ✅ Handle authentication and onboarding routing
+  useEffect(() => {
+    if (isLoading) return; // Wait until auth finishes loading
 
     const inAuthGroup = segments[0] === "auth";
     const inOnboarding = segments[0] === "OnBoarding";
 
-    // 1️⃣ User not logged in → Go to login
     if (!isAuthenticated) {
       if (!inAuthGroup) {
         router.replace("/auth/login");
       }
-      return;
-    }
-
-    // 2️⃣ User logged in but profile incomplete → Go to onboarding
-    if (isAuthenticated && !isProfileComplete) {
+    } else if (!isProfileComplete) {
       if (!inOnboarding) {
         router.replace("/OnBoarding/onboarding");
       }
-      return;
-    }
-
-    // 3️⃣ User logged in and profile complete → Go to main app
-    if (isAuthenticated && isProfileComplete) {
+    } else {
       if (inAuthGroup || inOnboarding) {
         router.replace("/(app)");
       }
     }
-  }, [isAuthenticated, isLoading, isProfileComplete, segments]);
 
+    setAppIsReady(true);
+  }, [isLoading, isAuthenticated, isProfileComplete, segments]);
+
+  // ✅ Hide splash once app is ready
   useEffect(() => {
-    handleNavigation();
-  }, [handleNavigation]);
+    if (appIsReady) {
+      SplashScreen.hideAsync().catch(() => { });
+    }
+  }, [appIsReady]);
 
-  if (isLoading) {
+  // ✅ Block app usage if offline
+  if (!isConnected) {
+    return (
+      <>
+        <Modal transparent visible animationType="fade">
+          <View style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+          }}>
+            <View style={{
+              backgroundColor: 'white',
+              borderRadius: 12,
+              padding: 24,
+              alignItems: 'center',
+              maxWidth: 300,
+            }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
+                No Internet Connection
+              </Text>
+              <Text style={{ fontSize: 14, color: '#444', textAlign: 'center' }}>
+                Please connect to the internet to continue using the app.
+              </Text>
+              <ActivityIndicator style={{ marginTop: 16 }} size="small" color="#3b82f6" />
+            </View>
+          </View>
+        </Modal>
+        <ToastManager config={toastConfig} />
+      </>
+    );
+  }
+
+  // ✅ Wait for app to be ready
+  if (!appIsReady) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
-        <Text className="text-gray-600 mt-4">Loading...</Text>
+        <ActivityIndicator size="large" color="#3b82f6" />
       </View>
     );
   }
 
   return (
     <>
-      <StatusBar style="auto" />
-      <Stack
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: "#4338ca",
-          },
-          headerTintColor: "#fff",
-          headerTitleStyle: {
-            fontWeight: "bold",
-          },
-        }}
-      >
-        <Stack.Screen name="(app)" options={{ headerShown: false }} />
-        <Stack.Screen name="meals" options={{ headerShown: false }} />
-        <Stack.Screen name="OnBoarding" options={{ headerShown: false }} />
-        <Stack.Screen name="auth/login" options={{ title: "Login", headerShown: false }} />
-        <Stack.Screen
-          name="auth/register"
-          options={{ title: "Create Account", headerShown: false }}
-        />
-        <Stack.Screen
-          name="auth/reset-password"
-          options={{ headerShown: false }}
-        />
-      </Stack>
+      <Slot />
+      <ToastManager config={toastConfig} />
     </>
   );
 }
@@ -89,8 +127,8 @@ function AuthRoot() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <AuthRoot />
-      <ToastManager config={toastConfig} useModal={false} />
+      <StatusBar style="auto" />
+      <AuthGate />
     </AuthProvider>
   );
 }

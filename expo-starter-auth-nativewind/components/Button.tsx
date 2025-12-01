@@ -2,7 +2,7 @@ import { LucideIcon } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
 
 type Props = {
-  label: string;
+  label?: string;
   onPress?: () => void;
   variant?: "primary" | "secondary" | "danger" | "outline";
   disabled?: boolean;
@@ -23,7 +23,7 @@ export default function Button({
   size = "md",
 }: Props) {
   const getBackgroundColor = () => {
-    if (disabled || loading) return "bg-gray-400";
+    if (disabled || loading) return "bg-green-500";
 
     switch (variant) {
       case "primary":
@@ -55,7 +55,7 @@ export default function Button({
       case "sm":
         return "py-2 px-4";
       case "lg":
-        return "py-4 px-8";
+        return "py-3 px-4";
       default:
         return "py-3 px-6";
     }
@@ -89,8 +89,7 @@ export default function Button({
     >
       {loading ? (
         <View className="flex-row items-center">
-          <View className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-          <Text className={`${getTextColor()} font-semibold ${getTextSize()}`}>Loading...</Text>
+          <View className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
         </View>
       ) : (
         <View className="flex-row items-center">

@@ -13,10 +13,10 @@ import {
 } from "react-native";
 
 import { CustomCheckbox } from "./CustomCheckbox";
-
 import { useAuth } from "@/context/AuthContext";
 import { fetchWithAuth } from "@/utils/apiWithAuth";
 import { Toast } from "toastify-react-native";
+import { i18n } from "@/lib/i18next";
 
 interface OnboardingScreenProps {
   onComplete: () => void;
@@ -56,20 +56,28 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
     // Step 1 Validation
     if (step === 1) {
       const { age, weight, height, gender } = formData;
+
+      // Validate Age
       if (!age || isNaN(Number(age))) {
-        Toast.error("Please enter a valid age");
+        Toast.error(i18n.t('validation.ageError'));
         return;
       }
+
+      // Validate Weight
       if (!weight || isNaN(Number(weight))) {
-        Toast.error("Please enter a valid weight");
+        Toast.error(i18n.t('validation.weightError'));
         return;
       }
+
+      // Validate Height
       if (!height || isNaN(Number(height))) {
-        Toast.error("Please enter a valid height");
+        Toast.error(i18n.t('validation.heightError'));
         return;
       }
+
+      // Validate Gender
       if (!gender) {
-        Toast.error("Please select your gender");
+        Toast.error(i18n.t('validation.genderError'));
         return;
       }
     }
@@ -77,7 +85,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
     // Step 2 Validation
     if (step === 2) {
       if (!formData.activityLevel) {
-        Toast.error("Please select your activity level");
+        Toast.error(i18n.t('validation.activityLevelError'));
         return;
       }
     }
@@ -85,18 +93,19 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
     // Step 3 Validation
     if (step === 3) {
       if (!formData.goal) {
-        Toast.error("Please select a goal");
+        Toast.error(i18n.t('validation.goalError'));
         return;
       }
       if (!formData.goalDescription) {
-        Toast.error("Please provide goal description");
+        Toast.error(i18n.t('validation.goalDescriptionError'));
         return;
       }
       if (!formData.goalEndDate) {
-        Toast.error("Please select target date");
+        Toast.error(i18n.t('validation.goalEndDateError'));
         return;
       }
     }
+
 
     if (step < totalSteps) {
       setStep(step + 1);
@@ -172,8 +181,8 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   if (isSubmitting) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#000" />
-        <Text className="mt-4">Submitting your profile...</Text>
+        <ActivityIndicator size="large" color="green" />
+        <Text className="mt-4">{i18n.t('buttons.submittingProfile')}</Text>
       </View>
     );
   }
@@ -189,7 +198,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
           loop={false}
           style={{ width: 200, height: 200 }}
         />
-        <Text className="mt-4 text-lg font-semibold">Profile Completed!</Text>
+        <Text className="mt-4 text-lg font-semibold">{i18n.t('buttons.profileCompleted')}</Text>
       </View>
     );
   }
@@ -203,9 +212,9 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
               <View className="w-20 h-20 bg-black rounded-full items-center justify-center mb-4">
                 <Sparkles color="white" size={32} />
               </View>
-              <Text className="text-3xl font-bold mb-4">Hi {user?.username}</Text>
-              <Text className="text-xl font-bold mb-2">Welcome to BalancedBite</Text>
-              <Text className="text-gray-500">Your personal AI nutritionist assistant</Text>
+              <Text className="text-3xl font-bold mb-4">{i18n.t('step1.welcome', { username: user?.username })}</Text>
+              <Text className="text-xl font-bold mb-2">{i18n.t('step1.welcomeMessage')}</Text>
+              <Text className="text-gray-500">{i18n.t('step1.assistant')}</Text>
             </View>
 
             <View className="my-4">
@@ -221,7 +230,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
 
               <View className="flex-row space-x-4 gap-5 my-4">
                 <View className="flex-1">
-                  <Text className="mb-1">Age</Text>
+                  <Text className="mb-1">{i18n.t('step1.age')}</Text>
                   <TextInput
                     value={formData.age}
                     onChangeText={text => setFormData(prev => ({ ...prev, age: text }))}
@@ -231,7 +240,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className="mb-1">Weight (kg)</Text>
+                  <Text className="mb-1">{i18n.t('step1.weight')}</Text>
                   <TextInput
                     value={formData.weight}
                     onChangeText={text => setFormData(prev => ({ ...prev, weight: text }))}
@@ -243,7 +252,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
               </View>
 
               <View className="my-4">
-                <Text className="mb-1">Height (cm)</Text>
+                <Text className="mb-1">{i18n.t('step1.height')}</Text>
                 <TextInput
                   value={formData.height}
                   onChangeText={text => setFormData(prev => ({ ...prev, height: text }))}
@@ -253,7 +262,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 />
               </View>
               <View className="my-4">
-                <Text className="mb-1">Gender</Text>
+                <Text className="mb-1">{i18n.t('step1.gender')}</Text>
                 <View className="flex-row justify-between">
                   {/* Male Button */}
                   <TouchableOpacity
@@ -269,7 +278,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                     }}
                   >
                     <Text style={{ color: formData.gender === "Male" ? "#fff" : "#000" }}>
-                      Male
+                      {i18n.t('step1.male')}
                     </Text>
                   </TouchableOpacity>
 
@@ -287,7 +296,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                     }}
                   >
                     <Text style={{ color: formData.gender === "Female" ? "#fff" : "#000" }}>
-                      Female
+                      {i18n.t('step1.female')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -299,19 +308,19 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
       case 2:
         return (
           <View className="my-6">
-            <Text className="text-center text-3xl font-semibold mb-4">Activity Level</Text>
+            <Text className="text-center text-3xl font-semibold mb-4">{i18n.t('step2.activityLevel')}</Text>
             <Text className="text-center text-gray-500 mb-8">
-              How active are you on a typical day?
+              {i18n.t('step2.activityDescription')}
             </Text>
             {[
-              { value: "Sedentary", label: "Sedentary", desc: "Little to no exercise" },
-              { value: "Light", label: "Lightly Active", desc: "Light exercise 1-3 days/week" },
+              { value: "Sedentary", label: `${i18n.t('step2.sedentary')}`, desc: `${i18n.t('step2.sedentaryDesc')}` },
+              { value: "Light", label: `${i18n.t('step2.lightlyActive')}`, desc: `${i18n.t('step2.lightlyActiveDesc')}` },
               {
                 value: "Moderate",
-                label: "Moderately Active",
-                desc: "Moderate exercise 3-5 days/week",
+                label: `${i18n.t('step2.moderatelyActive')}`,
+                desc: `${i18n.t('step2.moderatelyActiveDesc')}`,
               },
-              { value: "Very active", label: "Very Active", desc: "Hard exercise 6-7 days/week" },
+              { value: "Very active", label: `${i18n.t('step2.veryActive')}`, desc: `${i18n.t('step2.veryActiveDesc')}` },
             ].map(option => (
               <TouchableOpacity
                 key={option.value}
@@ -331,18 +340,18 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
       case 3:
         return (
           <ScrollView className="my-6">
-            <Text className="text-center text-3xl font-semibold mb-4">Your Goals</Text>
+            <Text className="text-center text-3xl font-semibold mb-4">{i18n.t('step3.yourGoals')}</Text>
             <Text className="text-center text-gray-500 mb-8">
-              What's your primary fitness goal?
+              {i18n.t('step3.fitnessGoal')}
             </Text>
 
             {/* Goals Selection */}
             <View className="flex-row flex-wrap justify-between">
               {[
-                { value: "FAT_LOSS", label: "Fat Loss", emoji: "🔥" },
-                { value: "MUSCLE_GAIN", label: "Muscle Gain", emoji: "💪" },
-                { value: "MAINTENANCE", label: "Maintain Weight", emoji: "⚖️" },
-                { value: "GENERAL_HEALTH", label: "General Health", emoji: "🌱" },
+                { value: "FAT_LOSS", label: i18n.t('step3.fatLoss.label'), emoji: "🔥" },
+                { value: "MUSCLE_GAIN", label: i18n.t('step3.muscleGain.label'), emoji: "💪" },
+                { value: "MAINTENANCE", label: i18n.t('step3.maintenance.label'), emoji: "⚖️" },
+                { value: "GENERAL_HEALTH", label: i18n.t('step3.generalHealth.label'), emoji: "🌱" },
               ].map(option => (
                 <TouchableOpacity
                   key={option.value}
@@ -362,11 +371,11 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
 
             {/* Goal Description */}
             <View className="my-4">
-              <Text className="mb-1 font-medium">Why is this your goal?</Text>
+              <Text className="mb-1 font-medium">{i18n.t('step3.whyIsThisYourGoal')}</Text>
               <TextInput
                 value={formData.goalDescription}
                 onChangeText={text => setFormData(prev => ({ ...prev, goalDescription: text }))}
-                placeholder="Describe your motivation or reason"
+                placeholder={i18n.t('step3.goalDescriptionPlaceholder')}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
@@ -376,7 +385,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
 
             {/* Goal End Date Picker */}
             <View className="my-4">
-              <Text className="mb-1 font-medium">Target End Date</Text>
+              <Text className="mb-1 font-medium">{i18n.t('step3.targetEndDate')}</Text>
               <TouchableOpacity
                 onPress={showDatePicker}
                 className="bg-gray-100 rounded-lg px-3 py-3"
@@ -411,14 +420,14 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
       case 4:
         return (
           <View className="my-6">
-            <Text className="text-center text-3xl font-semibold mb-4">Dietary Preferences</Text>
+            <Text className="text-center text-3xl font-semibold mb-4">{i18n.t('step4.dietaryPreferences')}</Text>
             <Text className="text-center text-gray-500 mb-8">
-              Tell us more about your eating habits
+              {i18n.t('step4.tellUsMore')}
             </Text>
 
             {/* Allergy selection */}
             <View>
-              <Text className="mb-2 font-medium text-2xl text-center">Allergies</Text>
+              <Text className="mb-2 font-medium text-2xl text-center">{i18n.t('step4.allergies')}</Text>
 
               {/* Combined Allergy Grid */}
               <View className="flex-row flex-wrap justify-between">
@@ -433,7 +442,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                     <CustomCheckbox
                       value={formData.allergies.includes(allergy)}
                       onValueChange={() => handleAllergyToggle(allergy)}
-                      label={allergy}
+                      label={i18n.t(`step4.allergy.${allergy}`)} // Translated allergy label
                     />
                   </View>
                 ))}
@@ -444,7 +453,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 <TextInput
                   value={customAllergy}
                   onChangeText={setCustomAllergy}
-                  placeholder="Add custom allergy"
+                  placeholder={i18n.t('step4.addCustomAllergy')}
                   className="flex-1 border border-gray-300 rounded-lg px-3 py-2 mr-4"
                 />
                 <TouchableOpacity
@@ -460,14 +469,14 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                   }}
                   className="bg-red-600 px-4 py-2 rounded-lg"
                 >
-                  <Text className="text-white font-bold text-center">Add</Text>
+                  <Text className="text-white font-bold text-center">{i18n.t('step4.add')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
             {/* Meal frequency input with increment/decrement */}
             <View className="mt-6 mb-6">
-              <Text className="mb-2 font-medium">Meals per day</Text>
+              <Text className="mb-2 font-medium">{i18n.t('step4.mealsPerDay')}</Text>
               <View className="flex-row items-center space-x-4">
                 <TouchableOpacity
                   onPress={() =>
@@ -497,7 +506,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
 
             {/* Snack toggle */}
             <View className="flex-row items-center justify-between mb-4">
-              <Text className="font-medium">Include snacks?</Text>
+              <Text className="font-medium">{i18n.t('step4.includeSnacks')}</Text>
               <Switch
                 value={formData.snackIncluded}
                 onValueChange={val => setFormData(prev => ({ ...prev, snackIncluded: val }))}
@@ -508,15 +517,15 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
 
             {/* Completion Message */}
             <View className="bg-gray-100 p-4 rounded-lg mt-4">
-              <Text className="text-sm font-semibold mb-2">🎉 You're all set!</Text>
+              <Text className="text-sm font-semibold mb-2">{i18n.t('step4.completionTitle')}</Text>
               <Text className="text-xs text-gray-500">
-                BalancedBite will use this information to provide personalized nutrition advice and meal
-                plans.
+                {i18n.t('step4.completionDescription')}
               </Text>
             </View>
           </View>
         );
     }
+
   };
 
   return (
@@ -540,7 +549,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
             onPress={handleBack}
             className="flex-row w-1/2 items-center justify-center border border-gray-300 rounded-lg px-4 py-3 mr-2"
           >
-            <Text>Back</Text>
+            <Text>{i18n.t('buttons.back')}</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
@@ -548,7 +557,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
           className="flex-row w-1/2 items-center justify-center bg-black rounded-lg px-4 py-3 ml-2"
         >
           <Text className="text-white font-semibold">
-            {step === totalSteps ? "Get Started" : "Next"}
+            {step === totalSteps ? `${i18n.t('buttons.getStarted')}` : `${i18n.t('buttons.next')}`}
           </Text>
         </TouchableOpacity>
       </View>

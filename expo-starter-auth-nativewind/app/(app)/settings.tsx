@@ -1,6 +1,6 @@
 // screens/ProfileScreen.tsx
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, View, Text, RefreshControl } from "react-native";
+import { ActivityIndicator, ScrollView, View, Text, RefreshControl, Keyboard } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -150,6 +150,7 @@ export default function ProfileScreen() {
   // };
 
   const handleSave = async () => {
+    Keyboard.dismiss();
     if (!profile) return;
     try {
       setIsSaving(true);

@@ -10,6 +10,8 @@ import { Eye, EyeOff } from "lucide-react-native";
 import Button from "./Button";
 import FormInput from "./FormInput";
 import { RegisterCredentials } from "../types/user";
+import { i18n } from "@/lib/i18next";
+import { useAuth } from "@/context/AuthContext";
 
 interface RegisterFormProps {
   onSubmit: (credentials: RegisterCredentials) => Promise<void>;
@@ -23,6 +25,7 @@ export default function RegisterForm({ onSubmit, isLoading = false }: RegisterFo
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { language } = useAuth();
   const [errors, setErrors] = useState<{
     name?: string;
     email?: string;
@@ -33,22 +36,22 @@ export default function RegisterForm({ onSubmit, isLoading = false }: RegisterFo
   const validate = (): boolean => {
     const newErrors: typeof errors = {};
 
-    if (!name) newErrors.name = "Name is required";
+    if (!name) newErrors.name = `${i18n.t("auth.register.errors.nameRequired")}`;
 
     if (!email) {
-      newErrors.email = "Email is required";
+      newErrors.email = `${i18n.t("auth.register.errors.emailRequired")}`;
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Email is invalid";
+      newErrors.email = `${i18n.t("auth.register.errors.emailInvalid")}`;
     }
 
     if (!password) {
-      newErrors.password = "Password is required";
+      newErrors.password = `${i18n.t("auth.register.errors.passwordRequired")}`;
     } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+      newErrors.password = `${i18n.t("auth.register.errors.passwordMin")}`;
     }
 
     if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = `${i18n.t("auth.register.errors.passwordMismatch")}`;
     }
 
     setErrors(newErrors);
@@ -58,7 +61,7 @@ export default function RegisterForm({ onSubmit, isLoading = false }: RegisterFo
   const handleSubmit = async () => {
     if (validate()) {
       try {
-        await onSubmit({ name, email, password });
+        await onSubmit({ name, email, password, language });
       } catch (error) {
         throw error;
       }
@@ -71,8 +74,8 @@ export default function RegisterForm({ onSubmit, isLoading = false }: RegisterFo
       className="w-full"
     >
       <FormInput
-        label="Full Name"
-        placeholder="Your full name"
+        label={i18n.t("auth.register.fullName")}
+        placeholder={i18n.t("auth.register.fullNamePlaceholder")}
         value={name}
         onChangeText={setName}
         autoCapitalize="words"
@@ -82,8 +85,8 @@ export default function RegisterForm({ onSubmit, isLoading = false }: RegisterFo
       />
 
       <FormInput
-        label="Email"
-        placeholder="you@example.com"
+        label={i18n.t("auth.register.email")}
+        placeholder={i18n.t("auth.register.emailPlaceholder")}
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -95,8 +98,8 @@ export default function RegisterForm({ onSubmit, isLoading = false }: RegisterFo
 
       <View className="mb-5 relative">
         <FormInput
-          label="Password"
-          placeholder="Create a password"
+          label={i18n.t("auth.register.password")}
+          placeholder={i18n.t("auth.register.passwordPlaceholder")}
           value={password}
           onChangeText={setPassword}
           secureTextEntry={!showPassword}
@@ -119,8 +122,8 @@ export default function RegisterForm({ onSubmit, isLoading = false }: RegisterFo
 
       <View className="mb-6 relative">
         <FormInput
-          label="Confirm Password"
-          placeholder="Confirm your password"
+          label={i18n.t("auth.register.confirmPassword")}
+          placeholder={i18n.t("auth.register.confirmPasswordPlaceholder")}
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry={!showConfirmPassword}
@@ -142,7 +145,7 @@ export default function RegisterForm({ onSubmit, isLoading = false }: RegisterFo
       </View>
 
       <Button
-        label={isLoading ? "Creating account..." : "Create Account"}
+        label={isLoading ? `${i18n.t("auth.register.creatingAccount")}` : `${i18n.t("auth.register.createAccount")}`}
         onPress={handleSubmit}
         disabled={isLoading}
         loading={isLoading}

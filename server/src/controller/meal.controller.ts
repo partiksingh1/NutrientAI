@@ -213,7 +213,7 @@ export const deleteMealLog = async (req: Request, res: Response) => {
     try {
         const existingMealLog = await prisma.mealLog.findUnique({ where: { id } });
 
-        if (!existingMealLog || existingMealLog.userId !== id) {
+        if (!existingMealLog) {
             return res.status(404).json({ error: 'Meal log not found or unauthorized' });
         }
 

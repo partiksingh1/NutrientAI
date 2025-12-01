@@ -1,0 +1,452 @@
+{
+  "step1": {
+    "welcome": "Hi {{username}}",
+    "welcomeMessage": "Welcome to BalancedBite",
+    "assistant": "Your personal AI nutritionist assistant",
+    "age": "Age",
+    "weight": "Weight (kg)",
+    "height": "Height (cm)",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female"
+  },
+  "step2": {
+    "activityLevel": "Activity Level",
+    "activityDescription": "How active are you on a typical day?",
+    "sedentary": "Sedentary",
+    "sedentaryDesc": "Little to no exercise",
+    "lightlyActive": "Lightly Active",
+    "lightlyActiveDesc": "Light exercise 1-3 days/week",
+    "moderatelyActive": "Moderately Active",
+    "moderatelyActiveDesc": "Moderate exercise 3-5 days/week",
+    "veryActive": "Very Active",
+    "veryActiveDesc": "Hard exercise 6-7 days/week"
+  },
+  "step3": {
+    "yourGoals": "Your Goals",
+    "fitnessGoal": "What's your primary fitness goal?",
+    "fatLoss": {
+      "label": "Fat Loss",
+      "emoji": "🔥"
+    },
+    "muscleGain": {
+      "label": "Muscle Gain",
+      "emoji": "💪"
+    },
+    "maintenance": {
+      "label": "Maintain Weight",
+      "emoji": "⚖️"
+    },
+    "generalHealth": {
+      "label": "General Health",
+      "emoji": "🌱"
+    },
+    "whyIsThisYourGoal": "Why is this your goal?",
+    "goalDescriptionPlaceholder": "Describe your motivation or reason",
+    "targetEndDate": "Target End Date",
+    "selectDate": "Select a date"
+  },
+  "step4": {
+    "dietaryPreferences": "Dietary Preferences",
+    "tellUsMore": "Tell us more about your eating habits",
+    "allergies": "Allergies",
+    "allergy": {
+      "Nuts": "Nuts",
+      "Dairy": "Dairy",
+      "Gluten": "Gluten",
+      "Shellfish": "Shellfish",
+      "Eggs": "Eggs",
+      "Soy": "Soy",
+      "Fish": "Fish"
+    },
+    "addCustomAllergy": "Add custom allergy",
+    "add": "Add",
+    "mealsPerDay": "Meals per day",
+    "includeSnacks": "Include snacks?",
+    "completionTitle": "🎉 You're all set!",
+    "completionDescription": "BalancedBite will use this information to provide personalized nutrition advice and meal plans."
+  },
+  "buttons": {
+    "back": "Back",
+    "next": "Next",
+    "getStarted": "Get Started",
+    "submittingProfile":"Submitting your profile...",
+    "profileCompleted":"Profile Completed!",
+      "home": "Home",
+  "chat": "AI Chat",
+  "progress": "Progress",
+  "settings": "Settings"
+  },
+    "validation": {
+    "ageError": "Please enter a valid age",
+    "weightError": "Please enter a valid weight",
+    "heightError": "Please enter a valid height",
+    "genderError": "Please select your gender",
+    "activityLevelError": "Please select your activity level",
+    "goalError": "Please select a goal",
+    "goalDescriptionError": "Please provide goal description",
+    "goalEndDateError": "Please select target date"
+  },
+  "home": {
+    "hi": "Hi, {{name}}!",
+    "greeting": "Let's track your nutrition today",
+    "askAI": "Ask AI",
+    "logMeal": "Log Meal",
+    "todaysProgress": "Today's Progress",
+    "setGoals": "Set Daily Goals",
+    "calories": "Calories",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fats": "Fats",
+    "mealsToday": "Today's Meals",
+    "seeAllMeals": "See All Meals",
+    "noMealsLogged": "No meals logged today.",
+    "logFirstMeal": "Tap the + button to log your first meal",
+    "mealTime": "No time",
+    "mealCalories": "{{calories}} kcal",
+    "mealType": "{{mealType}}"
+    },
+      "mealLoggingModal": {
+    "describeYourMeal": "Describe Your Meal",
+    "mealDescriptionPrompt": "Tell me what you ate and I'll calculate the nutrition for you",
+    "examples": "Examples:",
+    "example1": "\"Greek yogurt with berries\"",
+    "example2": "\"2 scrambled eggs with toast\"",
+    "example3": "\"Chicken caesar salad for lunch\"",
+    "whatDidYouEat": "What did you eat?",
+    "processButton": "Process Meal",
+    "errorProcessingMeal": "Please provide more details about your meal.",
+    "mealAnalyzed": "Meal Analyzed!",
+    "pleaseReview": "Please review and confirm",
+    "back": "Back",
+    "edit": "Edit",
+    "done": "Done",
+    "mealName": "Meal Name",
+    "mealNamePlaceHolder": "Enter meal name",
+    "mealType": "Meal Type",
+    "servings": "Servings",
+    "nutritionInfo": "Nutritional Information",
+    "calories": "Calories",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fats": "Fats",
+    "tryAgain": "Try Again",
+    "saveMeal": "Save Meal",
+    "savingMeal": "Saving...",
+    "mealSaved": "Your Meal is Logged!",
+    "errorSavingMeal": "Error saving meal",
+    "breakfast": "Breakfast",
+    "lunch": "Lunch",
+    "dinner": "Dinner",
+    "snack": "Snack",
+    "logYourMeal": "Log Your Meal"
+  },
+    "goalsForm": {
+    "calories": "Calories",
+    "protein": "Protein (g)",
+    "carbs": "Carbs (g)",
+    "fats": "Fats (g)",
+
+    "enterCalories": "Enter calories",
+    "enterProtein": "Enter protein",
+    "enterCarbs": "Enter carbs",
+    "enterFats": "Enter fats",
+
+    "saveGoals": "Save Goals",
+    "cancel": "Cancel",
+
+    "errorInvalidNumbers": "All values must be valid numbers.",
+    "errorCaloriesZero": "Calories must be greater than 0.",
+    "errorNegativeMacros": "Macro values cannot be negative."
+  },
+    "emptyState": {
+    "welcomeTitle": "Welcome to BalancedBite!",
+    "welcomeSubtitle": "I'm your personal nutrition assistant. Ask me about meals, track your progress, or get personalized recommendations.",
+    "suggestions": "Try one of the suggestions below to get started",
+    "personalizedAssistant":"Personalized Assistant"
+  },
+  "chat": {
+    "loadingMessages": "Loading messages...",
+    "loginRequired": "Please log in to access the AI nutritionist assistant.",
+
+    "headerTitle": "BalancedBite's AI",
+    "headerSubtitle": "Your personal nutrition assistant",
+
+    "suggestionProgress": "How's my progress?",
+    "suggestionDinner": "Suggest dinner",
+    "suggestionWeekly": "Weekly summary",
+
+    "inputPlaceholder": "Ask about progress, or get suggestions...",
+
+    "characters": "characters",
+
+    "clearChat": "Clear chat",
+    "error": "Error",
+    "loadError": "Failed to load conversation.",
+    "clearConfirmTitle": "Clear Conversation",
+    "clearConfirmSubtitle": "Are you sure you want to clear all messages? This action cannot be undone.",
+    "cancel": "Cancel",
+    "clear": "Clear",
+    "offlineError": "Sorry, I'm having trouble connecting right now. Please check your internet connection and try again.",
+    "apiError": "API Error",
+    "apiErrorDetail": "Failed to get AI response",
+
+
+  "progress": {
+    "headerTitle": "Progress Tracking",
+    "headerSubtitle": "Your nutrition journey over time",
+    "period": {
+      "week": "Week",
+      "month": "Month",
+      "quarter": "Quarter"
+    },
+    "stats": {
+      "avgCalories": "Avg Calories",
+      "goalAdherence": "Goal Adherence",
+      "totalMeals": "Total Meals"
+    },
+    "noData": "No data available",
+    "errorTryAgain": "Try Again",
+    "trends": {
+      "dailyCalories": "Daily Calories",
+      "switchTo": "Switch to",
+     "bar":"Bar",
+     "line":"Line",
+      "notEnoughData": "Not enough data to show trends yet. Start logging meals to see insights!"
+    },
+    "macros": {
+      "title": "Macro Distribution",
+      "centerLabel": "Macros"
+    },
+    "summary": {
+      "title": "Summary",
+      "loggedDays": "Logged Days",
+      "avgProtein": "Avg Protein",
+      "avgCarbs": "Avg Carbs",
+      "avgFats": "Avg Fats"
+    }
+  }
+  },
+  "profile": {
+    "cancel": "Cancel",
+    "edit": "Edit",
+
+    "personalInfo": "Personal Information",
+    "preferences": "Preferences",
+    "dailyGoals": "Daily Nutritional Goals",
+
+    "username": "Username",
+    "age": "Age",
+    "years": "years",
+    "notSet": "Not set",
+
+    "weight": "Weight (kg)",
+    "height": "Height (cm)",
+    "activityLevel": "Activity Level",
+    "gender": "Gender",
+
+    "dietType": "Diet Type",
+    "selectDietType": "Select diet type",
+
+    "mealFrequency": "Meals per Day",
+    "selectMealFrequency": "Select meal frequency",
+
+    "includeSnacks": "Include Snacks",
+
+    "allergies": "Allergies",
+    "allergiesPlaceholder": "Enter allergies (comma separated)",
+    "none": "None",
+
+    "save": "Save",
+
+    "calories": "Calories",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fats": "Fats",
+
+    "helpSupport": "Help & Support",
+    "changeLanguage": "Change the language",
+    "signOut": "Sign Out",
+
+    "dailyGoalsUnit": {
+      "calories": "kcal",
+      "other": "g"
+    },
+        "changeLanguageTitle": "Confirm Language Change",
+    "changeLanguageConfirmation": "Are you sure you want to change the language?",
+    "confirm": "Confirm",
+    "languageUpdatedSuccessfully": "Your language has been updated successfully!",
+    "languageUpdateFailed": "Failed to update language. Please try again."
+  },
+        "toast": {
+    "noInternet": {
+      "title": "No Internet Connection",
+      "msg": "Please check your internet connection to continue"
+    },
+
+    "loginFailed": {
+      "title1": "Login Failed, No user exists",
+      "title2": "Login Failed, Invalid credentials",
+      "msg": "Please check your email and password"
+    },
+
+    "loginSuccess": {
+      "title": "Login Successful"
+    },
+
+    "mealLogged": {
+      "title": "Your Meal is Logged!"
+    },
+
+    "error": {
+      "title": "Error"
+    },
+
+    "goalsUpdated": {
+      "title": "Goals updated successfully!",
+      "msg": "Your daily goals have been saved."
+    },
+
+    "updateFailed": {
+      "title": "Update Failed",
+      "msg": "Please try again"
+    },
+
+    "logoutSuccess": {
+      "title": "Logout Successful"
+    },
+
+    "cachedResponse": {
+      "title": "Quick response",
+      "msg": "Using cached result"
+    },
+
+    "sendMessageError": {
+      "title": "Error sending message",
+      "msg": "Please try again later."
+    },
+
+    "connectionError": {
+      "title": "Connection error",
+      "msg": "Please check your internet connection"
+    },
+
+    "conversationCleared": {
+      "title": "Conversation cleared"
+    },
+
+    "conversationClearFailed": {
+      "title": "Failed to clear conversation",
+      "msg": "Please try again."
+    },
+
+    "profileUpdated": {
+      "title": "Profile Updated",
+      "msg": "Your profile has been updated successfully"
+    },
+
+    "preferencesUpdated": {
+      "title": "Preferences Updated",
+      "msg": "Your preferences have been updated successfully"
+    },
+
+    "accountDeleted": {
+      "title": "Account Deleted",
+      "msg": "Your account has been deleted successfully"
+    },
+
+    "deleteFailed": {
+      "title": "Delete Failed",
+      "msg": "Failed to delete account"
+    },
+
+    "dailyGoalsUpdated": {
+      "title": "Goals Updated",
+      "msg": "Daily goals updated successfully"
+    },
+        "otpSent": {
+      "title": "OTP sent",
+      "msg": "OTP sent to your email."
+    },
+
+    "passwordReset": {
+      "title": "Password reset successfully!"
+    },
+
+    "mealUpdated": {
+      "title": "Meal updated successfully"
+    },
+
+    "mealDeleted": {
+      "title": "Meal deleted successfully"
+    },
+
+    "passwordTooShort": {
+      "title": "Invalid Password",
+      "msg": "Password must be at least 8 characters!"
+    },
+
+    "mealNotUpdated": {
+      "title": "Meal is not updated"
+    },
+
+    "mealNotDeleted": {
+      "title": "Meal is not deleted"
+    },
+        "noUserEmail": {
+      "title": "No user exists with this email"
+    },
+    "invalidOtp": {
+      "title": "Invalid or Expired OTP"
+    },
+        "logoutError": {
+      "title": "Logout Error"
+    }
+  },
+  "auth": {
+    "login": {
+      "welcome": "Welcome Back",
+      "subtitle": "Sign in to continue to your account",
+      "continueWithGoogle": "Continue with Google",
+      "dontHaveAccount": "Don't have an account?",
+      "signUp": "Sign Up",
+      "languageToggle": "Language",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "Your password",
+      "forgotPassword": "Forgot password?",
+      "signIn": "Sign In",
+      "errors": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Email is invalid",
+        "passwordRequired": "Password is required",
+        "passwordMin": "Password must be at least 6 characters"
+      }
+    },
+    "register": {
+      "createAccount": "Create Account",
+      "signUpToGetStarted": "Sign up to get started",
+      "alreadyHaveAccount": "Already have an account?",
+      "signIn": "Sign In",
+      "somethingWentWrong": "Something went wrong",
+            "fullName": "Full Name",
+      "fullNamePlaceholder": "Your full name",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "Create a password",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "creatingAccount": "Creating account...",
+      "errors": {
+        "nameRequired": "Name is required",
+        "emailRequired": "Email is required",
+        "emailInvalid": "Email is invalid",
+        "passwordRequired": "Password is required",
+        "passwordMin": "Password must be at least 6 characters",
+        "passwordMismatch": "Passwords do not match"
+      }
+    }
+  }
+}

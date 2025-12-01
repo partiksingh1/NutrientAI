@@ -12,6 +12,7 @@ import { router } from "expo-router";
 import AuthService from "../../services/authService";
 import Button from "../../components/Button";
 import { Toast } from "toastify-react-native";
+import { i18n } from "@/lib/i18next";
 
 export default function ResetPasswordScreen() {
     const [step, setStep] = useState<"email" | "otp">("email");
@@ -24,7 +25,7 @@ export default function ResetPasswordScreen() {
         try {
             setLoading(true);
             await AuthService.forgotPassword(email);
-            Toast.success("OTP sent to your email.");
+            Toast.success(i18n.t("toast.otpSent.msg"));
             setStep("otp");
         } catch (err) {
             console.error(err)
@@ -37,11 +38,11 @@ export default function ResetPasswordScreen() {
         try {
             setLoading(true);
             if (newPassword.length < 8) {
-                Toast.error("Password must be of atleast 8 characters!")
+                Toast.error(i18n.t("toast.passwordTooShort.msg"))
                 return
             }
             await AuthService.resetPassword(email, otp, newPassword);
-            Toast.success("Password reset successfully!");
+            Toast.success(i18n.t("toast.passwordReset.title"));
             router.replace("/auth/login");
         } catch (err) {
             console.error(err)

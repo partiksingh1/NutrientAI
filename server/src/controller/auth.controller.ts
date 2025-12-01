@@ -35,10 +35,11 @@ type Signup = {
     username: string;
     email: string;
     password: string;
+    language: string
 };
 
 export const signup = async (req: Request, res: Response) => {
-    const { username, email, password }: Signup = req.body;
+    const { username, email, password, language }: Signup = req.body;
 
     try {
         const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -54,6 +55,7 @@ export const signup = async (req: Request, res: Response) => {
                 username,
                 email,
                 password: hashedPassword,
+                language,
             },
         });
 
@@ -89,7 +91,7 @@ export const signin = async (req: Request, res: Response) => {
         const user = await prisma.user.findUnique({ where: { email } });
 
         if (!user) {
-            return res.status(404).json({ error: 'Invalid credentials' });
+            return res.status(404).json({ error: 'No user exists with this email' });
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -337,5 +339,68 @@ export const resetPassword = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Reset Password Error:', error);
         return res.status(500).json({ error: 'Password reset failed' });
+    }
+};
+
+export const deleteAccount = async (req: Request, res: Response) => {
+    const { email, password } = req.body;
+
+    try {
+        const user = await prisma.user.findUnique({ where: { email } });
+
+        if (!user) {
+            return res.status(404).json({ error: 'Invalid credentials' });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        // Step 1: Delete messages related to the user's conversations
+        const conversations = await prisma.conversation.findMany({
+            where: { userId: user.id },
+            select: { id: true }
+        });
+
+        const conversationIds = conversations.map(c => c.id);
+
+        if (conversationIds.length > 0) {
+            await prisma.message.deleteMany({
+                where: { conversationId: { in: conversationIds } }
+            });
+        }
+
+        // Step 2: Delete conversations
+        await prisma.conversation.deleteMany({
+            where: { userId: user.id }
+        });
+
+        // Step 3: Delete goals
+        await prisma.goal.deleteMany({
+            where: { userId: user.id }
+        });
+
+        // Step 4: Delete meal logs
+        await prisma.mealLog.deleteMany({
+            where: { userId: user.id }
+        });
+
+        // Step 5: Delete preferences
+        await prisma.preferences.deleteMany({
+            where: { userId: user.id }
+        });
+
+        // Step 6: Finally, delete the user
+        await prisma.user.delete({
+            where: { id: user.id }
+        });
+
+        return res.status(200).json({ message: 'Account and all associated data deleted successfully.' });
+
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        return res.status(500).json({ error: 'Internal server error' });
     }
 };

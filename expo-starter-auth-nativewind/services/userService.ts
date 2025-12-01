@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Toast } from "toastify-react-native";
 
 import { fetchWithAuth } from "@/utils/apiWithAuth";
+import { i18n } from "@/lib/i18next";
 
 const AUTH_TOKEN_KEY = "auth_token";
 const USER_DATA_KEY = "user_data";
@@ -99,8 +100,8 @@ export const updateUserProfile = async (profileData: UpdateProfileData): Promise
 
     Toast.show({
       type: "success",
-      text1: "Profile Updated",
-      text2: "Your profile has been updated successfully",
+      text1: i18n.t("toast.profileUpdated.title"),
+      text2: i18n.t("toast.profileUpdated.msg"),
       position: "top",
       visibilityTime: 3000,
       autoHide: true,
@@ -111,8 +112,8 @@ export const updateUserProfile = async (profileData: UpdateProfileData): Promise
     console.error("Update user profile error:", error);
     Toast.show({
       type: "error",
-      text1: "Update Failed",
-      text2: error.message || "Failed to update profile",
+      text1: i18n.t("toast.updateFailed.title"),
+      text2: error.message || i18n.t("toast.updateFailed.msg"),
       position: "top",
       visibilityTime: 3000,
       autoHide: true,
@@ -142,8 +143,8 @@ export const updateUserPreferences = async (
 
     Toast.show({
       type: "success",
-      text1: "Preferences Updated",
-      text2: "Your preferences have been updated successfully",
+      text1: i18n.t("toast.preferencesUpdated.title"),
+      text2: i18n.t("toast.preferencesUpdated.msg"),
       position: "top",
       visibilityTime: 3000,
       autoHide: true,
@@ -154,8 +155,8 @@ export const updateUserPreferences = async (
     console.error("Update preferences error:", error);
     Toast.show({
       type: "error",
-      text1: "Update Failed",
-      text2: error.message || "Failed to update preferences",
+      text1: i18n.t("toast.updateFailed.title"),
+      text2: error.message || i18n.t("toast.updateFailed.msg"),
       position: "top",
       visibilityTime: 3000,
       autoHide: true,
@@ -183,8 +184,8 @@ export const deleteUserAccount = async (): Promise<void> => {
 
     Toast.show({
       type: "success",
-      text1: "Account Deleted",
-      text2: "Your account has been deleted successfully",
+      text1: i18n.t("toast.accountDeleted.title"),
+      text2: i18n.t("toast.accountDeleted.msg"),
       position: "top",
       visibilityTime: 3000,
       autoHide: true,
@@ -193,8 +194,8 @@ export const deleteUserAccount = async (): Promise<void> => {
     console.error("Delete account error:", error);
     Toast.show({
       type: "error",
-      text1: "Delete Failed",
-      text2: error.message || "Failed to delete account",
+      text1: i18n.t("toast.deleteFailed.title"),
+      text2: error.message || i18n.t("toast.deleteFailed.msg"),
       position: "top",
       visibilityTime: 3000,
       autoHide: true,
@@ -234,8 +235,8 @@ export const updateDailyGoals = async (userId: number, goals: Partial<DailyGoals
   const data = await response.json();
   Toast.show({
     type: "success",
-    text1: "Goals Updated",
-    text2: "Daily goals updated successfully",
+    text1: i18n.t("toast.dailyGoalsUpdated.title"),
+    text2: i18n.t("toast.dailyGoalsUpdated.msg"),
   });
   return data.createDailyGoals;
 };

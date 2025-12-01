@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   ActivityIndicator,
+  Image,
+  useWindowDimensions,
 } from "react-native";
 import { router } from "expo-router";
 import { Toast } from "toastify-react-native";
@@ -16,18 +18,19 @@ import { AntDesign } from "@expo/vector-icons";
 import LoginForm from "../../components/LoginForm";
 import { useAuth } from "../../context/AuthContext";
 import { LoginCredentials } from "../../types/user";
+import { i18n } from "@/lib/i18next";
+import { Globe } from "lucide-react-native";
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
-  const [error, setError] = useState<string | null>(null);
-  const { login, isLoading, loginWithToken } = useAuth();
+  const { login, isLoading, loginWithToken, language, setLanguage } = useAuth();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
     webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
-    redirectUri: "com.partiksingh.expostarterauthnativewind:/",
+    redirectUri: "com.partiksingh.balancedbite:/",
     scopes: ["openid", "profile", "email"],
   });
 
@@ -51,7 +54,6 @@ export default function LoginScreen() {
         });
       } catch (err) {
         console.error("Google Login Error:", err);
-        setError(err instanceof Error ? err.message : "Google login failed");
       } finally {
         setIsGoogleLoading(false);
       }
@@ -61,7 +63,6 @@ export default function LoginScreen() {
       loginWithGoogle(response.authentication.idToken);
     } else if (response?.type === "error") {
       console.error(response.error);
-      setError("Google login failed. Please try again.");
     }
   }, [response]);
 
@@ -73,20 +74,29 @@ export default function LoginScreen() {
 
   const handleLogin = async (credentials: LoginCredentials) => {
     try {
-      setError(null);
       await login(credentials);
     } catch (err) {
+      console.log("errrrrr is", err);
+
       Toast.show({
         type: "error",
-        text1: "Login Error",
-        text2: `${err}`,
+        text1: String(err),
+        // text2: String(err),
         position: "top",
         visibilityTime: 3000,
         autoHide: true,
       });
-      setError(err instanceof Error ? err.message : "Failed to login");
+      console.log("error is ", err);
     }
   };
+
+  const toggleLanguage = () => {
+    // Switch between "en" and "it"
+    const newLang = language === "en" ? "it" : "en";
+    setLanguage(newLang);
+    i18n.locale = newLang;
+  };
+  const { width } = useWindowDimensions();
 
   return (
     <KeyboardAvoidingView
@@ -94,23 +104,25 @@ export default function LoginScreen() {
       style={{ flex: 1 }}
       keyboardVerticalOffset={0}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-        <View className="flex-1 justify-center items-center px-6 py-10 bg-white">
+        <View className="flex-1 justify-evenly items-center px-6 py-10 bg-white">
           <View className="w-full max-w-sm">
-            <View className="items-center mb-8">
-              <Text className="text-3xl font-bold mb-1 text-center">Welcome Back</Text>
+            <View className="flex-col items-center">
+              <Image
+                source={require("../../assets/icon.png")}
+                accessibilityLabel="BalancedBite logo"
+                style={{
+                  width: Math.min(120, width * 1),
+                  height: Math.min(120, width * 1),
+                  resizeMode: "contain",
+                  marginBottom: 18,
+                  borderRadius: 25
+                }}
+              />
               <Text className="text-gray-600 mb-6 text-center">
-                Sign in to continue to your account
+                {i18n.t("auth.login.subtitle")}
               </Text>
             </View>
-
-            {error && (
-              <View className="bg-red-100 border border-red-400 p-3 rounded-md mb-4">
-                <Text className="text-red-700 font-medium text-sm">{error}</Text>
-              </View>
-            )}
-
             <LoginForm onSubmit={handleLogin} isLoading={isLoading} />
-
             <TouchableOpacity
               onPress={handleGoogleSignIn}
               className="flex-row items-center justify-center mt-4 bg-white border border-gray-300 rounded-md py-3 px-4 shadow-sm"
@@ -121,18 +133,31 @@ export default function LoginScreen() {
                 <ActivityIndicator size="small" color="#000" />
               ) : (
                 <>
-                  <AntDesign name="google" size={20} color="#DB4437" style={{ marginRight: 10 }} />
-                  <Text className="text-gray-800 text-base font-medium">Continue with Google</Text>
+                  <AntDesign name="google" size={20} color="black" style={{ marginRight: 10 }} />
+                  <Text className="text-gray-800 text-base font-medium">{i18n.t("auth.login.continueWithGoogle")}</Text>
                 </>
               )}
             </TouchableOpacity>
-
             <View className="mt-6 flex-row justify-center">
-              <Text className="text-gray-600">Don't have an account? </Text>
+              <Text className="text-gray-600">{i18n.t("auth.login.dontHaveAccount")} </Text>
               <TouchableOpacity onPress={() => router.replace("/auth/register")}>
-                <Text className="text-indigo-700 font-bold">Sign Up</Text>
+                <Text className="text-indigo-700 font-bold">{i18n.t("auth.login.signUp")}</Text>
               </TouchableOpacity>
             </View>
+          </View>
+          {/* LANGUAGE SWITCHER BUTTON */}
+          <View className="flex-row justify-center mb-4">
+            <TouchableOpacity
+              onPress={toggleLanguage}
+              activeOpacity={0.8}
+              className="flex-row items-center justify-center bg-gray-100 border border-gray-300 px-4 py-2 rounded-lg"
+            >
+              <Globe size={18} color="#4B5563" strokeWidth={1.7} />
+
+              <Text className="ml-2 text-gray-800 font-medium text-base">
+                {language === "en" ? "Change the language" : "Cambia il linguaggio"}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>

@@ -6,6 +6,7 @@ import prisma from '../db/prisma.js';
 const UpdateProfileSchema = z.object({
     username: z.string().min(1).optional(),
     weight: z.number().positive().optional(),
+    language: z.string().min(1).optional(),
     height: z.number().positive().optional(),
     age: z.number().int().positive().optional(),
     gender: z.string().optional(),
@@ -80,7 +81,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
 
     try {
         const parsedData = UpdateProfileSchema.parse(req.body);
-        const { username, weight, height, age, gender, activityLevel } = parsedData;
+        const { username, weight, height, age, gender, activityLevel, language } = parsedData;
 
         // Check if username is being updated and if it's already taken
         if (username) {
@@ -104,6 +105,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
                 ...(height && { height }),
                 ...(age && { age }),
                 ...(gender && { gender }),
+                ...(language && { language }),
                 ...(activityLevel && { activityLevel }),
             },
             include: {

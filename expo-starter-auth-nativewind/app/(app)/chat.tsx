@@ -23,6 +23,7 @@ import TypingIndicator from "@/components/chat/TypeIndicator";
 import { useChat } from "@/hooks/useChat";
 import MessageBubble from "@/components/chat/MessageBubble";
 import EmptyState from "@/components/chat/EmptyState";
+import { i18n } from "@/lib/i18next";
 
 export default function ChatScreen() {
   const { user } = useAuth();
@@ -43,9 +44,9 @@ export default function ChatScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const quickSuggestions = [
-    { text: "How's my progress?", icon: TrendingUp },
-    { text: "Suggest dinner", icon: Sparkles },
-    { text: "Weekly summary", icon: Clock },
+    { text: `${i18n.t("chat.suggestionProgress")}`, icon: TrendingUp },
+    { text: `${i18n.t("chat.suggestionDinner")}`, icon: Sparkles },
+    { text: `${i18n.t("chat.suggestionWeekly")}`, icon: Clock },
   ];
 
   const onRefresh = async () => {
@@ -61,10 +62,7 @@ export default function ChatScreen() {
   if (isLoadingMessages) {
     return (
       <View className="flex-1 bg-gray-50 dark:bg-neutral-950 justify-center items-center p-6">
-        <ActivityIndicator size="large" color="#3B82F6" />
-        <Text className="text-lg text-gray-600 dark:text-gray-400 text-center mt-4">
-          Loading conversation...
-        </Text>
+        <ActivityIndicator size="large" color="green" />
       </View>
     );
   }
@@ -94,7 +92,7 @@ export default function ChatScreen() {
           </View>
           <View className="flex-1">
             <Text className="text-xl text-black dark:text-white">BalancedBite's AI</Text>
-            <Text className="text-md text-gray-500">Personalized Assistant</Text>
+            <Text className="text-md text-gray-500">{i18n.t("emptyState.personalizedAssistant")}</Text>
           </View>
         </View>
         <Button
@@ -150,7 +148,7 @@ export default function ChatScreen() {
           <Input
             value={inputValue}
             onChangeText={setInputValue}
-            placeholder="Ask about progress, or get suggestions..."
+            placeholder={i18n.t("chat.inputPlaceholder")}
             onSubmitEditing={handleSend}
             maxLength={500}
             multiline
