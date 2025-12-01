@@ -3,7 +3,7 @@
     "name": "BalancedBite",
     "slug": "balancedBite",
     "icon": "./assets/icon.png",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "plugins": [
@@ -12,6 +12,11 @@
       "expo-asset",
       "expo-font",
       "expo-splash-screen",
+      "expo-localization", {
+        "supportedLocales": {
+        "android": ["en", "it"]
+      }
+},
       {
           "backgroundColor": "#232323",
           "image": "./assets/icon.png",

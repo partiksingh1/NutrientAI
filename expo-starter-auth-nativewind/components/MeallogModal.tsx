@@ -16,6 +16,7 @@ import { Toast } from "toastify-react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import { analyzeMealWithAI, MealData, saveMeal } from "@/services/mealService";
+import { i18n } from "@/lib/i18next";
 
 type Step = "input" | "confirm";
 
@@ -117,8 +118,7 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
         handleClose();
         Toast.show({
           type: "success",
-          text1: "Your Meal is Logged!",
-          // text2: 'Secondary message',
+          text1: i18n.t("toast.mealLogged.title"),          // text2: 'Secondary message',
           position: "top",
           visibilityTime: 3000,
           autoHide: true,
@@ -127,7 +127,7 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
     } catch (error: any) {
       Toast.show({
         type: "error",
-        text1: "Error",
+        text1: i18n.t("toast.error.title"),
         text2: error,
         position: "top",
         visibilityTime: 3000,
@@ -146,26 +146,26 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
         <View className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
           <ForkKnife size={24} color="#3b82f6" />
         </View>
-        <Text className="text-lg font-semibold">Describe Your Meal</Text>
+        <Text className="text-lg font-semibold">{i18n.t('mealLoggingModal.describeYourMeal')}</Text>
         <Text className="text-gray-500 text-xs text-center mb-2">
-          Tell me what you ate and I'll calculate the nutrition for you
+          {i18n.t('mealLoggingModal.mealDescriptionPrompt')}
         </Text>
       </View>
 
       <View className="space-y-4">
         <View className="bg-gray-100 p-4 rounded-lg">
-          <Text className="text-gray-500 text-sm mb-2">Examples:</Text>
-          <Text className="text-sm">"Greek yogurt with berries"</Text>
-          <Text className="text-sm">"2 scrambled eggs with toast"</Text>
-          <Text className="text-sm">"Chicken caesar salad for lunch"</Text>
+          <Text className="text-gray-500 text-sm mb-2">{i18n.t('mealLoggingModal.examples')}</Text>
+          <Text className="text-sm">{i18n.t('mealLoggingModal.example1')}</Text>
+          <Text className="text-sm">{i18n.t('mealLoggingModal.example2')}</Text>
+          <Text className="text-sm">{i18n.t('mealLoggingModal.example3')}</Text>
         </View>
 
         <View className="my-2">
-          <Text className="text-sm mb-1">What did you eat?</Text>
+          <Text className="text-sm mb-1">{i18n.t('mealLoggingModal.whatDidYouEat')}</Text>
           <View className="flex-row gap-2">
             <TextInput
               className="flex-1 border border-gray-300 rounded-lg p-3"
-              placeholder="Describe your meal..."
+              placeholder={i18n.t('mealLoggingModal.describeYourMeal')}
               value={inputValue}
               onChangeText={setInputValue}
               onSubmitEditing={handleProcessInput}
@@ -198,14 +198,14 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
       <View className="flex-row justify-between">
         <TouchableOpacity className="flex-row items-center" onPress={() => setStep("input")}>
           <ArrowLeft size={16} color="#000" />
-          <Text className="ml-1">Back</Text>
+          <Text className="ml-1">{i18n.t('mealLoggingModal.back')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           className="flex-row items-center"
           onPress={() => setIsEditing(!isEditing)}
         >
           <Edit3 size={16} color="#000" />
-          <Text className="ml-1">{isEditing ? "Done" : "Edit"}</Text>
+          <Text className="ml-1">{isEditing ? `${i18n.t('mealLoggingModal.done')}` : `${i18n.t('mealLoggingModal.edit')}`}</Text>
         </TouchableOpacity>
       </View>
 
@@ -214,18 +214,18 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
         <View className="w-16 h-16 bg-green-100 rounded-full items-center justify-center mb-2">
           <Utensils size={24} color="#16a34a" />
         </View>
-        <Text className="text-lg font-semibold mb-1">Meal Analyzed!</Text>
-        <Text className="text-gray-500 text-sm mb-3">Please review and confirm</Text>
+        <Text className="text-lg font-semibold mb-1">{i18n.t('mealLoggingModal.mealAnalyzed')}</Text>
+        <Text className="text-gray-500 text-sm mb-3">{i18n.t('mealLoggingModal.pleaseReview')}</Text>
       </View>
 
       {/* Card */}
       <View className="bg-white p-4 rounded-xl border border-gray-200 space-y-4">
         {/* Meal Name */}
         <View className="space-y-2">
-          <Text className="text-gray-600">Meal Name</Text>
+          <Text className="text-gray-600">{i18n.t('mealLoggingModal.mealName')}</Text>
           {isEditing ? (
             <TextInput
-              placeholder="Enter meal name"
+              placeholder={i18n.t('mealLoggingModal.mealNamePlaceholder')}
               value={mealData.customName}
               onChangeText={text => setMealData(p => ({ ...p, customName: text }))}
               className="border border-gray-300 rounded-lg px-3 py-2 mt-3"
@@ -239,17 +239,18 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
         <View className="flex-col justify-between space-x-4 mt-3">
           {/* Meal Type */}
           <View className="flex-1">
-            <Text className="text-gray-600">Meal Type</Text>
+            <Text className="text-gray-600">{i18n.t('mealLoggingModal.mealType')}</Text>
             {isEditing ? (
               <View className="border border-gray-300 rounded-lg mt-3">
                 <Picker
                   selectedValue={mealData.mealType}
                   onValueChange={itemValue => setMealData(p => ({ ...p, mealType: itemValue }))}
                 >
-                  <Picker.Item label="Breakfast" value="BREAKFAST" />
-                  <Picker.Item label="Lunch" value="LUNCH" />
-                  <Picker.Item label="Dinner" value="DINNER" />
-                  <Picker.Item label="Snack" value="SNACKS" />
+                  <Picker.Item label={i18n.t("mealLoggingModal.breakfast")} value="BREAKFAST" />
+                  <Picker.Item label={i18n.t("mealLoggingModal.lunch")} value="LUNCH" />
+                  <Picker.Item label={i18n.t("mealLoggingModal.dinner")} value="DINNER" />
+                  <Picker.Item label={i18n.t("mealLoggingModal.snack")} value="SNACKS" />
+
                 </Picker>
               </View>
             ) : (
@@ -258,7 +259,7 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
           </View>
           {/* Servings */}
           <View className="flex-row space-y-1 justify-center mt-3">
-            <Text className="text-gray-600 my-auto">Servings</Text>
+            <Text className="text-gray-600 my-auto">{i18n.t("mealLoggingModal.servings")}: </Text>
             {isEditing ? (
               <View className="flex-row items-center border border-gray-300 rounded-lg overflow-hidden mx-auto justify-center">
                 <TouchableOpacity
@@ -289,14 +290,14 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
 
         {/* Nutrition Info */}
         <View className="pt-2">
-          <Text className="text-center text-sm text-gray-500 mb-2">Nutritional Information</Text>
+          <Text className="text-center text-sm text-gray-500 mb-2">{i18n.t("mealLoggingModal.nutritionInfo")}</Text>
 
           <View className="flex-row flex-wrap justify-between">
             {[
-              { label: "Calories", value: mealData.calories, color: "text-blue-600" },
-              { label: "Protein", value: `${mealData.protein}g`, color: "text-green-600" },
-              { label: "Carbs", value: `${mealData.carbs}g`, color: "text-orange-600" },
-              { label: "Fats", value: `${mealData.fats}g`, color: "text-purple-600" },
+              { label: `${i18n.t("mealLoggingModal.calories")}`, value: mealData.calories, color: "text-blue-600" },
+              { label: `${i18n.t("mealLoggingModal.protein")}`, value: `${mealData.protein}g`, color: "text-green-600" },
+              { label: `${i18n.t("mealLoggingModal.carbs")}`, value: `${mealData.carbs}g`, color: "text-orange-600" },
+              { label: `${i18n.t("mealLoggingModal.fats")}`, value: `${mealData.fats}g`, color: "text-purple-600" },
             ].map((item, index) => (
               <View key={index} className="items-center mb-4">
                 <Text className={`text-2xl ${item.color}`}>{item.value}</Text>
@@ -340,7 +341,7 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
           className="flex-1 border border-gray-300 py-3 rounded-lg items-center"
           onPress={() => setStep("input")}
         >
-          <Text>Try Again</Text>
+          <Text>{i18n.t("mealLoggingModal.tryAgain")}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           className={`flex-1 flex-row justify-center items-center py-3 rounded-lg ${isProcessing ? "bg-gray-400" : "bg-green-500"
@@ -353,7 +354,7 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
           ) : (
             <Check size={16} color="white" />
           )}
-          <Text className="text-white ml-2">{isProcessing ? "Saving..." : "Save Meal"}</Text>
+          <Text className="text-white ml-2">{isProcessing ? `${i18n.t("mealLoggingModal.savingMeal")}` : `${i18n.t("mealLoggingModal.saveMeal")}`}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -372,7 +373,7 @@ export function MealLoggingModal({ open, onClose, onSave }: MealLoggingModalProp
           <View className="flex-1 bg-black/40 justify-center px-4">
             <TouchableWithoutFeedback onPress={() => { }}>
               <View className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-h-[85%]">
-                <Text className="text-lg font-bold flex-row items-center mb-4">Log Your Meal</Text>
+                <Text className="text-lg font-bold flex-row items-center mb-4">{i18n.t("mealLoggingModal.logYourMeal")}</Text>
                 <ScrollView>
                   {step === "input" ? renderInputStep() : renderConfirmStep()}
                 </ScrollView>

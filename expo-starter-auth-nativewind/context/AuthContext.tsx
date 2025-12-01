@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import AuthService from "../services/authService";
 import { AuthState, LoginCredentials, RegisterCredentials } from "../types/user";
 import { Toast } from "toastify-react-native";
+import { i18n } from "@/lib/i18next";
+import * as Localization from "expo-localization";
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
@@ -12,6 +14,8 @@ interface AuthContextType extends AuthState {
     user: any; // Replace with proper User type
   }) => Promise<void>;
   logout: () => Promise<void>;
+  language: string;
+  setLanguage: (lang: string) => void;
   clearError: () => void;
   isProfileComplete: boolean;
   completeProfile: () => Promise<void>;
@@ -23,12 +27,15 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   error: null,
   isProfileComplete: false,
+  language: "en",
+  setLanguage: () => { },
   login: async () => { },
   loginWithToken: async () => { },
   register: async () => { },
   logout: async () => { },
   clearError: () => { },
   completeProfile: async () => { },
+
 });
 
 interface AuthProviderProps {
@@ -43,6 +50,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     error: null,
     isProfileComplete: false,
   });
+
+
+  const [language, setLanguage] = useState<string>(() => {
+    const locales = Localization.getLocales();
+    const deviceLang = locales[0]?.languageCode ?? "en";
+    return deviceLang.startsWith("it") ? "it" : "en";
+  });
+
+  // Whenever language changes, update i18n-js locale
+  useEffect(() => {
+    i18n.locale = language;
+  }, [language]);
+
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -187,7 +207,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: false,
         error: error instanceof Error ? error.message : "Logout failed",
       });
-      Toast.error("Logout Error");
+      Toast.error(i18n.t("toast.logoutError.title"));
     }
   };
 
@@ -200,6 +220,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
+    language,
+    setLanguage,
     loginWithToken,
     clearError,
     completeProfile

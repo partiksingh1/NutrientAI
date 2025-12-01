@@ -22,7 +22,7 @@ import { MealLoggingModal } from "@/components/MeallogModal";
 import { useAuth } from "@/context/AuthContext";
 import { MacroRing, ProgressBar } from "@/components/home/MacroRing";
 import GoalsForm from "@/components/home/GoalsForm";
-
+import { i18n } from "@/lib/i18next";
 export default function HomeScreen() {
   const { user } = useAuth();
   const name = user?.username ?? "User";
@@ -71,9 +71,9 @@ export default function HomeScreen() {
           <View className="flex-row justify-between items-start mb-6">
             <View>
               <Text className="text-3xl mb-1 text-black font-semibold dark:text-white">
-                Hi, {name}!
+                {i18n.t('home.hi', { name })}
               </Text>
-              <Text className="text-lg text-gray-500">Let's track your nutrition today</Text>
+              <Text className="text-lg text-gray-500">{i18n.t('home.greeting')}</Text>
             </View>
             <View className="w-10 h-10 bg-green-600 rounded-full items-center justify-center">
               <User2Icon size={18} color="white" />
@@ -86,7 +86,7 @@ export default function HomeScreen() {
               onPress={() => router.replace("/(app)/chat")}
             >
               <MessageCircle size={18} color="white" />
-              <Text className="text-white text-base ml-2 font-medium">Ask AI</Text>
+              <Text className="text-white text-base ml-2 font-medium">{i18n.t('home.askAI')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -94,7 +94,7 @@ export default function HomeScreen() {
               onPress={() => setIsModalOpen(true)}
             >
               <Plus size={18} color="black" />
-              <Text className="text-black text-base ml-2 font-medium">Log Meal</Text>
+              <Text className="text-black text-base ml-2 font-medium">{i18n.t('home.logMeal')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -105,7 +105,7 @@ export default function HomeScreen() {
             <View className="flex-row justify-between items-center mb-3">
               <View className="flex-row items-center gap-2">
                 <TargetIcon size={24} color="black" />
-                <Text className="text-xl text-black dark:text-white">Today's Progress</Text>
+                <Text className="text-xl text-black dark:text-white">{i18n.t('home.todaysProgress')}</Text>
               </View>
 
               {goalsMissing && !showSetGoalsForm && (
@@ -113,7 +113,7 @@ export default function HomeScreen() {
                   onPress={() => setShowSetGoalsForm(true)}
                   className="bg-green-600 px-3 py-1.5 rounded-full"
                 >
-                  <Text className="text-white text-sm font-medium">Set Daily Goals</Text>
+                  <Text className="text-white text-sm font-medium">{i18n.t('home.setGoals')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -140,7 +140,7 @@ export default function HomeScreen() {
                     setGoalInputs({ calories: "", protein: "", carbs: "", fats: "" });
                   }}
                   onCancel={() => setShowSetGoalsForm(false)}
-                  submitLabel="Save Goals"
+                  submitLabel={i18n.t("goalsForm.saveGoals")}
                   loading={loading}
                 />
               </View>
@@ -149,13 +149,13 @@ export default function HomeScreen() {
                 <>
                   <View className="flex-row justify-center mb-4 gap-6 p-3">
                     <MacroRing
-                      label="Calories"
+                      label={i18n.t('home.calories')}
                       current={dailyTotals.calories}
                       target={dailyGoals.calories ?? 1}
                       color="#3b82f6"
                     />
                     <MacroRing
-                      label="Protein"
+                      label={i18n.t('home.protein')}
                       current={dailyTotals.protein}
                       target={dailyGoals.protein ?? 1}
                       color="#10b981"
@@ -164,7 +164,7 @@ export default function HomeScreen() {
                   <View className="gap-3">
                     <View>
                       <View className="flex-row justify-between items-center mb-1">
-                        <Text>Carbs</Text>
+                        <Text>{i18n.t('home.carbs')}</Text>
                         <Text>
                           {dailyTotals.carbs}g / {dailyGoals?.carbs ?? "--"}g
                         </Text>
@@ -178,7 +178,7 @@ export default function HomeScreen() {
 
                     <View>
                       <View className="flex-row justify-between items-center mb-1">
-                        <Text>Fats</Text>
+                        <Text>{i18n.t('home.fats')}</Text>
                         <Text>
                           {dailyTotals.fats}g / {dailyGoals?.fats ?? "--"}g
                         </Text>
@@ -200,14 +200,14 @@ export default function HomeScreen() {
             <View className="mb-3 flex-row justify-between items-center">
               <View className="flex flex-row gap-2">
                 <UtensilsCrossed size={24} color="black" />
-                <Text className="text-xl">Today's Meals</Text>
+                <Text className="text-xl">{i18n.t('home.mealsToday')}</Text>
               </View>
               <TouchableOpacity
                 onPress={() => router.push("/meals")}
                 className="ml-3 px-3 py-1.5 bg-gray-100 rounded-full"
               >
                 <View>
-                  <Text className="text-sm text-gray-700 font-medium">See All Meals</Text>
+                  <Text className="text-sm text-gray-700 font-medium">{i18n.t('home.seeAllMeals')}</Text>
                 </View>
               </TouchableOpacity>
 
@@ -229,10 +229,10 @@ export default function HomeScreen() {
               <View className="py-8 items-center">
                 <UtensilsCrossed size={32} color="#9ca3af" />
                 <Text className="text-sm text-gray-500 text-center mt-2">
-                  No meals logged today.
+                  {i18n.t('home.noMealsLogged')}
                 </Text>
                 <Text className="text-xs text-gray-400 text-center mt-1">
-                  Tap the + button to log your first meal
+                  {i18n.t('home.logFirstMeal')}
                 </Text>
               </View>
             ) : (

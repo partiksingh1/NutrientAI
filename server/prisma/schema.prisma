@@ -27,6 +27,7 @@ model User {
   activityLevel String?
   profile_completed Boolean   @default(false)
   preferences   Preferences?
+  language      String?
 
   dietaryGoals  Goal[]
   mealLogs      MealLog[]

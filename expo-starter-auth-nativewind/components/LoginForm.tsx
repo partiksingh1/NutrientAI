@@ -13,6 +13,7 @@ import Button from "./Button";
 import FormInput from "./FormInput";
 import { LoginCredentials } from "../types/user";
 import { router } from "expo-router";
+import { i18n } from "@/lib/i18next";
 
 interface LoginFormProps {
   onSubmit: (credentials: LoginCredentials) => Promise<void>;
@@ -28,15 +29,15 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
   const validate = (): boolean => {
     const newErrors: { email?: string; password?: string } = {};
     if (!email) {
-      newErrors.email = "Email is required";
+      newErrors.email = `${i18n.t("auth.login.errors.emailRequired")}`;
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Email is invalid";
+      newErrors.email = `${i18n.t("auth.login.errors.emailInvalid")}`;
     }
 
     if (!password) {
-      newErrors.password = "Password is required";
+      newErrors.password = `${i18n.t("auth.login.errors.passwordRequired")}`;
     } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+      newErrors.password = `${i18n.t("auth.login.errors.passwordMin")}`;
     }
 
     setErrors(newErrors);
@@ -60,8 +61,8 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
       className="w-full"
     >
       <FormInput
-        label="Email"
-        placeholder="you@example.com"
+        label={i18n.t("auth.login.email")}
+        placeholder={i18n.t("auth.login.emailPlaceholder")}
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -71,10 +72,10 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
         error={errors.email}
       />
 
-      <View className="mb-6">
+      <View className="mb-2">
         <FormInput
-          label="Password"
-          placeholder="Your password"
+          label={i18n.t("auth.login.password")}
+          placeholder={i18n.t("auth.login.passwordPlaceholder")}
           value={password}
           onChangeText={setPassword}
           secureTextEntry={!showPassword}
@@ -97,11 +98,11 @@ export default function LoginForm({ onSubmit, isLoading = false }: LoginFormProp
         className="mb-6 self-end"
         onPress={() => router.push("/auth/reset-password")}
       >
-        <Text className="text-blue-600 font-medium text-sm">Forgot password?</Text>
+        <Text className="text-blue-600 font-medium text-sm">{i18n.t("auth.login.forgotPassword")}</Text>
       </TouchableOpacity>
 
       <Button
-        label={"Sign In"}
+        label={i18n.t("auth.login.signIn")}
         onPress={handleSubmit}
         disabled={isLoading}
         loading={isLoading}

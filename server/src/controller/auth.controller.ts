@@ -35,10 +35,11 @@ type Signup = {
     username: string;
     email: string;
     password: string;
+    language: string
 };
 
 export const signup = async (req: Request, res: Response) => {
-    const { username, email, password }: Signup = req.body;
+    const { username, email, password, language }: Signup = req.body;
 
     try {
         const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -54,6 +55,7 @@ export const signup = async (req: Request, res: Response) => {
                 username,
                 email,
                 password: hashedPassword,
+                language,
             },
         });
 
@@ -89,7 +91,7 @@ export const signin = async (req: Request, res: Response) => {
         const user = await prisma.user.findUnique({ where: { email } });
 
         if (!user) {
-            return res.status(404).json({ error: 'Invalid credentials' });
+            return res.status(404).json({ error: 'No user exists with this email' });
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);

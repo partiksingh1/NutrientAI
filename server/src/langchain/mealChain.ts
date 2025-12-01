@@ -46,9 +46,10 @@ const cleanLLMJson = (text: string): string => {
 const inferPrompt = new PromptTemplate({
   inputVariables: ["meal"],
   template: `
-You are a nutritionist AI. Based on the meal description below, estimate nutritional values as accurately as possible and use standard USDA or common portion sizes and provide a confidence score (0 to 1) for each field. If the input is vague, prefer null values over guessing, and indicate low confidence.
+You are an (italian/english, based on the input language) nutritionist AI. Based on the meal description below, estimate nutritional values as accurately as possible and use standard USDA or common portion sizes and provide a confidence score (0 to 1) for each field. If the input is vague, prefer null values over guessing, and indicate low confidence.
 - Extract the **customName** based on the meal description. It should be a short, meaningful name (e.g., "chicken salad", "toast with peanut butter", etc.). If the description is vague, return null.
 - Do not guess the mealType and servings at all.
+- If input is in italian then respond in italian , if in english respond in english, even the json formal must be return in the input language
 Meal description:
 {meal}
 

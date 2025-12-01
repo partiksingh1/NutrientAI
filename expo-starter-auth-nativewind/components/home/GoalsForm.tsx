@@ -1,3 +1,4 @@
+import { i18n } from "@/lib/i18next";
 import React, { useState, useEffect } from "react";
 import {
     View,
@@ -37,7 +38,7 @@ export default function GoalsForm({
     initial,
     onSubmit,
     onCancel,
-    submitLabel = "Save Goals",
+    submitLabel = `${i18n.t("goalsForm.saveGoals")}`,
     loading = false,
 }: GoalsFormProps) {
     const [calories, setCalories] = useState(initial?.calories?.toString() ?? "");
@@ -64,18 +65,18 @@ export default function GoalsForm({
         const f = Number(fats);
 
         if ([c, p, cb, f].some(n => Number.isNaN(n))) {
-            setError("All values must be valid numbers.");
+            setError(`${i18n.t("goalsForm.errorInvalidNumbers")}`);
             return;
         }
 
         if (c <= 0) {
-            setError("Calories must be greater than 0.");
+            setError(`${i18n.t("goalsForm.errorCaloriesZero")}`);
             return;
         }
 
         // Basic sanity upper-limits (optional; tweak as needed)
         if (p < 0 || cb < 0 || f < 0) {
-            setError("Macro values cannot be negative.");
+            setError(`${i18n.t("goalsForm.errorNegativeMacros")}`);
             return;
         }
 
@@ -95,7 +96,7 @@ export default function GoalsForm({
                 <Text className="mb-1 capitalize text-sm text-black dark:text-white">calories</Text>
                 <TextInput
                     keyboardType="numeric"
-                    placeholder="Enter calories"
+                    placeholder={i18n.t("goalsForm.enterCalories")}
                     value={calories}
                     onChangeText={setCalories}
                     className="border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
@@ -106,7 +107,7 @@ export default function GoalsForm({
                 <Text className="mb-1 capitalize text-sm text-black dark:text-white">protein (g)</Text>
                 <TextInput
                     keyboardType="numeric"
-                    placeholder="Enter protein"
+                    placeholder={i18n.t("goalsForm.enterProtein")}
                     value={protein}
                     onChangeText={setProtein}
                     className="border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
@@ -117,7 +118,7 @@ export default function GoalsForm({
                 <Text className="mb-1 capitalize text-sm text-black dark:text-white">carbs (g)</Text>
                 <TextInput
                     keyboardType="numeric"
-                    placeholder="Enter carbs"
+                    placeholder={i18n.t("goalsForm.enterCarbs")}
                     value={carbs}
                     onChangeText={setCarbs}
                     className="border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
@@ -128,7 +129,7 @@ export default function GoalsForm({
                 <Text className="mb-1 capitalize text-sm text-black dark:text-white">fats (g)</Text>
                 <TextInput
                     keyboardType="numeric"
-                    placeholder="Enter fats"
+                    placeholder={i18n.t("goalsForm.enterFats")}
                     value={fats}
                     onChangeText={setFats}
                     className="border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
@@ -159,7 +160,7 @@ export default function GoalsForm({
                         onPress={onCancel}
                         className="px-4 py-3 rounded-md items-center justify-center border border-gray-300"
                     >
-                        <Text>Cancel</Text>
+                        <Text>{i18n.t("goalsForm.cancel")}</Text>
                     </TouchableOpacity>
                 )}
             </View>

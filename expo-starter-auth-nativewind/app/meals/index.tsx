@@ -16,6 +16,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { fetchWithAuth } from "@/utils/apiWithAuth";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Toast } from "toastify-react-native";
+import { i18n } from "@/lib/i18next";
 
 interface Meal {
     id: number;
@@ -125,10 +126,10 @@ export default function MealsScreen() {
             });
             const data = await res.json();
             if (!res.ok) {
-                Toast.error("Meal is not updated")
+                Toast.error(i18n.t("toast.mealNotUpdated.title"))
                 throw new Error(data?.message || "Failed to update meal");
             }
-            Toast.success("Meal updated successfully")
+            Toast.success(i18n.t("toast.mealUpdated.title"))
             // Update local state
             setMeals((prevMeals) =>
                 prevMeals.map((meal) =>
@@ -159,14 +160,14 @@ export default function MealsScreen() {
                             method: "DELETE",
                         });
                         if (!res.ok) {
-                            Toast.error("Meal is not deleted")
+                            Toast.error(i18n.t("toast.mealNotDeleted.title"))
                             const data = await res.json();
                             console.log("error is", data);
 
                             throw new Error(data?.message || "Failed to delete meal");
                         }
                         // Remove from local state
-                        Toast.success("Meal deleted successfully")
+                        Toast.success(i18n.t("toast.mealDeleted.title"))
                         setMeals((prevMeals) => prevMeals.filter((meal) => meal.id !== mealId));
                     } catch (err: any) {
                         Alert.alert("Error", err.message || "Something went wrong deleting the meal.");

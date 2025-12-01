@@ -3,14 +3,20 @@ export default {
     name: "BalancedBite",
     slug: "balancedBite",
     icon: "./assets/icon.png",
-    version: "2.0.0",
+    version: "3.0.0",
     userInterfaceStyle: "light",
     newArchEnabled: true,
     plugins: [
       "expo-router",
       "expo-secure-store",
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      "expo-localization",
+        {
+          "supportedLocales": {
+            "android": ["en", "it"]
+          }
+        }
     ],
     platforms: ["android"],
     experiments: {

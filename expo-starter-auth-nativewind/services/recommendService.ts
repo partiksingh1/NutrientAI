@@ -2,6 +2,7 @@ import { Toast } from "toastify-react-native";
 
 import { LocalMessage, Conversation, AIResponse } from "@/types/recommend";
 import { fetchWithAuth } from "@/utils/apiWithAuth";
+import { i18n } from "@/lib/i18next";
 
 export const sendMessageToAI = async (userId: string, message: string): Promise<AIResponse> => {
   try {
@@ -21,8 +22,8 @@ export const sendMessageToAI = async (userId: string, message: string): Promise<
     if (data.cached) {
       Toast.show({
         type: "info",
-        text1: "Quick response",
-        text2: "Using cached result",
+        text1: i18n.t("toast.cachedResponse.title"),
+        text2: i18n.t("toast.cachedResponse.msg"),
         position: "top",
         visibilityTime: 2000,
         autoHide: true,
@@ -33,8 +34,8 @@ export const sendMessageToAI = async (userId: string, message: string): Promise<
   } catch (error: any) {
     Toast.show({
       type: "error",
-      text1: "Error sending message",
-      text2: error.message || "Please try again later.",
+      text1: i18n.t("toast.sendMessageError.title"),
+      text2: error.message || i18n.t("toast.sendMessageError.msg"),
       position: "top",
       visibilityTime: 3000,
       autoHide: true,
@@ -65,8 +66,8 @@ export const fetchConversationMessages = async (): Promise<LocalMessage[]> => {
     if (error.response?.status >= 500) {
       Toast.show({
         type: "error",
-        text1: "Connection error",
-        text2: "Please check your internet connection",
+        text1: i18n.t("toast.connectionError.title"),
+        text2: i18n.t("toast.connectionError.msg"),
         position: "top",
         visibilityTime: 3000,
         autoHide: true,
@@ -84,7 +85,7 @@ export const clearConversation = async (): Promise<void> => {
 
     Toast.show({
       type: "success",
-      text1: "Conversation cleared",
+      text1: i18n.t("toast.conversationCleared.title"),
       position: "top",
       visibilityTime: 3000,
       autoHide: true,
@@ -92,8 +93,8 @@ export const clearConversation = async (): Promise<void> => {
   } catch (error: any) {
     Toast.show({
       type: "error",
-      text1: "Failed to clear conversation",
-      text2: error.message || "Please try again.",
+      text1: i18n.t("toast.conversationClearFailed.title"),
+      text2: error.message || i18n.t("toast.conversationClearFailed.msg"),
       position: "top",
       visibilityTime: 3000,
       autoHide: true,

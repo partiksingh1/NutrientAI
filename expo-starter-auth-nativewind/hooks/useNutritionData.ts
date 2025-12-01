@@ -7,6 +7,7 @@ import {
     MealData,
 } from "@/services/mealService";
 import { useAuth } from "@/context/AuthContext";
+import { i18n } from "@/lib/i18next";
 
 export function useNutritionData() {
     const { user } = useAuth();
@@ -65,8 +66,8 @@ export function useNutritionData() {
             setGoalsMissing(false);
             Toast.show({
                 type: "success",
-                text1: "Goals updated successfully!",
-                text2: "Your daily goals have been saved.",
+                text1: i18n.t("toast.goalsUpdated.title"),
+                text2: i18n.t("toast.goalsUpdated.msg")
             });
             fetchDailyGoals();
         } catch (err: any) {
@@ -74,8 +75,8 @@ export function useNutritionData() {
             setError(err?.response?.data?.message || "Failed to update goals");
             Toast.show({
                 type: "error",
-                text1: "Update Failed",
-                text2: err?.response?.data?.error || "Please try again",
+                text1: i18n.t("toast.updateFailed.title"),
+                text2: err?.response?.data?.error || i18n.t("toast.updateFailed.msg")
             });
         } finally {
             setLoading(false);

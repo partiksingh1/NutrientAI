@@ -1,7 +1,8 @@
+import { i18n } from "@/lib/i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 /**
  * This is the layout for the authenticated app with tab navigation
  */
@@ -40,36 +41,36 @@ export default function AppLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: "Home",
+            title: `${i18n.t('buttons.home')}`,
             tabBarIcon: getTabBarIcon("home-outline"),
-            tabBarLabel: "Home",
+            tabBarLabel: `${i18n.t('buttons.home')}`,
             headerShown: false,
           }}
         />
         <Tabs.Screen
           name="chat"
           options={{
-            title: "Chat",
+            title: `${i18n.t('buttons.chat')}`,
             tabBarIcon: getTabBarIcon("chatbubble-ellipses"),
-            tabBarLabel: "AI Chat",
+            tabBarLabel: `${i18n.t('buttons.chat')}`,
             headerShown: false,
           }}
         />
         <Tabs.Screen
           name="progress"
           options={{
-            title: "Progress",
+            title: `${i18n.t('buttons.progress')}`,
             tabBarIcon: getTabBarIcon("analytics-outline"),
-            tabBarLabel: "Progress",
+            tabBarLabel: `${i18n.t('buttons.progress')}`,
             headerShown: false,
           }}
         />
         <Tabs.Screen
           name="settings"
           options={{
-            title: "Settings",
+            title: `${i18n.t('buttons.settings')}`,
             tabBarIcon: getTabBarIcon("settings-outline"),
-            tabBarLabel: "Settings",
+            tabBarLabel: `${i18n.t('buttons.settings')}`,
             headerShown: false,
           }}
         />

@@ -7,6 +7,7 @@ import {
   sendMessageToAI,
 } from "@/services/recommendService";
 import { LocalMessage } from "@/types/recommend";
+import { i18n } from "@/lib/i18next";
 
 interface UseChatParams {
   userId: string | null;
@@ -24,11 +25,12 @@ export const useChat = ({ userId }: UseChatParams) => {
   const loadConversationMessages = async () => {
     if (!userId) return;
     setIsLoadingMessages(true);
+
     try {
       const localMessages = await fetchConversationMessages();
       setMessages(localMessages);
     } catch (error) {
-      Alert.alert("Error", "Failed to load conversation");
+      Alert.alert(i18n.t("chat.error"), i18n.t("chat.loadError"));
       setMessages([]);
     } finally {
       setIsLoadingMessages(false);
@@ -38,12 +40,12 @@ export const useChat = ({ userId }: UseChatParams) => {
   // Clear conversation with confirmation
   const clearConversationMessages = async () => {
     Alert.alert(
-      "Clear Conversation",
-      "Are you sure you want to clear all messages? This action cannot be undone.",
+      i18n.t("chat.clearConfirmTitle"),
+      i18n.t("chat.clearConfirmSubtitle"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: i18n.t("chat.cancel"), style: "cancel" },
         {
-          text: "Clear",
+          text: i18n.t("chat.clear"),
           style: "destructive",
           onPress: async () => {
             try {
@@ -80,7 +82,9 @@ export const useChat = ({ userId }: UseChatParams) => {
       const aiResponse = await sendMessageToAI(userId, currentInput);
 
       const aiMessage: LocalMessage = {
-        id: aiResponse.messageId ? aiResponse.messageId.toString() : (Date.now() + 1).toString(),
+        id: aiResponse.messageId
+          ? aiResponse.messageId.toString()
+          : (Date.now() + 1).toString(),
         content: aiResponse.reply,
         sender: "ai",
         timestamp: new Date(),
@@ -92,8 +96,7 @@ export const useChat = ({ userId }: UseChatParams) => {
         ...prev,
         {
           id: (Date.now() + 1).toString(),
-          content:
-            "Sorry, I'm having trouble connecting right now. Please check your internet connection and try again.",
+          content: i18n.t("chat.offlineError"),
           sender: "ai",
           timestamp: new Date(),
         },
@@ -101,8 +104,9 @@ export const useChat = ({ userId }: UseChatParams) => {
 
       if (__DEV__) {
         Alert.alert(
-          "API Error",
-          `Failed to get AI response: ${error instanceof Error ? error.message : "Unknown error"}`,
+          i18n.t("chat.apiError"),
+          `${i18n.t("chat.apiErrorDetail")}: ${error instanceof Error ? error.message : "Unknown error"
+          }`,
         );
       }
     } finally {
@@ -118,14 +122,14 @@ export const useChat = ({ userId }: UseChatParams) => {
     }, 100);
   };
 
-  // Scroll to bottom when messages change
+  // Scroll on message update
   useEffect(() => {
     if (messages.length > 0) {
       scrollToBottom();
     }
   }, [messages.length]);
 
-  // On mount, load conversation messages
+  // Load messages on mount
   useEffect(() => {
     loadConversationMessages();
   }, [userId]);

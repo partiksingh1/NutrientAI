@@ -1,0 +1,459 @@
+{
+  "step1": {
+    "welcome": "Ciao {{username}}",
+    "welcomeMessage": "Benvenuto su BalancedBite",
+    "assistant": "Il tuo assistente nutrizionale AI personale",
+    "age": "Età",
+    "weight": "Peso (kg)",
+    "height": "Altezza (cm)",
+    "gender": "Genere",
+    "male": "Maschio",
+    "female": "Femmina"
+  },
+  "step2": {
+    "activityLevel": "Livello di attività",
+    "activityDescription": "Quanto sei attivo/a in un giorno tipico?",
+    "sedentary": "Sedentario",
+    "sedentaryDesc": "Poco o niente esercizio",
+    "lightlyActive": "Leggermente attivo",
+    "lightlyActiveDesc": "Esercizio leggero 1-3 giorni a settimana",
+    "moderatelyActive": "Moderatamente attivo",
+    "moderatelyActiveDesc": "Esercizio moderato 3-5 giorni a settimana",
+    "veryActive": "Molto attivo",
+    "veryActiveDesc": "Esercizio intenso 6-7 giorni a settimana"
+  },
+  "step3": {
+    "yourGoals": "I tuoi obiettivi",
+    "fitnessGoal": "Qual è il tuo obiettivo principale di fitness?",
+    "fatLoss": {
+      "label": "Perdita di grasso",
+      "emoji": "🔥"
+    },
+    "muscleGain": {
+      "label": "Massa muscolare",
+      "emoji": "💪"
+    },
+    "maintenance": {
+      "label": "Mantenere il peso",
+      "emoji": "⚖️"
+    },
+    "generalHealth": {
+      "label": "Salute generale",
+      "emoji": "🌱"
+    },
+    "whyIsThisYourGoal": "Perché è questo il tuo obiettivo?",
+    "goalDescriptionPlaceholder": "Descrivi la tua motivazione o ragione",
+    "targetEndDate": "Data di fine obiettivo",
+    "selectDate": "Seleziona una data"
+  },
+  "step4": {
+    "dietaryPreferences": "Preferenze alimentari",
+    "tellUsMore": "Raccontaci di più sulle tue abitudini alimentari",
+    "allergies": "Allergie",
+    "allergy": {
+      "Nuts": "Frutta secca",
+      "Dairy": "Latticini",
+      "Gluten": "Glutine",
+      "Shellfish": "Crostacei",
+      "Eggs": "Uova",
+      "Soy": "Soia",
+      "Fish": "Pesce"
+    },
+    "addCustomAllergy": "Aggiungi allergia personalizzata",
+    "add": "Aggiungi",
+    "mealsPerDay": "Pasti al giorno",
+    "includeSnacks": "Includi snack?",
+    "completionTitle": "🎉 Sei pronto!",
+    "completionDescription": "BalancedBite utilizzerà queste informazioni per fornirti consigli nutrizionali personalizzati e piani alimentari."
+  },
+  "buttons": {
+    "back": "Indietro",
+    "next": "Avanti",
+    "getStarted": "Inizia",
+    "submittingProfile":"Stiamo inviando il tuo profilo...",
+    "profileCompleted":"Profilo completato!",
+      "home": "Home",
+  "chat": "Chat AI",
+  "progress": "Progresso",
+  "settings": "Impostazioni"
+  },
+    "validation": {
+    "ageError": "Per favore inserisci una valid età",
+    "weightError": "Per favore inserisci un peso valido",
+    "heightError": "Per favore inserisci un'altezza valida",
+    "genderError": "Per favore seleziona il tuo genere",
+    "activityLevelError": "Per favore seleziona il tuo livello di attività",
+    "goalError": "Per favore seleziona un obiettivo",
+    "goalDescriptionError": "Per favore fornisci una descrizione dell'obiettivo",
+    "goalEndDateError": "Per favore seleziona una data target"
+  },
+  "home": {
+    "hi": "Ciao, {{name}}!",
+    "greeting": "Iniziamo a tracciare la tua nutrizione oggi",
+    "askAI": "Chiedi all'AI",
+    "logMeal": "Registra il pasto",
+    "todaysProgress": "Progressi di oggi",
+    "setGoals": "Obiettivi giornalieri",
+    "calories": "Calorie",
+    "protein": "Proteine",
+    "carbs": "Carboidrati",
+    "fats": "Grassi",
+    "mealsToday": "Pasti di oggi",
+    "seeAllMeals": "Vedi tutti i pasti",
+    "noMealsLogged": "Nessun pasto registrato oggi.",
+    "logFirstMeal": "Clica + per registrare il tuo primo pasto",
+    "mealTime": "Nessun orario",
+    "mealCalories": "{{calories}} kcal",
+    "mealType": "{{mealType}}"
+  },
+  "mealLoggingModal": {
+    "describeYourMeal": "Descrivi il tuo pasto",
+    "mealDescriptionPrompt": "Dimmi cosa hai mangiato e calcolerò la nutrizione per te",
+    "examples": "Esempi:",
+    "example1": "\"Yogurt greco con frutti di bosco\"",
+    "example2": "\"2 uova strapazzate con toast\"",
+    "example3": "\"Insalata Caesar con pollo per pranzo\"",
+    "whatDidYouEat": "Cosa hai mangiato?",
+    "processButton": "Elabora pasto",
+    "errorProcessingMeal": "Fornisci più dettagli sul tuo pasto.",
+    "mealAnalyzed": "Pasto Analizzato!",
+    "pleaseReview": "Per favore rivedi e conferma",
+    "back": "Indietro",
+    "edit": "Modifica",
+    "done": "Fatto",
+    "mealName": "Nome del pasto",
+    "mealNamePlaceHolder": "Inserisci il nome del pasto",
+    "mealType": "Tipo di pasto",
+    "servings": "Porzioni",
+    "nutritionInfo": "Informazioni nutrizionali",
+    "calories": "Calorie",
+    "protein": "Proteine",
+    "carbs": "Carboidrati",
+    "fats": "Grassi",
+    "tryAgain": "Riprova",
+    "saveMeal": "Salva pasto",
+    "savingMeal": "Salvataggio...",
+    "mealSaved": "Il tuo pasto è stato registrato!",
+    "errorSavingMeal": "Errore nel salvataggio del pasto",
+    "breakfast": "Colazione",
+    "lunch": "Pranzo",
+    "dinner": "Cena",
+    "snack": "Spuntino",
+    "logYourMeal": "Registra il tuo pasto"
+  },
+    "goalsForm": {
+    "calories": "Calorie",
+    "protein": "Proteine (g)",
+    "carbs": "Carboidrati (g)",
+    "fats": "Grassi (g)",
+
+    "enterCalories": "Inserisci le calorie",
+    "enterProtein": "Inserisci le proteine",
+    "enterCarbs": "Inserisci i carboidrati",
+    "enterFats": "Inserisci i grassi",
+
+    "saveGoals": "Salva Obiettivi",
+    "cancel": "Annulla",
+
+    "errorInvalidNumbers": "Tutti i valori devono essere numeri validi.",
+    "errorCaloriesZero": "Le calorie devono essere maggiori di 0.",
+    "errorNegativeMacros": "I valori dei macronutrienti non possono essere negativi."
+  },
+    "emptyState": {
+    "welcomeTitle": "Benvenuto su BalancedBite!",
+    "welcomeSubtitle": "Sono il tuo assistente personale per la nutrizione. Chiedimi dei pasti, monitora i tuoi progressi o ricevi consigli personalizzati.",
+    "suggestions": "Prova uno dei suggerimenti qui sotto per iniziare",
+    "personalizedAssistant":"Assistente personalizzato"
+  },
+    "chat": {
+    "loadingMessages": "Caricamento dei messaggi...",
+    "loginRequired": "Accedi per utilizzare l'assistente nutrizionale AI.",
+
+    "headerTitle": "AI di BalancedBite",
+    "headerSubtitle": "Il tuo assistente nutrizionale personale",
+
+    "suggestionProgress": "Come stanno andando i miei progressi?",
+    "suggestionDinner": "Suggerisci una cena",
+    "suggestionWeekly": "Riepilogo settimanale",
+
+    "inputPlaceholder": "Chiedi dei progressi o richiedi suggerimenti...",
+
+    "characters": "caratteri",
+
+    "clearChat": "Cancella chat",
+        "error": "Errore",
+    "loadError": "Impossibile caricare la conversazione.",
+    "clearConfirmTitle": "Cancella conversazione",
+    "clearConfirmSubtitle": "Sei sicuro di voler cancellare tutti i messaggi? Questa azione non può essere annullata.",
+    "cancel": "Annulla",
+    "clear": "Cancella",
+
+    "offlineError": "Spiacente, ho problemi di connessione. Controlla Internet e riprova.",
+
+    "apiError": "Errore API",
+    "apiErrorDetail": "Impossibile ottenere la risposta dell'AI"
+  },
+    "progress": {
+    "headerTitle": "Monitoraggio Progressi",
+    "headerSubtitle": "Il tuo percorso nutrizionale nel tempo",
+
+    "period": {
+      "week": "Settimana",
+      "month": "Mese",
+      "quarter": "Trimestre"
+    },
+
+    "stats": {
+      "avgCalories": "Calorie Medie",
+      "goalAdherence": "Aderenza agli Obiettivi",
+      "totalMeals": "Pasti Totali"
+    },
+
+    "noData": "Nessun dato disponibile",
+
+    "errorTryAgain": "Riprova",
+
+    "trends": {
+      "dailyCalories": "Calorie Giornaliere",
+      "switchTo": "Passa a",
+     "bar":"Bar",
+     "line":"Linea",
+      "notEnoughData": "Dati insufficienti per mostrare le tendenze. Inizia a registrare i pasti per vedere le analisi!"
+    },
+
+    "macros": {
+      "title": "Distribuzione dei Macro",
+      "centerLabel": "Macronutrienti"
+    },
+
+    "summary": {
+      "title": "Riepilogo",
+      "loggedDays": "Giorni Registrati",
+      "avgProtein": "Proteine Medie",
+      "avgCarbs": "Carboidrati Medi",
+      "avgFats": "Grassi Medi"
+    }
+  },
+  "profile": {
+    "cancel": "Annulla",
+    "edit": "Modifica",
+
+    "personalInfo": "Informazioni Personali",
+    "preferences": "Preferenze",
+    "dailyGoals": "Obiettivi Nutrizionali Giornalieri",
+
+    "username": "Nome Utente",
+    "age": "Età",
+    "years": "anni",
+    "notSet": "Non impostato",
+
+    "weight": "Peso (kg)",
+    "height": "Altezza (cm)",
+    "activityLevel": "Livello di Attività",
+    "gender": "Genere",
+
+    "dietType": "Tipo di Dieta",
+    "selectDietType": "Seleziona il tipo di dieta",
+
+    "mealFrequency": "Pasti al Giorno",
+    "selectMealFrequency": "Seleziona la frequenza dei pasti",
+
+    "includeSnacks": "Includi Spuntini",
+
+    "allergies": "Allergie",
+    "allergiesPlaceholder": "Inserisci le allergie (separate da virgola)",
+    "none": "Nessuna",
+
+    "save": "Salva",
+
+    "calories": "Calorie",
+    "protein": "Proteine",
+    "carbs": "Carboidrati",
+    "fats": "Grassi",
+
+    "helpSupport": "Aiuto e Supporto",
+        "changeLanguage": "Cambia il linguaggio",
+    "signOut": "Disconnetti",
+
+    "dailyGoalsUnit": {
+      "calories": "kcal",
+      "other": "g"
+    },
+    "changeLanguageTitle": "Conferma la modifica della lingua",
+    "changeLanguageConfirmation": "Sei sicuro di voler cambiare la lingua?",
+    "confirm": "Conferma",
+    "languageUpdatedSuccessfully": "La tua lingua è stata aggiornata con successo!",
+    "languageUpdateFailed": "Impossibile aggiornare la lingua. Riprova."
+  },
+    "toast": {
+    "noInternet": {
+      "title": "Nessuna Connessione Internet",
+      "msg": "Controlla la tua connessione per continuare"
+    },
+
+    "loginFailed": {
+      "title1": "Accesso Fallito, nessun user esistente",
+      "title2": "Accesso Fallito, credenziali non valide",
+      "msg": "Controlla email e password"
+    },
+
+    "loginSuccess": {
+      "title": "Accesso Riuscito"
+    },
+
+    "mealLogged": {
+      "title": "Pasto Registrato!"
+    },
+
+    "error": {
+      "title": "Errore"
+    },
+
+    "goalsUpdated": {
+      "title": "Obiettivi aggiornati!",
+      "msg": "I tuoi obiettivi giornalieri sono stati salvati."
+    },
+
+    "updateFailed": {
+      "title": "Aggiornamento Fallito",
+      "msg": "Per favore riprova"
+    },
+
+    "logoutSuccess": {
+      "title": "Disconnessione Riuscita"
+    },
+
+    "cachedResponse": {
+      "title": "Risposta veloce",
+      "msg": "Usato risultato memorizzato"
+    },
+
+    "sendMessageError": {
+      "title": "Errore durante l'invio del messaggio",
+      "msg": "Per favore riprova più tardi."
+    },
+
+    "connectionError": {
+      "title": "Errore di connessione",
+      "msg": "Per favore controlla la tua connessione"
+    },
+
+    "conversationCleared": {
+      "title": "Conversazione cancellata"
+    },
+
+    "conversationClearFailed": {
+      "title": "Impossibile cancellare la conversazione",
+      "msg": "Per favore riprova."
+    },
+
+    "profileUpdated": {
+      "title": "Profilo Aggiornato",
+      "msg": "Il tuo profilo è stato aggiornato correttamente"
+    },
+
+    "preferencesUpdated": {
+      "title": "Preferenze Aggiornate",
+      "msg": "Le tue preferenze sono state aggiornate correttamente"
+    },
+
+    "accountDeleted": {
+      "title": "Account Eliminato",
+      "msg": "Il tuo account è stato eliminato correttamente"
+    },
+
+    "deleteFailed": {
+      "title": "Eliminazione Fallita",
+      "msg": "Impossibile eliminare l'account"
+    },
+
+    "dailyGoalsUpdated": {
+      "title": "Obiettivi Aggiornati",
+      "msg": "Obiettivi giornalieri aggiornati con successo"
+    },
+     "otpSent": {
+      "title": "OTP inviato",
+      "msg": "L'OTP è stato inviato alla tua email."
+    },
+
+    "passwordReset": {
+      "title": "Password reimpostata con successo!"
+    },
+
+    "mealUpdated": {
+      "title": "Pasto aggiornato con successo"
+    },
+
+    "mealDeleted": {
+      "title": "Pasto eliminato con successo"
+    },
+
+    "passwordTooShort": {
+      "title": "Password non valida",
+      "msg": "La password deve essere di almeno 8 caratteri!"
+    },
+
+    "mealNotUpdated": {
+      "title": "Il pasto non è stato aggiornato"
+    },
+
+    "mealNotDeleted": {
+      "title": "Il pasto non è stato eliminato"
+    },
+        "noUserEmail": {
+      "title": "Nessun utente esiste con questa email"
+    },
+    "invalidOtp": {
+      "title": "OTP non valido o scaduto"
+    },
+        "logoutError": {
+      "title": "Errore durante il logout"
+    }
+  },
+    "auth": {
+    "login": {
+      "welcome": "Bentornato",
+      "subtitle": "Accedi per continuare al tuo account",
+      "continueWithGoogle": "Continua con Google",
+      "dontHaveAccount": "Non hai un account?",
+      "signUp": "Registrati",
+      "languageToggle": "Lingua",
+      "email": "Email",
+      "emailPlaceholder": "tuo@email.com",
+      "password": "Password",
+      "passwordPlaceholder": "La tua password",
+      "forgotPassword": "Password dimenticata?",
+      "signIn": "Accedi",
+      "errors": {
+        "emailRequired": "L'email è obbligatoria",
+        "emailInvalid": "Email non valida",
+        "passwordRequired": "La password è obbligatoria",
+        "passwordMin": "La password deve contenere almeno 6 caratteri"
+      }
+    },
+    "register": {
+      "createAccount": "Crea un account",
+      "signUpToGetStarted": "Registrati per iniziare",
+      "alreadyHaveAccount": "Hai già un account?",
+      "signIn": "Accedi",
+      "somethingWentWrong": "Qualcosa è andato storto",
+            "fullName": "Nome completo",
+      "fullNamePlaceholder": "Il tuo nome completo",
+      "email": "Email",
+      "emailPlaceholder": "tuo@email.com",
+      "password": "Password",
+      "passwordPlaceholder": "Crea una password",
+      "confirmPassword": "Conferma Password",
+      "confirmPasswordPlaceholder": "Conferma la tua password",
+      "creatingAccount": "Creazione account...",
+      "errors": {
+        "nameRequired": "Il nome è obbligatorio",
+        "emailRequired": "L'email è obbligatoria",
+        "emailInvalid": "Email non valida",
+        "passwordRequired": "La password è obbligatoria",
+        "passwordMin": "La password deve contenere almeno 6 caratteri",
+        "passwordMismatch": "Le password non coincidono"
+      }
+    }
+  }
+}

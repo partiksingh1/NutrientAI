@@ -97,7 +97,7 @@ export const recommend = async (req: Request, res: Response) => {
     const [user, goal, preferences, mealLogs, recentConversations] = await Promise.all([
       prisma.user.findUnique({
         where: { id: Number(userId) },
-        select: { id: true, username: true, age: true, weight: true, height: true, gender: true, activityLevel: true, profile_completed: true }
+        select: { id: true, username: true, age: true, weight: true, height: true, gender: true, activityLevel: true, profile_completed: true, language: true }
       }),
       prisma.goal.findFirst({ where: { userId: Number(userId), isActive: true }, orderBy: { startDate: 'desc' }, select: { type: true, description: true, startDate: true, endDate: true } }),
       prisma.preferences.findUnique({ where: { userId: Number(userId) }, select: { dietType: true, allergies: true, mealFrequency: true, snackIncluded: true } }),
@@ -169,15 +169,27 @@ export const recommend = async (req: Request, res: Response) => {
     console.log('[SUMMARY] Meals Summary:\n', mealsSummary);
 
     // --- 7. Profile summary ---
-    const profileSummary = `
-User: ${user.username} (${user.gender || 'Not specified'})
-Age: ${user.age || 'Not specified'}, Weight: ${user.weight || 'Not specified'}kg, Height: ${user.height || 'Not specified'}cm
-Activity Level: ${user.activityLevel || 'Not specified'}
-Goal: ${goal.type}${goal.description ? ` - ${goal.description}` : ''}
-Diet Type: ${preferences.dietType}
-Allergies: ${preferences.allergies || 'None'}
-Meal Frequency: ${preferences.mealFrequency} meals/day${preferences.snackIncluded ? ' (includes snacks)' : ''}
-Profile Completed: ${user.profile_completed ? 'Yes' : 'No'}
+    const language = user.language || 'en'; // Default to English if no language is set
+
+    // Generate Profile Summary dynamically based on language
+    const profileSummary = language === 'it' ? `
+      Utente: ${user.username} (${user.gender || 'Non specificato'})
+      Età: ${user.age || 'Non specificato'}, Peso: ${user.weight || 'Non specificato'}kg, Altezza: ${user.height || 'Non specificato'}cm
+      Livello di attività: ${user.activityLevel || 'Non specificato'}
+      Obiettivo: ${goal.type}${goal.description ? ` - ${goal.description}` : ''}
+      Tipo di dieta: ${preferences.dietType}
+      Allergie: ${preferences.allergies || 'Nessuna'}
+      Frequenza dei pasti: ${preferences.mealFrequency} pasti/giorno${preferences.snackIncluded ? ' (include snack)' : ''}
+      Profilo completo: ${user.profile_completed ? 'Sì' : 'No'}
+    ` : `
+      User: ${user.username} (${user.gender || 'Not specified'})
+      Age: ${user.age || 'Not specified'}, Weight: ${user.weight || 'Not specified'}kg, Height: ${user.height || 'Not specified'}cm
+      Activity Level: ${user.activityLevel || 'Not specified'}
+      Goal: ${goal.type}${goal.description ? ` - ${goal.description}` : ''}
+      Diet Type: ${preferences.dietType}
+      Allergies: ${preferences.allergies || 'None'}
+      Meal Frequency: ${preferences.mealFrequency} meals/day${preferences.snackIncluded ? ' (includes snacks)' : ''}
+      Profile Completed: ${user.profile_completed ? 'Yes' : 'No'}
     `.trim();
     console.log('[SUMMARY] Profile Summary:\n', profileSummary);
 
@@ -191,69 +203,127 @@ Profile Completed: ${user.profile_completed ? 'Yes' : 'No'}
       goalType: goal.type as string | null // Ensure goalType is compatible
     });
     console.log('[TARGETS] calorieTarget:', calorieTarget, 'proteinTarget:', proteinTarget, 'tdee:', tdee);
-    // --- 10. Prompt (tight, with partial-data behavior baked in) ---
-    const prompt = ChatPromptTemplate.fromTemplate(`
-You are a helpful, personalized nutrition assistant for a mobile app. 
-Keep responses SHORT, structured, and actionable — avoid unnecessary fluff.  
-
----  
-USER PROFILE (context):
-{profileSummary}
-
-MEAL LOG (today):
-{mealsSummary}
-
-RECENT CHAT CONTEXT:
-{shortTermMemory}
-
-RELEVANT PAST CONVERSATIONS:
-{vectorMemory}
-
-USER’S QUESTION:
-{input}
-
----  
-RULES (STRICT):
-1. Always prioritize USER PROFILE info (calorieTarget, proteinTarget, dietType, allergies, preferences).
-2. MEAL LOGS (if available):
-   - Use them for ANALYSIS or PROGRESS tracking.
-   - If missing/empty → ignore them and still generate a valid answer.
-3. NEVER invent profile details (like allergies or diet type).
-4. Always return clear, concise, and structured answers.
-5. Use bullet points, short paragraphs, and avoid unnecessary explanations.
-
----  
-MODES:
-
-**ANALYSIS MODE (Triggered by: "analyze", "how did I eat", "summary", "progress")**
-- Summarize the meals logged today or over a given period.
-- Compare intake vs targets (calories, protein, macros).
-- Highlight progress, good habits, and areas to improve.
-- Suggest small adjustments (e.g., “add protein at dinner”).
-
-**PLANNING MODE (Triggered by: "plan", "diet", "tomorrow", "weekly", "monthly", "meal schedule")**
-- Create structured meal plans (daily, tomorrow, weekly, monthly).
-- Use calorie/protein targets + dietType + allergies + mealFrequency.
-- If meal logs exist → reference them for continuity.
-- If NO meals exist → still generate a full plan from profile info.
-- Plans should hit calorie/protein goals and be realistic, simple, and varied.
-
----  
-OUTPUT FORMAT (Plain Text Only):
-
-- Begin with a short context line (e.g., "Here's your weekly plan..." or "Here's a dinner suggestion...")
-- Structure the rest of the message into clear, emoji-labeled sections using only plain text.
-- Use emojis for section headers:
-  - 🥗 Meal Plan
-  - 🎯 Targets
-  - ✅ Quick Tips
-- For each section, use simple hyphens (-) or bullets to list items.
-- Do NOT use markdown formatting (no **bold**, no *, no _, no headers).
-- Keep each section short, concise, and readable as-is in plain text.
-- Include line breaks between sections.
 
 
-      `);
+    // Construct the prompt based on language
+    const prompt = language === 'it' ? ChatPromptTemplate.fromTemplate(`
+      Sei un assistente nutrizionale personalizzato per un'app mobile.
+      Mantieni le risposte BREVI, strutturate e pratiche — evita inutili spiegazioni.
+
+      ---  
+      PROFILO UTENTE (contesto):
+      {profileSummary}
+
+      LOG PASTI (oggi):
+      {mealsSummary}
+
+      CONTESTO CHAT RECENTE:
+      {shortTermMemory}
+
+      CONVERSAZIONI PASSATE RILEVANTI:
+      {vectorMemory}
+
+      DOMANDA DELL'UTENTE:
+      {input}
+
+      ---  
+      REGOLAMENTI (STRETTI):
+      1. Dai sempre priorità alle informazioni del PROFILO UTENTE (calorieTarget, proteinTarget, dietType, allergies, preferences).
+      2. LOG PASTI (se disponibili):
+         - Usali per ANALISI o monitoraggio dei progressi.
+         - Se mancano/vuoti → ignorali e genera comunque una risposta valida.
+      3. NON INVENTARE dettagli del profilo (come allergie o tipo di dieta).
+      4. Restituisci risposte chiare, concise e strutturate.
+      5. Usa elenchi puntati, paragrafi brevi ed evita spiegazioni inutili.
+
+      ---  
+      MODI:
+
+      **ANALISI (Attivato da: "analizza", "come ho mangiato", "riepilogo", "progressi")**
+      - Riepiloga i pasti registrati oggi o in un periodo specifico.
+      - Confronta l'assunzione con gli obiettivi (calorie, proteine, macro).
+      - Evidenzia i progressi, le buone abitudini e le aree da migliorare.
+      - Suggerisci piccole modifiche (ad esempio, “aggiungi proteine a cena”).
+
+      **PIANIFICAZIONE (Attivato da: "piano", "dieta", "domani", "settimanale", "mensile", "piano pasti")**
+      - Crea piani alimentari strutturati (giornalieri, settimanali, mensili).
+      - Usa gli obiettivi calorici/proteici + tipo di dieta + allergie + frequenza pasti.
+      - Se esistono log dei pasti → fai riferimento a questi per continuità.
+      - Se non ci sono pasti → genera comunque un piano completo dalle informazioni del profilo.
+      - I piani dovrebbero rispettare gli obiettivi calorici/proteici e essere realistici, semplici e vari.
+
+      ---  
+      FORMATO RISPOSTA (Solo Testo Puro):
+      - Inizia con una breve linea di contesto (es. “Ecco il tuo piano settimanale...” o “Ecco un suggerimento per cena...”).
+      - Struttura il resto del messaggio in sezioni brevi, etichettate con emoji, utilizzando solo testo normale.
+      - Usa emoji per le intestazioni delle sezioni:
+         - 🥗 Piano Pasti
+         - 🎯 Obiettivi
+         - ✅ Suggerimenti Veloci
+      - Per ogni sezione, usa trattini (-) o punti elenco per elencare gli elementi.
+      - NON usare formattazione markdown (no **grassetto**, no *, no _, no intestazioni).
+      - Mantieni ogni sezione breve, concisa e leggibile così com'è in testo normale.
+      - Inserisci interruzioni di riga tra le sezioni.
+    `) : ChatPromptTemplate.fromTemplate(`
+      You are a helpful, personalized nutrition assistant for a mobile app.
+      Keep responses SHORT, structured, and actionable — avoid unnecessary fluff.
+
+      ---  
+      USER PROFILE (context):
+      {profileSummary}
+
+      MEAL LOG (today):
+      {mealsSummary}
+
+      RECENT CHAT CONTEXT:
+      {shortTermMemory}
+
+      RELEVANT PAST CONVERSATIONS:
+      {vectorMemory}
+
+      USER’S QUESTION:
+      {input}
+
+      ---  
+      RULES (STRICT):
+      1. Always prioritize USER PROFILE info (calorieTarget, proteinTarget, dietType, allergies, preferences).
+      2. MEAL LOGS (if available):
+         - Use them for ANALYSIS or PROGRESS tracking.
+         - If missing/empty → ignore them and still generate a valid answer.
+      3. NEVER invent profile details (like allergies or diet type).
+      4. Always return clear, concise, and structured answers.
+      5. Use bullet points, short paragraphs, and avoid unnecessary explanations.
+
+      ---  
+      MODES:
+
+      **ANALYSIS MODE (Triggered by: "analyze", "how did I eat", "summary", "progress")**
+      - Summarize the meals logged today or over a given period.
+      - Compare intake vs targets (calories, protein, macros).
+      - Highlight progress, good habits, and areas to improve.
+      - Suggest small adjustments (e.g., “add protein at dinner”).
+
+      **PLANNING MODE (Triggered by: "plan", "diet", "tomorrow", "weekly", "monthly", "meal schedule")**
+      - Create structured meal plans (daily, tomorrow, weekly, monthly).
+      - Use calorie/protein targets + dietType + allergies + mealFrequency.
+      - If meal logs exist → reference them for continuity.
+      - If NO meals exist → still generate a full plan from profile info.
+      - Plans should hit calorie/protein goals and be realistic, simple, and varied.
+
+      ---  
+      OUTPUT FORMAT (Plain Text Only):
+      - Begin with a short context line (e.g., "Here's your weekly plan..." or "Here's a dinner suggestion...")
+      - Structure the rest of the message into clear, emoji-labeled sections using only plain text.
+      - Use emojis for section headers:
+         - 🥗 Meal Plan
+         - 🎯 Targets
+         - ✅ Quick Tips
+      - For each section, use simple hyphens (-) or bullets to list items.
+      - Do NOT use markdown formatting (no **bold**, no *, no _, no headers).
+      - Keep each section short, concise, and readable as-is in plain text.
+      - Include line breaks between sections.
+
+    `);
 
     const chain = prompt.pipe(model);
     console.log('[LLM] Sending prompt to model...');
@@ -316,9 +386,6 @@ OUTPUT FORMAT (Plain Text Only):
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
-
-
-
 
 // Get user's single conversation messages
 export const getConversationMessages = async (req: Request, res: Response) => {

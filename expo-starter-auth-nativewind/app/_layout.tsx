@@ -9,6 +9,7 @@ import ToastManager, { Toast } from "toastify-react-native";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import "../global.css";
 import toastConfig from "@/utils/toastConfig";
+import { i18n } from "@/lib/i18next";
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync().catch(() => { });
@@ -28,10 +29,11 @@ function AuthGate() {
 
       if (!connected) {
         Toast.show({
-          type: 'warn',
-          text1: "No Internet Connection",
-          text2: "Please check your internet connection to continue",
+          type: "warn",
+          text1: i18n.t("toast.noInternet.title"),
+          text2: i18n.t("toast.noInternet.msg")
         });
+
       }
     });
 

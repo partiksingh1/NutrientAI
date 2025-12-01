@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     View,
     Text,
@@ -7,6 +7,7 @@ import {
     Switch,
     ActivityIndicator,
     FlatList,
+    Alert,
 } from "react-native";
 import {
     HelpCircle,
@@ -16,6 +17,9 @@ import {
     X,
     User2Icon,
     ChevronDown,
+    LanguagesIcon,
+    ArrowDown,
+    Globe,
 } from "lucide-react-native";
 
 import type {
@@ -24,6 +28,11 @@ import type {
     UpdatePreferencesData,
     DailyGoals,
 } from "@/services/userService";
+import { i18n } from "@/lib/i18next";
+import { useAuth } from "@/context/AuthContext";
+import { fetchWithAuth } from "@/utils/apiWithAuth";
+import toastConfig from "@/utils/toastConfig";
+import { Toast } from "toastify-react-native";
 
 type Props = {
     profile: UserProfile | null;
@@ -71,6 +80,76 @@ export default function ProfileSections(props: Props) {
     } = props;
 
     const goalKeys: (keyof DailyGoals)[] = ["calories", "protein", "carbs", "fats"];
+    const { language, setLanguage } = useAuth();
+    const [isLoading, setIsLoading] = useState(false)
+
+
+    const toggleLanguage = async () => {
+        // Show a confirmation dialog
+        Alert.alert(
+            i18n.t("profile.changeLanguageTitle"), // Title of the confirmation dialog
+            i18n.t("profile.changeLanguageConfirmation"), // Message for the confirmation dialog
+            [
+                {
+                    text: i18n.t("profile.cancel"), // Cancel button
+                    onPress: () => {
+                        console.log("Language change canceled");
+                    },
+                    style: "cancel",
+                },
+                {
+                    text: i18n.t("profile.confirm"), // Confirm button
+                    onPress: async () => {
+                        try {
+                            // Set loading state to true while the API request is in progress
+                            setIsLoading(true);
+
+                            // Switch between "en" and "it"
+                            const newLang = language === "en" ? "it" : "en";
+
+                            // Update the language state
+                            setLanguage(newLang);
+                            i18n.locale = newLang;
+
+                            // Prepare the profile data for the API call
+                            const profileData = {
+                                language: newLang, // Assuming the profile data has a `language` field
+                                // Add other necessary profile data here if needed
+                            };
+
+                            // Call the API to update the user's language preference
+                            const response = await fetchWithAuth(`${process.env.EXPO_PUBLIC_API_URL}/user/profile`, {
+                                method: "PUT",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify(profileData),
+                            });
+
+                            if (!response.ok) {
+                                throw new Error("Failed to update language preference");
+                            }
+
+                            // Handle the response (e.g., update UI or notify the user)
+                            const responseData = await response.json();
+                            console.log("Language updated successfully:", responseData);
+
+                            Toast.success(i18n.t("profile.languageUpdatedSuccessfully")); // Adjust the message for your localization
+                        } catch (error) {
+                            // Handle errors (e.g., show a toast or alert)
+                            console.error("Error updating language:", error);
+                            Alert.alert(i18n.t("profile.languageUpdateFailed")); // Adjust error message
+                        } finally {
+                            // Set loading state to false once the API request is finished
+                            setIsLoading(false);
+                        }
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
+    };
+
 
     return (
         <View>
@@ -92,7 +171,7 @@ export default function ProfileSections(props: Props) {
                         className="px-3 py-2 border rounded-md border-gray-300 flex-row items-center gap-2"
                     >
                         {isEditing ? <X size={16} color="black" /> : <Edit size={16} color="black" />}
-                        <Text>{isEditing ? "Cancel" : "Edit"}</Text>
+                        <Text>{isEditing ? `${i18n.t("profile.cancel")}` : `${i18n.t("profile.edit")}`}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -100,10 +179,10 @@ export default function ProfileSections(props: Props) {
             {/* Personal Info */}
             <View className="px-6 mb-6">
                 <View className="bg-white rounded-2xl p-4 shadow-md border border-gray-200">
-                    <SectionHeader title="Personal Information" isEditing={isEditing} onSave={onSave} isSaving={isSaving} />
+                    <SectionHeader title={i18n.t("profile.personalInfo")} isEditing={isEditing} onSave={onSave} isSaving={isSaving} />
 
                     <View className="flex-row gap-4 mb-4">
-                        <Field label="Username" >
+                        <Field label={i18n.t("profile.username")} >
                             {isEditing ? (
                                 <TextInput
                                     className="border border-border rounded-md px-2 py-1 mt-1"
@@ -115,7 +194,7 @@ export default function ProfileSections(props: Props) {
                             )}
                         </Field>
 
-                        <Field label="Age">
+                        <Field label={i18n.t("profile.age")}>
                             {isEditing ? (
                                 <TextInput
                                     className="border border-border rounded-md px-2 py-1 mt-1"
@@ -126,13 +205,13 @@ export default function ProfileSections(props: Props) {
                                     }
                                 />
                             ) : (
-                                <Text className="text-sm mt-1">{profile?.age ? `${profile.age} years` : "Not set"}</Text>
+                                <Text className="text-sm mt-1">{profile?.age ? `${profile.age} ${i18n.t("profile.years")}` : `${i18n.t("profile.notSet")}`}</Text>
                             )}
                         </Field>
                     </View>
 
                     <View className="flex-row gap-4 mb-4">
-                        <Field label="Weight (kg)">
+                        <Field label={i18n.t("profile.weight")}>
                             {isEditing ? (
                                 <TextInput
                                     className="border border-border rounded-md px-2 py-1 mt-1"
@@ -143,11 +222,11 @@ export default function ProfileSections(props: Props) {
                                     }
                                 />
                             ) : (
-                                <Text className="text-sm mt-1">{profile?.weight ? `${profile.weight} kg` : "Not set"}</Text>
+                                <Text className="text-sm mt-1">{profile?.weight ? `${profile.weight} kg` : `${i18n.t("profile.notSet")}`}</Text>
                             )}
                         </Field>
 
-                        <Field label="Height (cm)">
+                        <Field label={i18n.t("profile.height")}>
                             {isEditing ? (
                                 <TextInput
                                     className="border border-border rounded-md px-2 py-1 mt-1"
@@ -158,18 +237,18 @@ export default function ProfileSections(props: Props) {
                                     }
                                 />
                             ) : (
-                                <Text className="text-sm mt-1">{profile?.height ? `${profile.height} cm` : "Not set"}</Text>
+                                <Text className="text-sm mt-1">{profile?.height ? `${profile.height} cm` : `${i18n.t("profile.notSet")}`}</Text>
                             )}
                         </Field>
                     </View>
 
                     <View className="flex-row gap-4">
                         <Field label="Activity Level">
-                            <Text className="text-sm mt-1 capitalize">{profile?.activityLevel ?? "Not set"}</Text>
+                            <Text className="text-sm mt-1 capitalize">{profile?.activityLevel ?? `${i18n.t("profile.notSet")}`}</Text>
                         </Field>
 
-                        <Field label="Gender">
-                            <Text className="text-sm mt-1 capitalize">{profile?.gender ?? "Not set"}</Text>
+                        <Field label={i18n.t("profile.gender")}>
+                            <Text className="text-sm mt-1 capitalize">{profile?.gender ?? `${i18n.t("profile.notSet")}`}</Text>
                         </Field>
                     </View>
                 </View>
@@ -178,11 +257,11 @@ export default function ProfileSections(props: Props) {
             {/* Preferences */}
             <View className="px-6 mb-6">
                 <View className="bg-white rounded-2xl p-4 shadow-md border border-gray-200">
-                    <SectionHeader title="Preferences" isEditing={isEditing} onSave={onSave} isSaving={isSaving} />
+                    <SectionHeader title={i18n.t("profile.preferences")} isEditing={isEditing} onSave={onSave} isSaving={isSaving} />
 
                     {/* Diet Type */}
                     <View className="mb-4">
-                        <Text className="text-xs text-muted-foreground mb-2">Diet Type</Text>
+                        <Text className="text-xs text-muted-foreground mb-2">{i18n.t("profile.dietType")}</Text>
                         {isEditing ? (
                             <TouchableOpacity
                                 onPress={openDietModal}
@@ -193,20 +272,20 @@ export default function ProfileSections(props: Props) {
                                         ? getDietTypeLabel(preferences.dietType)
                                         : profile?.preferences?.dietType
                                             ? getDietTypeLabel(profile.preferences.dietType)
-                                            : "Select diet type"}
+                                            : `${i18n.t("profile.selectDietType")}`}
                                 </Text>
                                 <ChevronDown size={16} color="gray" />
                             </TouchableOpacity>
                         ) : (
                             <Text className="text-sm mt-1">
-                                {profile?.preferences?.dietType ? getDietTypeLabel(profile.preferences.dietType) : "Not set"}
+                                {profile?.preferences?.dietType ? getDietTypeLabel(profile.preferences.dietType) : `${i18n.t("profile.notSet")}`}
                             </Text>
                         )}
                     </View>
 
                     {/* Meal Frequency */}
                     <View className="mb-4">
-                        <Text className="text-xs text-muted-foreground mb-2">Meals per Day</Text>
+                        <Text className="text-xs text-muted-foreground mb-2">{i18n.t("profile.mealFrequency")}</Text>
                         {isEditing ? (
                             <TouchableOpacity
                                 onPress={openMealModal}
@@ -217,20 +296,20 @@ export default function ProfileSections(props: Props) {
                                         ? getMealFrequencyLabel(preferences.mealFrequency)
                                         : profile?.preferences?.mealFrequency
                                             ? getMealFrequencyLabel(profile.preferences.mealFrequency)
-                                            : "Select meal frequency"}
+                                            : `${i18n.t("profile.selectMealFrequency")}`}
                                 </Text>
                                 <ChevronDown size={16} color="gray" />
                             </TouchableOpacity>
                         ) : (
                             <Text className="text-sm mt-1">
-                                {profile?.preferences?.mealFrequency ? getMealFrequencyLabel(profile.preferences.mealFrequency) : "Not set"}
+                                {profile?.preferences?.mealFrequency ? getMealFrequencyLabel(profile.preferences.mealFrequency) : `${i18n.t("profile.notSet")}`}
                             </Text>
                         )}
                     </View>
 
                     {/* Snack Included */}
                     <View className="flex-row items-center justify-between py-2 mb-4">
-                        <Text className="text-sm">Include Snacks</Text>
+                        <Text className="text-sm">{i18n.t("profile.includeSnacks")}</Text>
                         <Switch
                             value={
                                 preferences.snackIncluded !== undefined
@@ -244,7 +323,7 @@ export default function ProfileSections(props: Props) {
 
                     {/* Allergies */}
                     <View>
-                        <Text className="text-xs text-muted-foreground mb-2">Allergies</Text>
+                        <Text className="text-xs text-muted-foreground mb-2">{i18n.t("profile.allergies")}</Text>
                         {isEditing ? (
                             <TextInput
                                 className="border border-border rounded-md px-3 py-2 text-sm"
@@ -257,7 +336,7 @@ export default function ProfileSections(props: Props) {
                                 numberOfLines={2}
                             />
                         ) : (
-                            <Text className="text-sm mt-1">{profile?.preferences?.allergies ?? "None"}</Text>
+                            <Text className="text-sm mt-1">{profile?.preferences?.allergies ?? `${i18n.t("profile.none")}`}</Text>
                         )}
                     </View>
                 </View>
@@ -266,7 +345,7 @@ export default function ProfileSections(props: Props) {
             {/* Daily Goals */}
             <View className="px-6 mb-6">
                 <View className="bg-white rounded-2xl p-4 shadow-md border border-gray-200">
-                    <SectionHeader title="Daily Nutritional Goals" isEditing={isEditing} onSave={onSave} isSaving={isSaving} />
+                    <SectionHeader title={i18n.t("profile.dailyGoals")} isEditing={isEditing} onSave={onSave} isSaving={isSaving} />
 
                     {goalKeys.map((key) => (
                         <View key={key} className="mb-4">
@@ -293,14 +372,36 @@ export default function ProfileSections(props: Props) {
             {/* Settings */}
             <View className="px-6 pb-6">
                 <View className="bg-white rounded-2xl p-4 shadow-md border border-gray-200">
+                    <TouchableOpacity className="flex-row items-center justify-between gap-3 p-2">
+                        <View className="flex-row gap-3 p-2">
+                            <LanguagesIcon size={18} color="black" />
+                            <Text className="text-sm">{i18n.t("profile.changeLanguage")}</Text>
+                        </View>
+                        <TouchableOpacity
+                            onPress={toggleLanguage}
+                            disabled={isLoading} // Disable the button if loading is true
+                            className="flex-row bg-gray-200 p-2 px-4 rounded-md gap-1"
+                        >
+                            {isLoading ? (
+                                <ActivityIndicator size="small" color="black" />
+                            ) : (
+                                <>
+                                    <Globe size={18} color="black" />
+                                    <Text className="text-gray-800">
+                                        {language === "en" ? "Italian" : "English"}
+                                    </Text>
+                                </>
+                            )}
+                        </TouchableOpacity>
+                    </TouchableOpacity>
                     <TouchableOpacity className="flex-row items-center gap-3 p-4">
                         <HelpCircle size={18} color="black" />
-                        <Text className="text-sm">Help & Support</Text>
+                        <Text className="text-sm">{i18n.t("profile.helpSupport")}</Text>
                     </TouchableOpacity>
                     <View className="h-[1px] bg-border" />
                     <TouchableOpacity className="flex-row items-center gap-3 p-4" onPress={onLogout}>
                         <LogOut size={18} color="red" />
-                        <Text className="text-sm text-red-500">Sign Out</Text>
+                        <Text className="text-sm text-red-500">{i18n.t("profile.signOut")}</Text>
                     </TouchableOpacity>
                     <View className="h-[1px] bg-border" />
                     {/* <TouchableOpacity className="flex-row items-center gap-3 p-4" onPress={onDeleteAccount}>
@@ -332,7 +433,7 @@ function SectionHeader({
             </View>
             {isEditing && (
                 <TouchableOpacity onPress={onSave} disabled={isSaving} className="px-2 py-1 bg-primary rounded-md flex-row items-center gap-1">
-                    {isSaving ? <ActivityIndicator size="small" color="#fff" /> : <><Save size={14} color="black" /><Text className="text-sm">Save</Text></>}
+                    {isSaving ? <ActivityIndicator size="small" color="#fff" /> : <><Save size={14} color="black" /><Text className="text-sm">{i18n.t("profile.save")}</Text></>}
                 </TouchableOpacity>
             )}
         </View>
